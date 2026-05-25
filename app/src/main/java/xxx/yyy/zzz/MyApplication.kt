@@ -9,9 +9,9 @@ import xxx.yyy.zzz.core.data.coreDataModule
 import xxx.yyy.zzz.core.database.coreDatabaseModule
 import xxx.yyy.zzz.core.datastore.coreDatastoreModule
 import xxx.yyy.zzz.core.domain.coreDomainModule
-import xxx.yyy.zzz.core.navigation.coreNavigationModule
 import xxx.yyy.zzz.core.network.coreNetworkModule
 import xxx.yyy.zzz.feature.home.impl.featureHomeModule
+import xxx.yyy.zzz.feature.settings.impl.featureSettingsModule
 
 class MyApplication : Application() {
 
@@ -23,7 +23,6 @@ class MyApplication : Application() {
             androidContext(this@MyApplication)
             modules(
                 // Core Infrastructure
-                coreNavigationModule,
                 coreNetworkModule,
                 coreDatabaseModule,
                 coreDatastoreModule,
@@ -32,6 +31,7 @@ class MyApplication : Application() {
 
                 // Feature Modules
                 featureHomeModule,
+                featureSettingsModule,
             )
         }
     }

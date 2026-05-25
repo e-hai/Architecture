@@ -1,17 +1,13 @@
 plugins {
     alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.koin)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.core.navigation"
+    namespace = "xxx.yyy.zzz.feature.settings.api"
 }
 
 dependencies {
     api(libs.androidx.navigation3.runtime)
-    api(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.lifecycle.viewModel.navigation3)
     implementation(libs.kotlinx.serialization.json)
 }

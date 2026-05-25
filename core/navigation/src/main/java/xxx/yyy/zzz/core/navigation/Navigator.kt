@@ -1,23 +1,84 @@
 package xxx.yyy.zzz.core.navigation
 
+
+import android.annotation.SuppressLint
 import androidx.navigation3.runtime.NavKey
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
 
-sealed interface NavigationAction {
-    data object Pop : NavigationAction
-    data class Navigate(val destination: NavKey) : NavigationAction
-}
+/**
+ * Handles navigation events (forward and back) by updating the navigation state.
+ *
+ * @param state - The navigation state that will be updated in response to navigation events.
+ */
+class Navigator(val state: NavigationState) {
 
-class Navigator {
-    private val _actions = Channel<NavigationAction>(Channel.BUFFERED)
-    val actions = _actions.receiveAsFlow()
-
-    fun navigate(destination: NavKey) {
-        _actions.trySend(NavigationAction.Navigate(destination))
+    /**
+     * Navigate to a navigation key
+     *
+     * @param key - the navigation key to navigate to.
+     */
+    fun navigate(key: NavKey) {
+        when (key) {
+            state.currentTopLevelKey -> clearSubStack()
+            in state.topLevelKeys -> goToTopLevel(key)
+            else -> goToKey(key)
+        }
     }
 
-    fun pop() {
-        _actions.trySend(NavigationAction.Pop)
+    /**
+     * Go back to the previous navigation key.
+     */
+    fun goBack() {
+        if (state.isAtRoot) return
+
+        when (state.currentKey) {
+            state.startKey -> {
+                // Should not happen if isAtRoot is checked, but for safety:
+                if (state.topLevelStack.size > 1) {
+                    state.topLevelStack.removeLastOrNull()
+                }
+            }
+            state.currentTopLevelKey -> {
+                // We're at the base of the current sub stack, go back to the previous top level
+                // stack.
+                state.topLevelStack.removeLastOrNull()
+            }
+            else -> state.currentSubStack.removeLastOrNull()
+        }
+    }
+
+    /**
+     * Go to a non top level key.
+     */
+    private fun goToKey(key: NavKey) {
+        state.currentSubStack.apply {
+            // Remove it if it's already in the stack so it's added at the end.
+            remove(key)
+            add(key)
+        }
+    }
+
+    /**
+     * Go to a top level stack.
+     */
+    private fun goToTopLevel(key: NavKey) {
+        state.topLevelStack.apply {
+            if (key == state.startKey) {
+                // This is the start key. Clear the stack so it's added as the only key.
+                clear()
+            } else {
+                // Remove it if it's already in the stack so it's added at the end.
+                remove(key)
+            }
+            add(key)
+        }
+    }
+
+    /**
+     * Clearing all but the root key in the current sub stack.
+     */
+    private fun clearSubStack() {
+        state.currentSubStack.run {
+            if (size > 1) subList(1, size).clear()
+        }
     }
 }

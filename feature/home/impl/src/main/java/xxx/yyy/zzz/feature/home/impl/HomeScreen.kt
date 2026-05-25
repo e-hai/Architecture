@@ -18,6 +18,7 @@ import xxx.yyy.zzz.core.ui.LoadingView
 
 @Composable
 fun HomeRoute(
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
@@ -26,6 +27,7 @@ fun HomeRoute(
     HomeScreen(
         uiState = uiState,
         onSyncClick = viewModel::onSyncClick,
+        onSettingsClick = onSettingsClick,
         modifier = modifier
     )
 }
@@ -34,6 +36,7 @@ fun HomeRoute(
 fun HomeScreen(
     uiState: HomeUiState,
     onSyncClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -45,6 +48,12 @@ fun HomeScreen(
             text = "Welcome to Modern Android!",
             style = MaterialTheme.typography.headlineMedium
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(onClick = onSettingsClick) {
+            Text(text = "Go to Settings")
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         when (uiState) {

@@ -42,3 +42,5 @@ include(":core:ui")
 // Include Feature Modules
 include(":feature:home:api")
 include(":feature:home:impl")
+include(":feature:settings:api")
+include(":feature:settings:impl")
