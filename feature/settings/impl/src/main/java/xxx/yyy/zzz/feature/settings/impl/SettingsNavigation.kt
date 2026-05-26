@@ -8,7 +8,8 @@ import xxx.yyy.zzz.feature.settings.api.SettingsNavKey
 import xxx.yyy.zzz.feature.settings.api.UserAgreementNavKey
 
 fun EntryProviderScope<NavKey>.settingsEntry(
-    onNavigate: (NavKey) -> Unit
+    onNavigate: (NavKey) -> Unit,
+    onBack: () -> Unit
 ) {
     entry<SettingsNavKey> {
         SettingsRoute(

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
 
@@ -41,11 +42,6 @@ fun SettingsScreen(
     Column(
         modifier = modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp)
-        )
 
         settingsItems.forEach { item ->
             SettingsRow(
@@ -69,16 +65,16 @@ fun SettingsRow(
             .padding(16.dp)
     ) {
         Text(
-            text = item.title,
+            text = stringResource(item.titleRes),
             style = MaterialTheme.typography.bodyLarge
         )
     }
 }
 
-enum class SettingsItem(val title: String) {
-    UserAgreement("User Agreement"),
-    PrivacyPolicy("Privacy Policy"),
-    AboutApp("About App")
+enum class SettingsItem(val titleRes: Int) {
+    UserAgreement(R.string.settings_user_agreement),
+    PrivacyPolicy(R.string.settings_privacy_policy),
+    AboutApp(R.string.settings_about_app)
 }
 
 @Composable

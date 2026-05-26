@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">My App</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Home Screen -->
+    <string name="home_discover">Discover</string>
+    <string name="home_featured_content">Featured Content</string>
+    <string name="home_recent_updates">Recent Updates</string>
+    <string name="home_loading">Loading...</string>
+    <string name="home_error">Error: %1$s</string>
+    
+    <!-- Home Detail Screen -->
+    <string name="detail_edit_title">Edit Title</string>
+    <string name="detail_title_label">Title</string>
+    <string name="detail_save">Save</string>
+    <string name="detail_cancel">Cancel</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_user_agreement">User Agreement</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_about_app">About App</string>
+    
+    <!-- Common -->
+    <string name="common_back">Back</string>
+    <string name="common_exit_toast">Press again to exit</string>
+    
+    <!-- User Agreement -->
+    <string name="user_agreement_title">User Agreement</string>
+    
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    
+    <!-- About App -->
+    <string name="about_app_title">About App</string>
+</resources>

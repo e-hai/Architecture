@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_user_agreement">User Agreement</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_about_app">About App</string>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">我的应用</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_settings">设置</string>
+    
+    <!-- Home Screen -->
+    <string name="home_discover">发现</string>
+    <string name="home_featured_content">精选内容</string>
+    <string name="home_recent_updates">最近更新</string>
+    <string name="home_loading">加载中...</string>
+    <string name="home_error">错误：%1$s</string>
+    
+    <!-- Home Detail Screen -->
+    <string name="detail_edit_title">编辑标题</string>
+    <string name="detail_title_label">标题</string>
+    <string name="detail_save">保存</string>
+    <string name="detail_cancel">取消</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">设置</string>
+    <string name="settings_user_agreement">用户协议</string>
+    <string name="settings_privacy_policy">隐私政策</string>
+    <string name="settings_about_app">关于应用</string>
+    
+    <!-- Common -->
+    <string name="common_back">返回</string>
+    <string name="common_exit_toast">再次点击退出应用</string>
+    
+    <!-- User Agreement -->
+    <string name="user_agreement_title">用户协议</string>
+    
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">隐私政策</string>
+    
+    <!-- About App -->
+    <string name="about_app_title">关于应用</string>
+</resources>

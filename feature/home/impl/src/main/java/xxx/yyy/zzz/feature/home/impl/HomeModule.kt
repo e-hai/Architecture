@@ -10,4 +10,7 @@ val featureHomeModule = module {
             userRepository = get()
         )
     }
+    viewModel {
+        HomeDetailViewModel()
+    }
 }

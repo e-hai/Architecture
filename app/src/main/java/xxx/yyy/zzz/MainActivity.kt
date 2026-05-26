@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import xxx.yyy.zzz.core.navigation.Navigator
@@ -19,7 +17,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 开启全面屏，让系统状态栏和导航栏变为完全透明且去遮罩
         enableEdgeToEdge()
+
         setContent {
             val navigationState = rememberNavigationState(
                 startKey = HomeNavKey,

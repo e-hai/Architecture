@@ -3,16 +3,24 @@ package xxx.yyy.zzz
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -25,11 +33,16 @@ import androidx.navigation3.ui.NavDisplay
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.toEntries
+import xxx.yyy.zzz.feature.home.api.HomeDetailNavKey
 import xxx.yyy.zzz.feature.home.api.HomeNavKey
 import xxx.yyy.zzz.feature.home.impl.homeEntry
+import xxx.yyy.zzz.feature.settings.api.AboutAppNavKey
+import xxx.yyy.zzz.feature.settings.api.PrivacyPolicyNavKey
 import xxx.yyy.zzz.feature.settings.api.SettingsNavKey
+import xxx.yyy.zzz.feature.settings.api.UserAgreementNavKey
 import xxx.yyy.zzz.feature.settings.impl.settingsEntry
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavGraph(
     navigationState: NavigationState,
@@ -46,20 +59,49 @@ fun AppNavGraph(
             (context as? Activity)?.finish()
         } else {
             lastBackPressTime = currentTime
-            Toast.makeText(context, "再次点击退出应用", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.common_exit_toast, Toast.LENGTH_SHORT).show()
         }
     }
 
     val myEntryProvider = entryProvider {
         homeEntry(
-            onSettingsClick = { navigator.navigate(SettingsNavKey) }
+            onNavigate = { navigator.navigate(it) },
+            onBack = { navigator.goBack() },
         )
-        settingsEntry {
-            navigator.navigate(it)
-        }
+        settingsEntry(
+            onNavigate = { navigator.navigate(it) },
+            onBack = { navigator.goBack() },
+        )
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = when (val key = navigationState.currentKey) {
+                            is HomeNavKey -> stringResource(R.string.nav_home)
+                            is SettingsNavKey -> stringResource(R.string.nav_settings)
+                            is HomeDetailNavKey -> key.title
+                            is UserAgreementNavKey -> stringResource(R.string.user_agreement_title)
+                            is PrivacyPolicyNavKey -> stringResource(R.string.privacy_policy_title)
+                            is AboutAppNavKey -> stringResource(R.string.about_app_title)
+                            else -> stringResource(R.string.app_name)
+                        }
+                    )
+                },
+                navigationIcon = {
+                    if (navigationState.currentKey !in navigationState.topLevelKeys) {
+                        IconButton(onClick = { navigator.goBack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.common_back)
+                            )
+                        }
+                    }
+                }
+            )
+        },
         bottomBar = {
             if (navigationState.currentKey in navigationState.topLevelKeys) {
                 NavigationBar {
@@ -80,9 +122,9 @@ fun AppNavGraph(
                             label = {
                                 Text(
                                     text = when (key) {
-                                        is HomeNavKey -> "Home"
-                                        is SettingsNavKey -> "Settings"
-                                        else -> "Unknown"
+                                        is HomeNavKey -> stringResource(R.string.nav_home)
+                                        is SettingsNavKey -> stringResource(R.string.nav_settings)
+                                        else -> stringResource(android.R.string.unknownName)
                                     }
                                 )
                             }

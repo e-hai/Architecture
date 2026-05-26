@@ -7,8 +7,9 @@
         android:name=".MyApplication"
         android:allowBackup="true"
         android:label="My Project Scaffold"
-        android:supportsRtl="true">
-        
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyProjectAppName">
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -17,7 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
     </application>
 
 </manifest>

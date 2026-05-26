@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings Screen -->
+    <string name="settings_title">设置</string>
+    <string name="settings_user_agreement">用户协议</string>
+    <string name="settings_privacy_policy">隐私政策</string>
+    <string name="settings_about_app">关于应用</string>
+</resources>
