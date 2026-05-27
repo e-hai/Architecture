@@ -36,7 +36,8 @@ fun SettingsScreen(
     val settingsItems = listOf(
         SettingsItem.UserAgreement,
         SettingsItem.PrivacyPolicy,
-        SettingsItem.AboutApp
+        SettingsItem.AboutApp,
+        SettingsItem.GoToHome
     )
 
     Column(
@@ -48,6 +49,7 @@ fun SettingsScreen(
                 item = item,
                 onClick = { onItemClick(item) }
             )
+
             HorizontalDivider()
         }
     }
@@ -74,7 +76,8 @@ fun SettingsRow(
 enum class SettingsItem(val titleRes: Int) {
     UserAgreement(R.string.settings_user_agreement),
     PrivacyPolicy(R.string.settings_privacy_policy),
-    AboutApp(R.string.settings_about_app)
+    AboutApp(R.string.settings_about_app),
+    GoToHome(R.string.settings_go_to_home)
 }
 
 @Composable

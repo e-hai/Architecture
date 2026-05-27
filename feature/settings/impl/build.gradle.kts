@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.myproject.android.feature)
+    alias(libs.plugins.myproject.android.feature.impl)
 }
 
 android {
@@ -7,5 +7,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":feature:settings:api"))
+    implementation(projects.feature.settings.api)
+    implementation(projects.feature.home.api)
 }

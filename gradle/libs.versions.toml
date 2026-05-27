@@ -118,7 +118,8 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 # Project Convention Plugins
 myproject-android-application = { id = "myproject.android.application" }
 myproject-android-library = { id = "myproject.android.library" }
-myproject-android-feature = { id = "myproject.android.feature" }
+myproject-android-feature-api = { id = "myproject.android.feature.api" }
+myproject-android-feature-impl = { id = "myproject.android.feature.impl" }
 myproject-kotlin-jvm = { id = "myproject.kotlin.jvm" }
 myproject-android-room = { id = "myproject.android.room" }
 myproject-koin = { id = "myproject.koin" }

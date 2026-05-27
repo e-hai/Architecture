@@ -1,13 +1,7 @@
 plugins {
-    alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.myproject.android.feature.api)
 }
 
 android {
     namespace = "xxx.yyy.zzz.feature.settings.api"
-}
-
-dependencies {
-    api(libs.androidx.navigation3.runtime)
-    implementation(libs.kotlinx.serialization.json)
 }

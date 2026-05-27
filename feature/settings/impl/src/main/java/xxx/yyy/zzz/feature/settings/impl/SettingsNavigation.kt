@@ -2,6 +2,7 @@ package xxx.yyy.zzz.feature.settings.impl
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import xxx.yyy.zzz.feature.home.api.HomeNavKey
 import xxx.yyy.zzz.feature.settings.api.AboutAppNavKey
 import xxx.yyy.zzz.feature.settings.api.PrivacyPolicyNavKey
 import xxx.yyy.zzz.feature.settings.api.SettingsNavKey
@@ -18,6 +19,7 @@ fun EntryProviderScope<NavKey>.settingsEntry(
                     SettingsItem.UserAgreement -> UserAgreementNavKey
                     SettingsItem.PrivacyPolicy -> PrivacyPolicyNavKey
                     SettingsItem.AboutApp -> AboutAppNavKey
+                    SettingsItem.GoToHome -> HomeNavKey
                 }
                 onNavigate(destination)
             }

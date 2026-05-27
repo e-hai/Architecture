@@ -22,9 +22,13 @@ gradlePlugin {
             id = "myproject.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
-        register("androidFeature") {
-            id = "myproject.android.feature"
-            implementationClass = "AndroidFeatureConventionPlugin"
+        register("androidFeatureApi") {
+            id = "myproject.android.feature.api"
+            implementationClass = "AndroidFeatureApiConventionPlugin"
+        }
+        register("androidFeatureImpl") {
+            id = "myproject.android.feature.impl"
+            implementationClass = "AndroidFeatureImplConventionPlugin"
         }
         register("kotlinJvm") {
             id = "myproject.kotlin.jvm"

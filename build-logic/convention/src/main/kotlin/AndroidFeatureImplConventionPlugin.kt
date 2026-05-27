@@ -4,13 +4,18 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
-class AndroidFeatureConventionPlugin : Plugin<Project> {
+class AndroidFeatureImplConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
                 apply("myproject.android.library")
                 apply("myproject.android.compose")
                 apply("myproject.koin")
+            }
+
+            extensions.configure<LibraryExtension> {
+                configureKotlinAndroid(this)
+                defaultConfig.consumerProguardFiles("consumer-rules.pro")
             }
 
             dependencies {
