@@ -9,6 +9,7 @@ androidGradlePlugin = "9.2.1"
 kotlin = "2.3.21"
 ksp = "2.3.8"
 spotless = "8.5.1"
+googleServices = "4.4.3"
 
 # Core Jetpack Libraries
 androidxCore = "1.18.0"
@@ -34,6 +35,9 @@ kotlinxDatetime = "0.8.0"
 
 # Async & Reactive
 kotlinxCoroutines = "1.11.0"
+
+# Firebase
+firebaseBom = "34.5.0"
 
 # Testing & Verification
 junit = "4.13.2"
@@ -92,6 +96,10 @@ kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime",
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 
+# Firebase Platform (BOM)
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+
 # Testing Libraries
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
@@ -114,6 +122,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 
 # Project Convention Plugins
 myproject-android-application = { id = "myproject.android.application" }

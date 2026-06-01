@@ -1,4 +1,4 @@
-package xxx.yyy.zzz.core.domain
+package xxx.yyy.zzz.core.data
 
 import kotlinx.coroutines.flow.Flow
 import xxx.yyy.zzz.core.model.User

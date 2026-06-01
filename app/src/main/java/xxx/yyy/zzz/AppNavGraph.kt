@@ -30,6 +30,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import org.koin.compose.koinInject
+import xxx.yyy.zzz.core.analytics.AnalyticsEvent
+import xxx.yyy.zzz.core.analytics.AnalyticsHelper
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.toEntries
@@ -50,6 +53,7 @@ fun AppNavGraph(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val analyticsHelper = koinInject<AnalyticsHelper>()
     var lastBackPressTime by remember { mutableLongStateOf(0L) }
 
     // Intercept back press when at the root to show "press again to exit" toast
@@ -91,7 +95,7 @@ fun AppNavGraph(
                     )
                 },
                 navigationIcon = {
-                    if (navigationState.currentKey !in navigationState.topLevelKeys) {
+                    if (!navigationState.isAtTopLevel) {
                         IconButton(onClick = { navigator.goBack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -103,12 +107,21 @@ fun AppNavGraph(
             )
         },
         bottomBar = {
-            if (navigationState.currentKey in navigationState.topLevelKeys) {
+            if (navigationState.isAtTopLevel) {
                 NavigationBar {
                     navigationState.topLevelKeys.forEach { key ->
                         NavigationBarItem(
                             selected = key == navigationState.currentTopLevelKey,
-                            onClick = { navigator.navigate(key) },
+                            onClick = {
+                                // Track tab switch event
+                                analyticsHelper.logEvent(
+                                    AnalyticsEvent(
+                                        name = "tab_switch",
+                                        params = mapOf("tab_name" to key::class.simpleName.orEmpty())
+                                    )
+                                )
+                                navigator.navigate(key)
+                            },
                             icon = {
                                 Icon(
                                     imageVector = when (key) {

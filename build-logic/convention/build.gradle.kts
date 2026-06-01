@@ -30,10 +30,6 @@ gradlePlugin {
             id = "myproject.android.feature.impl"
             implementationClass = "AndroidFeatureImplConventionPlugin"
         }
-        register("kotlinJvm") {
-            id = "myproject.kotlin.jvm"
-            implementationClass = "KotlinJvmConventionPlugin"
-        }
         register("androidRoom") {
             id = "myproject.android.room"
             implementationClass = "AndroidRoomConventionPlugin"

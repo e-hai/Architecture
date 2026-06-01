@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false
+    alias(libs.plugins.google.services) apply false
     // Spotless is applied globally or delegated to submodules via build-logic convention plugin.
     alias(libs.plugins.spotless)
 }

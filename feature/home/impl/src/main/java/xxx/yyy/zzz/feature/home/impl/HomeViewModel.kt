@@ -10,8 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import xxx.yyy.zzz.core.domain.GetUserUseCase
-import xxx.yyy.zzz.core.domain.UserRepository
+import xxx.yyy.zzz.core.data.UserRepository
 import xxx.yyy.zzz.core.model.ListItem
 import xxx.yyy.zzz.core.model.User
 
@@ -26,7 +25,6 @@ sealed interface HomeUiState {
 }
 
 class HomeViewModel(
-    private val getUserUseCase: GetUserUseCase,
     private val userRepository: UserRepository
 ) : ViewModel() {
 

@@ -1,6 +1,10 @@
 plugins {
-    alias(libs.plugins.myproject.kotlin.jvm)
+    alias(libs.plugins.myproject.android.library)
     alias(libs.plugins.kotlin.serialization)
+}
+
+android {
+    namespace = "xxx.yyy.zzz.core.model"
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package xxx.yyy.zzz.core.network
+package xxx.yyy.zzz.core.network.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

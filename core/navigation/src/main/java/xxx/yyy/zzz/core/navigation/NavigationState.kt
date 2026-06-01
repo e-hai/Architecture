@@ -63,6 +63,10 @@ class NavigationState(
     val isAtRoot: Boolean by derivedStateOf {
         topLevelStack.size == 1 && currentSubStack.size == 1
     }
+
+    val isAtTopLevel: Boolean by derivedStateOf {
+        currentKey in topLevelKeys
+    }
 }
 
 /**

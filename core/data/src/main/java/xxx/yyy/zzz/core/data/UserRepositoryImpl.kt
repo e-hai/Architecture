@@ -5,10 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import xxx.yyy.zzz.core.database.UserDao
-import xxx.yyy.zzz.core.database.toEntity
+import xxx.yyy.zzz.core.database.dao.UserDao
+import xxx.yyy.zzz.core.database.model.toEntity
 import xxx.yyy.zzz.core.datastore.UserPreferencesDataSource
-import xxx.yyy.zzz.core.domain.UserRepository
 import xxx.yyy.zzz.core.model.User
 import xxx.yyy.zzz.core.network.UserService
 

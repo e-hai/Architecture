@@ -6,7 +6,6 @@ import org.koin.dsl.module
 val featureHomeModule = module {
     viewModel {
         HomeViewModel(
-            getUserUseCase = get(),
             userRepository = get()
         )
     }

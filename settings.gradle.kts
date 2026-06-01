@@ -33,13 +33,13 @@ include(":app")
 
 // Include Core Infrastructure Modules
 include(":core:model")
-include(":core:domain")
 include(":core:data")
 include(":core:database")
 include(":core:datastore")
 include(":core:network")
 include(":core:navigation")
 include(":core:ui")
+include(":core:analytics")
 
 // Include Feature Modules
 include(":feature:home:api")
