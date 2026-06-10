@@ -6,7 +6,7 @@
 
 ---
 
-## 📐 总体架构
+##  总体架构
 
 - 采用 `app` / `feature:*` / `core:*` 三级模块化布局
 - **Feature 模块必须拆分为 `:feature:xxx:api` 和 `:feature:xxx:impl` 两个模块**，外部仅依赖 api 模块
@@ -16,7 +16,7 @@
 
 ---
 
-## 📦 模块清单
+##  模块清单
 
 ### App 模块
 - Application 入口，`startKoin` 加载所有模块
@@ -84,7 +84,7 @@
 
 ---
 
-## 🔧 Build-Logic 与 Gradle 约定插件
+##  Build-Logic 与 Gradle 约定插件
 
 ### 核心原则
 - 项目根目录必须包含 `build-logic` 目录，作为约定插件的集中管理中心
@@ -134,7 +134,7 @@ plugins {
 
 ---
 
-## 💉 依赖注入 (Koin)
+##  依赖注入 (Koin)
 
 ### 强制规则
 - **强制使用 Koin**，全面禁止 Hilt、Dagger 及 `@Inject`、`@HiltViewModel` 等注解
@@ -161,7 +161,7 @@ factory { SomeFactory() }
 
 ---
 
-## 🎨 UI 层
+## UI 层
 
 ### Jetpack Compose
 - UI **完全使用 Jetpack Compose**
@@ -197,7 +197,7 @@ factory { SomeFactory() }
 
 ---
 
-## 🧭 导航
+##  导航
 
 - 所有导航操作通过 `core:navigation` 的 **Navigator 封装**进行
 - 跨模块导航**仅通过** `:feature:xxx:api` 暴露的 NavKey
@@ -205,7 +205,7 @@ factory { SomeFactory() }
 
 ---
 
-## 💾 数据层 (Data Layer)
+##  数据层 (Data Layer)
 
 ### Repository 实现
 - 实现 Repository，组合 Remote + Local
@@ -232,7 +232,7 @@ factory { SomeFactory() }
 
 ---
 
-## 🧪 测试
+##  测试
 
 ### Mock 策略
 - **禁止使用 Mockito/MockK**
@@ -246,7 +246,7 @@ factory { SomeFactory() }
 
 ---
 
-## 🏗️ 脚手架
+##  脚手架
 
 ### 占位符规范
 - 生成脚手架项目时，所有 `applicationId`、`namespace`、代码包名统一使用占位符 `xxx.yyy.zzz`
@@ -262,7 +262,7 @@ factory { SomeFactory() }
 
 ---
 
-## ✅ 工程化
+##  工程化
 
 ### Spotless 代码格式化
 - 项目必须配置 Spotless
@@ -272,34 +272,34 @@ factory { SomeFactory() }
 
 ---
 
-## 🚫 禁止项
+## 禁止项
 
 ### 依赖注入
-- ❌ 禁止 Hilt、Dagger
-- ❌ 禁止 `@Inject` 注解
+-  禁止 Hilt、Dagger
+-  禁止 `@Inject` 注解
 
 ### 数据观察
-- ❌ 禁止 LiveData
+-  禁止 LiveData
 
 ### 数据存储
-- ❌ 禁止 SharedPreferences
-- ❌ 禁止 Proto DataStore
+-  禁止 SharedPreferences
+-  禁止 Proto DataStore
 
 ### 协程
-- ❌ 禁止硬编码 Dispatchers
-- ❌ 禁止 GlobalScope
+-  禁止硬编码 Dispatchers
+-  禁止 GlobalScope
 
 ### 架构边界
-- ❌ 禁止模块间直接传递 DTO/Entity
-- ❌ 禁止在 UI 层导入 retrofit/room
-- ❌ 禁止假设 applicationId 与 namespace 相同
+-  禁止模块间直接传递 DTO/Entity
+-  禁止在 UI 层导入 retrofit/room
+-  禁止假设 applicationId 与 namespace 相同
 
 ### 其他
-- ❌ 禁止 kotlin-android-extensions
+-  禁止 kotlin-android-extensions
 
 ---
 
-## 📝 代码命名规范
+##  代码命名规范
 
 ### 数据层命名
 
@@ -348,7 +348,7 @@ factory { SomeFactory() }
 
 ---
 
-## 📝 最佳实践总结
+##  最佳实践总结
 
 1. **模块化清晰**：严格遵循 api/impl 分离
 2. **依赖注入统一**：全部使用 Koin

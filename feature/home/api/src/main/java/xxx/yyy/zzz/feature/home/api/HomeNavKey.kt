@@ -8,12 +8,20 @@ data object HomeNavKey : NavKey
 
 @Serializable
 data class HomeDetailNavKey(
-    val id: String,
+    val id: Int,
     val title: String
 ) : NavKey
 
+@Serializable
+data class HomeResultNavKey(
+    val id: Int,
+    val title: String,
+    val od: Int = 0
+) : NavKey
 
+
+@Serializable
 data class TitleEditResult(
-    val id: String, //唯一标识
+    val id: Int, //唯一标识
     val title: String
 )

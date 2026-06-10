@@ -8,7 +8,10 @@
     <string name="home_error">错误：%1$s</string>
     
     <!-- Home Detail Screen -->
-    <string name="detail_edit_title">编辑标题</string>
-    <string name="detail_title_label">标题</string>
-    <string name="detail_save">保存</string>
+    <string name="detail_title">标题</string>
+    
+    <!-- Home Result Screen -->
+    <string name="result_edit_title">编辑标题</string>
+    <string name="result_title_label">标题</string>
+    <string name="result_save">保存</string>
 </resources>

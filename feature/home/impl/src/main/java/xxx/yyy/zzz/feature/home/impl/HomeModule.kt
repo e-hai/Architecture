@@ -12,4 +12,7 @@ val featureHomeModule = module {
     viewModel {
         HomeDetailViewModel()
     }
+    viewModel {
+        HomeResultViewModel()
+    }
 }

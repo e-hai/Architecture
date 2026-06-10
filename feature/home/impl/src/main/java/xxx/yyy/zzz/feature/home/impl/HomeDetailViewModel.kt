@@ -1,5 +1,6 @@
 package xxx.yyy.zzz.feature.home.impl
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,19 +12,32 @@ class HomeDetailViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeDetailUiState())
     val uiState: StateFlow<HomeDetailUiState> = _uiState.asStateFlow()
 
+    init {
+        Log.d("HomeDetailViewModel", "init")
+    }
+
     fun initialize(title: String) {
-        _uiState.value = HomeDetailUiState(
-            originalTitle = title,
-            editedTitle = title
-        )
+        _uiState.update {
+            HomeDetailUiState(
+                title = title
+            )
+        }
     }
 
     fun onTitleChange(newTitle: String) {
-        _uiState.update { it.copy(editedTitle = newTitle) }
+        _uiState.update { currentState ->
+            currentState.copy(
+                title = newTitle
+            )
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("HomeDetailViewModel", "onCleared")
     }
 
     data class HomeDetailUiState(
-        val originalTitle: String = "",
-        val editedTitle: String = ""
+        val title: String = ""
     )
 }

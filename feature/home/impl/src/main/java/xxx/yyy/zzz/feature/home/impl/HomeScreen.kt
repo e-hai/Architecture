@@ -1,5 +1,6 @@
 package xxx.yyy.zzz.feature.home.impl
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,13 +18,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.result.LocalResultEventBus
 import androidx.navigation3.runtime.result.ResultEffect
 import org.koin.androidx.compose.koinViewModel
 import xxx.yyy.zzz.core.model.ListItem
@@ -31,23 +36,22 @@ import xxx.yyy.zzz.feature.home.api.TitleEditResult
 
 @Composable
 fun HomeRoute(
-    onNavigateToEdit: (ListItem) -> Unit,
+    onNavigateToDetail: (ListItem) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel()
 ) {
 
     // 监听 TitleEditResult 类型的返回事件
-    ResultEffect<TitleEditResult> { result ->
-        // 当图片编辑页 sendResult 且当前页重新可见时，此 Lambda 会被触发
-        // 此时通知 ViewModel 去更新对应 item 的数据
-        viewModel.updateItemTitle(itemId = result.id, newTitle = result.title)
+    LocalResultEventBus.current.conflateAsState<TitleEditResult?>(null).value?.let {
+        viewModel.updateItemTitle(it.id,it.title)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+
     HomeScreen(
         uiState = uiState,
-        onNavigateToEdit = onNavigateToEdit,
+        onNavigateToDetail = onNavigateToDetail,
         modifier = modifier
     )
 }
@@ -55,7 +59,7 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    onNavigateToEdit: (ListItem) -> Unit,
+    onNavigateToDetail: (ListItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
@@ -89,7 +93,7 @@ fun HomeScreen(
                             items(uiState.featuredItems) { item ->
                                 FeaturedCard(
                                     title = item.title,
-                                    onClick = { onNavigateToEdit(item) }
+                                    onClick = { onNavigateToDetail(item) }
                                 )
                             }
                         }
@@ -108,7 +112,7 @@ fun HomeScreen(
                 items(uiState.recentItems) { item ->
                     RegularItem(
                         title = item.title,
-                        onClick = { onNavigateToEdit(item) }
+                        onClick = { onNavigateToDetail(item) }
                     )
                 }
             }
@@ -166,6 +170,26 @@ fun RegularItem(
             Text(text = title, style = MaterialTheme.typography.bodyLarge)
         }
     }
+}
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    HomeScreen(
+        uiState = HomeUiState.Success(
+            featuredItems = listOf(
+                ListItem(id = 1, title = "Item 1"),
+            ),
+            recentItems = listOf(
+                ListItem(id = 1, title = "Item 1"),
+                ListItem(id = 2, title = "Item 2"),
+                ListItem(id = 3, title = "Item 3"),
+                ListItem(id = 4, title = "Item 4"),
+            )
+        ),
+        onNavigateToDetail = {},
+        modifier = Modifier
+    )
 }
 
 

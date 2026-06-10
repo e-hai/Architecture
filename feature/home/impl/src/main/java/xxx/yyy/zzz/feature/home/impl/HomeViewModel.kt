@@ -1,7 +1,10 @@
 package xxx.yyy.zzz.feature.home.impl
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import xxx.yyy.zzz.core.data.UserRepository
 import xxx.yyy.zzz.core.model.ListItem
 import xxx.yyy.zzz.core.model.User
@@ -29,15 +33,15 @@ class HomeViewModel(
 ) : ViewModel() {
 
     private val _featuredItems = listOf(
-        ListItem(id = "1", title = "Featured Item 1"),
-        ListItem(id = "2", title = "Featured Item 2"),
-        ListItem(id = "3", title = "Featured Item 3"),
-        ListItem(id = "4", title = "Featured Item 4"),
-        ListItem(id = "5", title = "Featured Item 5")
+        ListItem(id = 1, title = "Featured Item 1"),
+        ListItem(id = 2, title = "Featured Item 2"),
+        ListItem(id = 3, title = "Featured Item 3"),
+        ListItem(id = 4, title = "Featured Item 4"),
+        ListItem(id = 5, title = "Featured Item 5")
     )
 
     private val _recentItems = List(10) { index ->
-        ListItem(id = "r${index + 1}", title = "Regular Item ${index + 1}")
+        ListItem(id = index + 1, title = "Regular Item ${index + 1}")
     }
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -45,11 +49,11 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-
             _uiState.value = HomeUiState.Success(
                 featuredItems = _featuredItems,
                 recentItems = _recentItems
             )
+
         }
     }
 
@@ -59,7 +63,7 @@ class HomeViewModel(
         }
     }
 
-    fun updateItemTitle(itemId: String, newTitle: String) {
+    fun updateItemTitle(itemId: Int, newTitle: String) {
         _uiState.update { currentState ->
             if (currentState is HomeUiState.Success) {
                 val updatedFeaturedItems = currentState.featuredItems.map {

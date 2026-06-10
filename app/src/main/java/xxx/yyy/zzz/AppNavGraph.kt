@@ -38,6 +38,7 @@ import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.toEntries
 import xxx.yyy.zzz.feature.home.api.HomeDetailNavKey
 import xxx.yyy.zzz.feature.home.api.HomeNavKey
+import xxx.yyy.zzz.feature.home.api.HomeResultNavKey
 import xxx.yyy.zzz.feature.home.impl.homeEntry
 import xxx.yyy.zzz.feature.settings.api.AboutAppNavKey
 import xxx.yyy.zzz.feature.settings.api.PrivacyPolicyNavKey
@@ -87,6 +88,7 @@ fun AppNavGraph(
                             is HomeNavKey -> stringResource(R.string.nav_home)
                             is SettingsNavKey -> stringResource(R.string.nav_settings)
                             is HomeDetailNavKey -> key.title
+                            is HomeResultNavKey -> key.title
                             is UserAgreementNavKey -> stringResource(R.string.user_agreement_title)
                             is PrivacyPolicyNavKey -> stringResource(R.string.privacy_policy_title)
                             is AboutAppNavKey -> stringResource(R.string.about_app_title)
