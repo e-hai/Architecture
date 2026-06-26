@@ -11,6 +11,9 @@ bin/
 # Log/OS Files
 *.log
 
+# Gemini CLI working directory
+temp_gemini/
+
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
