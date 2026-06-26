@@ -8,15 +8,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class UserPreferencesDataSource(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
 ) {
     private object PreferencesKeys {
         val LAST_SYNCED_USER_ID = stringPreferencesKey("last_synced_user_id")
     }
 
-    val lastSyncedUserId: Flow<String?> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.LAST_SYNCED_USER_ID]
-    }
+    val lastSyncedUserId: Flow<String?> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.LAST_SYNCED_USER_ID]
+        }
 
     suspend fun setLastSyncedUserId(userId: String) {
         dataStore.edit { preferences ->

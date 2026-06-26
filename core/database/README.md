@@ -4,6 +4,27 @@ Room 数据库模块，提供本地数据持久化能力。
 
 ---
 
+## 📦 依赖
+
+- `:core:model` — 领域模型（Entity 通过 Mapper 转换为领域模型）
+- `libs.room-runtime` — Room 运行时
+- `libs.room-ktx` — Room Kotlin 扩展（Flow、suspend 支持）
+- `libs.room-compiler`（KSP）— Room 注解处理器
+- `libs.koin-core`, `libs.koin-android` — Koin 依赖注入
+
+---
+
+## 📦 公共 API
+
+| 类型 | 说明 |
+|------|------|
+| `UserEntity` | Room 实体类（位于 `model/` 目录） |
+| `UserDao` | DAO 接口（位于 `dao/` 目录） |
+| `AppDatabase` | Room 数据库定义 |
+| `object coreDatabaseModule` | Koin 模块，提供 Database 和 DAO 实例 |
+
+---
+
 ## 📦 模块结构
 
 ```

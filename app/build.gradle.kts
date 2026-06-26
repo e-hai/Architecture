@@ -33,7 +33,7 @@ android {
             keyAlias = localProperties.getProperty("DEV_KEY_ALIAS", "")
             keyPassword = localProperties.getProperty("DEV_KEY_PASSWORD", "")
         }
-        
+
         // Prod 签名配置
         create("prod") {
             storeFile = file(localProperties.getProperty("PROD_STORE_FILE", ""))
@@ -89,13 +89,12 @@ androidComponents {
     }
 }
 
-
 dependencies {
     implementation(project(":feature:home:api"))
     implementation(project(":feature:home:impl"))
     implementation(project(":feature:settings:api"))
     implementation(project(":feature:settings:impl"))
-    
+
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:data"))

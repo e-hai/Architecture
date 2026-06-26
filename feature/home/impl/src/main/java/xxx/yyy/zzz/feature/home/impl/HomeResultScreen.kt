@@ -24,7 +24,7 @@ fun HomeResultRoute(
     title: String,
     onNavigateBack: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeResultViewModel = koinViewModel()
+    viewModel: HomeResultViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -39,7 +39,7 @@ fun HomeResultRoute(
             Log.d("HomeRoute", "HomeResultScreen onSaveClick: ${uiState.editedTitle}")
             onNavigateBack(uiState.editedTitle)
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -48,29 +48,30 @@ fun HomeResultScreen(
     uiState: HomeResultViewModel.HomeResultUiState,
     onTitleChange: (String) -> Unit,
     onSaveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = stringResource(R.string.result_edit_title),
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
         )
 
         OutlinedTextField(
             value = uiState.editedTitle,
             onValueChange = onTitleChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.result_title_label)) }
+            label = { Text(stringResource(R.string.result_title_label)) },
         )
 
         Button(
             onClick = onSaveClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(stringResource(R.string.result_save))
         }

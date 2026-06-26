@@ -10,19 +10,20 @@ import xxx.yyy.zzz.feature.settings.api.UserAgreementNavKey
 
 fun EntryProviderScope<NavKey>.settingsEntry(
     onNavigate: (NavKey) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     entry<SettingsNavKey> {
         SettingsRoute(
             onItemClick = { item ->
-                val destination = when (item) {
-                    SettingsItem.UserAgreement -> UserAgreementNavKey
-                    SettingsItem.PrivacyPolicy -> PrivacyPolicyNavKey
-                    SettingsItem.AboutApp -> AboutAppNavKey
-                    SettingsItem.GoToHome -> HomeNavKey
-                }
+                val destination =
+                    when (item) {
+                        SettingsItem.UserAgreement -> UserAgreementNavKey
+                        SettingsItem.PrivacyPolicy -> PrivacyPolicyNavKey
+                        SettingsItem.AboutApp -> AboutAppNavKey
+                        SettingsItem.GoToHome -> HomeNavKey
+                    }
                 onNavigate(destination)
-            }
+            },
         )
     }
 

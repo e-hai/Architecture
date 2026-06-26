@@ -5,6 +5,9 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Build-logic compiled classes
+bin/
+
 # Log/OS Files
 *.log
 

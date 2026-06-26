@@ -16,6 +16,29 @@
 
 ---
 
+##  架构决策记录 (ADR)
+
+本项目使用 ADR（Architecture Decision Record）记录架构决策。
+
+- **存放位置：** `docs/adr/` 目录
+- **格式：** MADR（Markdown Architectural Decision Records）
+- **模板：** `docs/adr/0000-adr-template.md`
+- **状态定义：**
+  - `Proposed` — 提议中，待评审
+  - `Accepted` — 已接受，开始实施
+  - `Deprecated` — 已废弃
+  - `Superseded` — 被其他 ADR 替代
+- **何时新增 ADR：**
+  - 引入新的技术选型或第三方库
+  - 修改已生效的架构规则
+  - 任何涉及跨模块影响的架构决策
+- **编写规范：**
+  - 使用中文编写，技术名词保留英文
+  - 编号按时间顺序递增
+  - 状态必须明确标注
+
+---
+
 ##  模块清单
 
 ### App 模块
@@ -156,8 +179,8 @@ factory { SomeFactory() }
 ```
 
 ### CoroutineDispatcher
-- **必须通过 Koin 注入**（如 `named("io")`）
-- **禁止硬编码** `Dispatchers.IO`
+- **推荐通过 Koin 注入**（如 `named("io")`），便于测试时替换
+- 允许在 ViewModel 或 Repository 中直接使用 `Dispatchers.IO`，但建议在构造参数中注入以获得更好的可测试性
 
 ---
 
@@ -266,9 +289,62 @@ factory { SomeFactory() }
 
 ### Spotless 代码格式化
 - 项目必须配置 Spotless
-- 运行 `./gradlew spotlessApply` 格式化代码
+- 运行 `./gradlew spotlessApply` 格式化代码（后续用 `./gradlew :模块名:spotlessApply` 可格式化单个模块）
 - CI 必须包含 `./gradlew spotlessCheck`
 - Gradle 约定插件封装 Spotless 配置
+
+---
+
+##  构建与运行
+
+### 常用 Gradle 命令
+
+```bash
+./gradlew assemble           # 编译全部模块
+./gradlew check              # 运行所有检查
+./gradlew spotlessApply      # 代码格式化 (ktlint)
+./gradlew spotlessCheck      # 格式检查（CI 门禁）
+./gradlew clean              # 清理构建产物
+./gradlew :app:assembleDebug # 编译单个模块（替换模块名即可）
+```
+
+### 测试
+
+测试命令：`./gradlew test`（单元测试），`./gradlew connectedCheck`（仪器化测试）。
+
+**注意：** 本项目当前为脚手架，**尚无实际测试用例**。编写测试时请遵循以下规范：
+- 禁止 Mockito/MockK，必须使用手写 Fake
+- ViewModel 测试使用 Turbine
+- UI 测试使用 Compose Testing + 语义操作
+
+### 技术栈概要
+
+| 领域 | 选型 |
+|------|------|
+| UI | Jetpack Compose (Material3, Icons Extended) via BOM 2026.05.01 |
+| 导航 | Navigation 3 Runtime + UI（1.2.0-alpha03） |
+| DI | Koin 4.2.1（core, android, compose） |
+| 数据库 | Room 2.8.4 + KSP 2.3.8 |
+| 键值存储 | DataStore Preferences 1.2.1 |
+| 网络 | Retrofit 3.0.0 + OkHttp 5.3.2 |
+| 序列化 | kotlinx-serialization 1.11.0, kotlinx-datetime 0.8.0 |
+| 异步 | kotlinx-coroutines 1.11.0 |
+| 分析 | Firebase Analytics |
+| 构建 | Gradle 9.x, AGP 9.2.1, Kotlin 2.3.21 |
+
+### SDK / JVM 版本
+
+- `compileSdk = 37`, `minSdk = 26`, `targetSdk = 34`
+- Java 17 / Kotlin JVM target 17
+- 所有依赖版本统一通过 `gradle/libs.versions.toml`（Version Catalog）管理
+
+### 项目初始化
+
+本项目为**脚手架模板**，创建真实项目时运行：
+```bash
+./init_project.sh   # 替换 xxx.yyy.zzz / myproject 占位符
+```
+脚本支持分别输入 `applicationId` 与 `namespace`，自动更新包目录结构和约定插件 ID。详见脚本文件中的注释。
 
 ---
 

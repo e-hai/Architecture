@@ -15,21 +15,21 @@ class UserRepositoryImpl(
     private val userDao: UserDao,
     private val userService: UserService,
     private val userPreferencesDataSource: UserPreferencesDataSource,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
 ) : UserRepository {
-
-    override fun getUserStream(userId: String): Flow<User?> {
-        return userDao.getUserStream(userId)
+    override fun getUserStream(userId: String): Flow<User?> =
+        userDao
+            .getUserStream(userId)
             .map { entity -> entity?.toDomainModel() }
             .flowOn(ioDispatcher)
-    }
 
-    override suspend fun syncUser(userId: String): Result<Unit> = withContext(ioDispatcher) {
-        runCatching {
-            val response = userService.getUser(userId)
-            val domainModel = response.toDomainModel()
-            userDao.insertUser(domainModel.toEntity())
-            userPreferencesDataSource.setLastSyncedUserId(userId)
+    override suspend fun syncUser(userId: String): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                val response = userService.getUser(userId)
+                val domainModel = response.toDomainModel()
+                userDao.insertUser(domainModel.toEntity())
+                userPreferencesDataSource.setLastSyncedUserId(userId)
+            }
         }
-    }
 }

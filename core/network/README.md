@@ -4,6 +4,26 @@
 
 ---
 
+## 📦 依赖
+
+- `:core:model` — 领域模型（DTO 通过 Mapper 转换为领域模型）
+- `libs.retrofit-core` — Retrofit 网络框架
+- `libs.retrofit-kotlin-serialization` — kotlinx-serialization 转换器
+- `libs.okhttp-logging` — OkHttp 日志拦截器
+- `libs.kotlinx-serialization-json` — JSON 序列化
+
+---
+
+## 📦 公共 API
+
+| 类型 | 说明 |
+|------|------|
+| `UserResponse` | 网络响应 DTO（位于 `model/` 目录，以 `Response` 结尾） |
+| `UserService` | Retrofit 服务接口 |
+| `object coreNetworkModule` | Koin 模块，提供 OkHttpClient、Retrofit 和 Service 实例 |
+
+---
+
 ## 📦 模块结构
 
 ```

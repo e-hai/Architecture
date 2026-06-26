@@ -3,6 +3,6 @@
 -dontwarn rx.**
 -dontwarn retrofit2.**
 -keepclassmembers,allowobfuscation class * {
-    @com.diffplug.spotless.* <fields>;
+    @kotlinx.serialization.* <fields>;
 }
 -keep class kotlinx.serialization.json.** { *; }

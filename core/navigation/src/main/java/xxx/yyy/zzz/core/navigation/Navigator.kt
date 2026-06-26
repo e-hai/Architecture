@@ -1,6 +1,5 @@
 package xxx.yyy.zzz.core.navigation
 
-
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.navigation3.runtime.NavKey
@@ -10,8 +9,9 @@ import androidx.navigation3.runtime.NavKey
  *
  * @param state - The navigation state that will be updated in response to navigation events.
  */
-class Navigator(val state: NavigationState) {
-
+class Navigator(
+    val state: NavigationState,
+) {
     /**
      * Navigate to a navigation key
      *
@@ -38,12 +38,16 @@ class Navigator(val state: NavigationState) {
                     state.topLevelStack.removeLastOrNull()
                 }
             }
+
             state.currentTopLevelKey -> {
                 // We're at the base of the current sub stack, go back to the previous top level
                 // stack.
                 state.topLevelStack.removeLastOrNull()
             }
-            else -> state.currentSubStack.removeLastOrNull()
+
+            else -> {
+                state.currentSubStack.removeLastOrNull()
+            }
         }
     }
 

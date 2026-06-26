@@ -19,14 +19,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
@@ -68,32 +67,34 @@ fun AppNavGraph(
         }
     }
 
-    val myEntryProvider = entryProvider {
-        homeEntry(
-            onNavigate = { navigator.navigate(it) },
-            onBack = { navigator.goBack() },
-        )
-        settingsEntry(
-            onNavigate = { navigator.navigate(it) },
-            onBack = { navigator.goBack() },
-        )
-    }
+    val myEntryProvider =
+        entryProvider {
+            homeEntry(
+                onNavigate = { navigator.navigate(it) },
+                onBack = { navigator.goBack() },
+            )
+            settingsEntry(
+                onNavigate = { navigator.navigate(it) },
+                onBack = { navigator.goBack() },
+            )
+        }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = when (val key = navigationState.currentKey) {
-                            is HomeNavKey -> stringResource(R.string.nav_home)
-                            is SettingsNavKey -> stringResource(R.string.nav_settings)
-                            is HomeDetailNavKey -> key.title
-                            is HomeResultNavKey -> key.title
-                            is UserAgreementNavKey -> stringResource(R.string.user_agreement_title)
-                            is PrivacyPolicyNavKey -> stringResource(R.string.privacy_policy_title)
-                            is AboutAppNavKey -> stringResource(R.string.about_app_title)
-                            else -> stringResource(R.string.app_name)
-                        }
+                        text =
+                            when (val key = navigationState.currentKey) {
+                                is HomeNavKey -> stringResource(R.string.nav_home)
+                                is SettingsNavKey -> stringResource(R.string.nav_settings)
+                                is HomeDetailNavKey -> key.title
+                                is HomeResultNavKey -> key.title
+                                is UserAgreementNavKey -> stringResource(R.string.user_agreement_title)
+                                is PrivacyPolicyNavKey -> stringResource(R.string.privacy_policy_title)
+                                is AboutAppNavKey -> stringResource(R.string.about_app_title)
+                                else -> stringResource(R.string.app_name)
+                            },
                     )
                 },
                 navigationIcon = {
@@ -101,11 +102,11 @@ fun AppNavGraph(
                         IconButton(onClick = { navigator.goBack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back)
+                                contentDescription = stringResource(R.string.common_back),
                             )
                         }
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -119,30 +120,32 @@ fun AppNavGraph(
                                 analyticsHelper.logEvent(
                                     AnalyticsEvent(
                                         name = "tab_switch",
-                                        params = mapOf("tab_name" to key::class.simpleName.orEmpty())
-                                    )
+                                        params = mapOf("tab_name" to key::class.simpleName.orEmpty()),
+                                    ),
                                 )
                                 navigator.navigate(key)
                             },
                             icon = {
                                 Icon(
-                                    imageVector = when (key) {
-                                        is HomeNavKey -> Icons.Default.Home
-                                        is SettingsNavKey -> Icons.Default.Settings
-                                        else -> Icons.Default.Home
-                                    },
-                                    contentDescription = null
+                                    imageVector =
+                                        when (key) {
+                                            is HomeNavKey -> Icons.Default.Home
+                                            is SettingsNavKey -> Icons.Default.Settings
+                                            else -> Icons.Default.Home
+                                        },
+                                    contentDescription = null,
                                 )
                             },
                             label = {
                                 Text(
-                                    text = when (key) {
-                                        is HomeNavKey -> stringResource(R.string.nav_home)
-                                        is SettingsNavKey -> stringResource(R.string.nav_settings)
-                                        else -> stringResource(android.R.string.unknownName)
-                                    }
+                                    text =
+                                        when (key) {
+                                            is HomeNavKey -> stringResource(R.string.nav_home)
+                                            is SettingsNavKey -> stringResource(R.string.nav_settings)
+                                            else -> stringResource(android.R.string.unknownName)
+                                        },
                                 )
-                            }
+                            },
                         )
                     }
                 }

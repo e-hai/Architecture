@@ -20,34 +20,34 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsRoute(
     onItemClick: (SettingsItem) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel = koinViewModel(),
 ) {
     SettingsScreen(
         onItemClick = onItemClick,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
 @Composable
 fun SettingsScreen(
     onItemClick: (SettingsItem) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val settingsItems = listOf(
-        SettingsItem.UserAgreement,
-        SettingsItem.PrivacyPolicy,
-        SettingsItem.AboutApp,
-        SettingsItem.GoToHome
-    )
+    val settingsItems =
+        listOf(
+            SettingsItem.UserAgreement,
+            SettingsItem.PrivacyPolicy,
+            SettingsItem.AboutApp,
+            SettingsItem.GoToHome,
+        )
 
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
-
         settingsItems.forEach { item ->
             SettingsRow(
                 item = item,
-                onClick = { onItemClick(item) }
+                onClick = { onItemClick(item) },
             )
 
             HorizontalDivider()
@@ -58,40 +58,43 @@ fun SettingsScreen(
 @Composable
 fun SettingsRow(
     item: SettingsItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(16.dp),
     ) {
         Text(
             text = stringResource(item.titleRes),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
 
-enum class SettingsItem(val titleRes: Int) {
+enum class SettingsItem(
+    val titleRes: Int,
+) {
     UserAgreement(R.string.settings_user_agreement),
     PrivacyPolicy(R.string.settings_privacy_policy),
     AboutApp(R.string.settings_about_app),
-    GoToHome(R.string.settings_go_to_home)
+    GoToHome(R.string.settings_go_to_home),
 }
 
 @Composable
 fun DetailScreen(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
         )
     }
 }

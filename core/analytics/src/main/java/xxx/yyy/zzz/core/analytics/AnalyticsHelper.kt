@@ -16,7 +16,10 @@ interface AnalyticsHelper {
      * @param name 属性名称
      * @param value 属性值
      */
-    fun setUserProperty(name: String, value: String?)
+    fun setUserProperty(
+        name: String,
+        value: String?,
+    )
 
     /**
      * 设置用户 ID

@@ -10,7 +10,9 @@ import com.google.firebase.analytics.logEvent
  * Firebase Analytics 助手实现
  * 封装 Firebase Analytics 的具体逻辑
  */
-class FirebaseAnalyticsHelper(private val context: Context) : AnalyticsHelper {
+class FirebaseAnalyticsHelper(
+    private val context: Context,
+) : AnalyticsHelper {
     private val firebaseAnalytics by lazy {
         // 确保 Firebase 已初始化
         if (FirebaseApp.getApps(context).isEmpty()) {
@@ -31,13 +33,15 @@ class FirebaseAnalyticsHelper(private val context: Context) : AnalyticsHelper {
         }
     }
 
-
     /**
      * 设置用户属性
      * @param name 属性名称
      * @param value 属性值
      */
-    override fun setUserProperty(name: String, value: String?) {
+    override fun setUserProperty(
+        name: String,
+        value: String?,
+    ) {
         firebaseAnalytics.setUserProperty(name, value)
     }
 

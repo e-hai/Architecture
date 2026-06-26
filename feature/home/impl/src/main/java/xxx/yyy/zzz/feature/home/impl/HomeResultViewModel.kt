@@ -7,15 +7,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class HomeResultViewModel : ViewModel() {
-
     private val _uiState = MutableStateFlow(HomeResultUiState())
     val uiState: StateFlow<HomeResultUiState> = _uiState.asStateFlow()
 
     fun initialize(title: String) {
-        _uiState.value = HomeResultUiState(
-            originalTitle = title,
-            editedTitle = title
-        )
+        _uiState.value =
+            HomeResultUiState(
+                originalTitle = title,
+                editedTitle = title,
+            )
     }
 
     fun onTitleChange(newTitle: String) {
@@ -24,6 +24,6 @@ class HomeResultViewModel : ViewModel() {
 
     data class HomeResultUiState(
         val originalTitle: String = "",
-        val editedTitle: String = ""
+        val editedTitle: String = "",
     )
 }

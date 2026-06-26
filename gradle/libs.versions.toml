@@ -18,7 +18,7 @@ androidxActivity = "1.13.0"
 
 # Compose
 androidxComposeBom = "2026.05.01"
-androidxNavigation3 = "1.2.0-alpha03"
+androidxNavigation3 = "1.2.0-alpha04"
 
 # Dependency Injection
 koin = "4.2.1"

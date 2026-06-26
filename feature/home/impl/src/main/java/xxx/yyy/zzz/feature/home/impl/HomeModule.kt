@@ -3,16 +3,17 @@ package xxx.yyy.zzz.feature.home.impl
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val featureHomeModule = module {
-    viewModel {
-        HomeViewModel(
-            userRepository = get()
-        )
+val featureHomeModule =
+    module {
+        viewModel {
+            HomeViewModel(
+                userRepository = get(),
+            )
+        }
+        viewModel {
+            HomeDetailViewModel()
+        }
+        viewModel {
+            HomeResultViewModel()
+        }
     }
-    viewModel {
-        HomeDetailViewModel()
-    }
-    viewModel {
-        HomeResultViewModel()
-    }
-}

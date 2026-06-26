@@ -4,6 +4,25 @@ Firebase Analytics 封装模块，提供统一的分析事件追踪接口。
 
 ---
 
+## 📦 依赖
+
+- `libs.firebase-bom` — Firebase BOM 版本管理
+- `libs.firebase-analytics` — Firebase Analytics SDK
+- `libs.koin-core`, `libs.koin-android` — Koin 依赖注入
+
+---
+
+## 📦 公共 API
+
+| 类型 | 说明 |
+|------|------|
+| `data class AnalyticsEvent(name: String, params: Map<String, String>)` | 分析事件数据类 |
+| `interface AnalyticsHelper` | 分析助手接口，定义统一的事件追踪方法 |
+| `class FirebaseAnalyticsHelper` | Firebase 实现 |
+| `object coreAnalyticsModule` | Koin 模块，绑定 `AnalyticsHelper` |
+
+---
+
 ## 📦 模块结构
 
 ```

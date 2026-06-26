@@ -14,7 +14,6 @@ import xxx.yyy.zzz.feature.home.impl.featureHomeModule
 import xxx.yyy.zzz.feature.settings.impl.featureSettingsModule
 
 class MyApplication : Application() {
-
     override fun onCreate() {
         super.onCreate()
 
@@ -28,7 +27,6 @@ class MyApplication : Application() {
                 coreDatabaseModule,
                 coreDatastoreModule,
                 coreDataModule,
-
                 // Feature Modules
                 featureHomeModule,
                 featureSettingsModule,

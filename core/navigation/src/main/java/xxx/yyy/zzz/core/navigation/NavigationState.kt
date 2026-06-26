@@ -1,6 +1,5 @@
 package xxx.yyy.zzz.core.navigation
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,8 +54,9 @@ class NavigationState(
         get() = subStacks.keys
 
     val currentSubStack: NavBackStack<NavKey>
-        get() = subStacks[currentTopLevelKey]
-            ?: error("Sub stack for $currentTopLevelKey does not exist")
+        get() =
+            subStacks[currentTopLevelKey]
+                ?: error("Sub stack for $currentTopLevelKey does not exist")
 
     val currentKey: NavKey by derivedStateOf { currentSubStack.last() }
 
@@ -73,21 +73,21 @@ class NavigationState(
  * Convert NavigationState into NavEntries.
  */
 @Composable
-fun NavigationState.toEntries(
-    entryProvider: (NavKey) -> NavEntry<NavKey>,
-): SnapshotStateList<NavEntry<NavKey>> {
-    val decoratedEntries = subStacks.mapValues { (_, stack) ->
-        val decorators = listOf<NavEntryDecorator<NavKey>>(
-            rememberResultEventBusNavEntryDecorator(),
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator(),
-        )
-        rememberDecoratedNavEntries(
-            backStack = stack,
-            entryDecorators = decorators,
-            entryProvider = entryProvider,
-        )
-    }
+fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): SnapshotStateList<NavEntry<NavKey>> {
+    val decoratedEntries =
+        subStacks.mapValues { (_, stack) ->
+            val decorators =
+                listOf<NavEntryDecorator<NavKey>>(
+                    rememberResultEventBusNavEntryDecorator(),
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                )
+            rememberDecoratedNavEntries(
+                backStack = stack,
+                entryDecorators = decorators,
+                entryProvider = entryProvider,
+            )
+        }
 
     return topLevelStack
         .flatMap { decoratedEntries[it] ?: emptyList() }

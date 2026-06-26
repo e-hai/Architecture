@@ -9,12 +9,13 @@ data class UserResponse(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("email") val email: String,
-    @SerialName("avatar_url") val avatarUrl: String
+    @SerialName("avatar_url") val avatarUrl: String,
 ) {
-    fun toDomainModel(): User = User(
-        id = id,
-        name = name,
-        email = email,
-        avatarUrl = avatarUrl
-    )
+    fun toDomainModel(): User =
+        User(
+            id = id,
+            name = name,
+            email = email,
+            avatarUrl = avatarUrl,
+        )
 }

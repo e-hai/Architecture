@@ -9,19 +9,21 @@ data class UserEntity(
     @PrimaryKey val id: String,
     val name: String,
     val email: String,
-    val avatarUrl: String
+    val avatarUrl: String,
 ) {
-    fun toDomainModel(): User = User(
+    fun toDomainModel(): User =
+        User(
+            id = id,
+            name = name,
+            email = email,
+            avatarUrl = avatarUrl,
+        )
+}
+
+fun User.toEntity(): UserEntity =
+    UserEntity(
         id = id,
         name = name,
         email = email,
-        avatarUrl = avatarUrl
+        avatarUrl = avatarUrl,
     )
-}
-
-fun User.toEntity(): UserEntity = UserEntity(
-    id = id,
-    name = name,
-    email = email,
-    avatarUrl = avatarUrl
-)

@@ -6,5 +6,7 @@ import xxx.yyy.zzz.core.network.model.UserResponse
 
 interface UserService {
     @GET("users/{userId}")
-    suspend fun getUser(@Path("userId") userId: String): UserResponse
+    suspend fun getUser(
+        @Path("userId") userId: String,
+    ): UserResponse
 }

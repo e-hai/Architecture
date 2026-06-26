@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class HomeDetailViewModel : ViewModel() {
-
     private val _uiState = MutableStateFlow(HomeDetailUiState())
     val uiState: StateFlow<HomeDetailUiState> = _uiState.asStateFlow()
 
@@ -19,7 +18,7 @@ class HomeDetailViewModel : ViewModel() {
     fun initialize(title: String) {
         _uiState.update {
             HomeDetailUiState(
-                title = title
+                title = title,
             )
         }
     }
@@ -27,7 +26,7 @@ class HomeDetailViewModel : ViewModel() {
     fun onTitleChange(newTitle: String) {
         _uiState.update { currentState ->
             currentState.copy(
-                title = newTitle
+                title = newTitle,
             )
         }
     }
@@ -38,6 +37,6 @@ class HomeDetailViewModel : ViewModel() {
     }
 
     data class HomeDetailUiState(
-        val title: String = ""
+        val title: String = "",
     )
 }
