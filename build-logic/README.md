@@ -13,8 +13,6 @@ build-logic/
 │   │   ├── project/                    # 共享工具类
 │   │   │   ├── KotlinAndroid.kt        # Android 配置函数
 │   │   │   ├── ProjectExtensions.kt    # Project 扩展属性
-│   │   │   ├── ProjectFlavor.kt        # 产品变体（Flavor）配置
-│   │   │   └── ProjectBuildType.kt     # 构建类型（Build Type）配置
 │   │   ├── AndroidApplicationConventionPlugin.kt
 │   │   ├── AndroidLibraryConventionPlugin.kt
 │   │   ├── AndroidFeatureApiConventionPlugin.kt
@@ -302,7 +300,6 @@ val Project.libsCatalog: VersionCatalog
 
 ---
 
-### ProjectFlavor.kt
 
 提供产品变体（Flavor）配置工具和枚举定义。
 
@@ -383,7 +380,6 @@ extensions.configure<ApplicationExtension> {
 
 ---
 
-### ProjectBuildType.kt
 
 提供构建类型（Build Type）配置枚举。
 

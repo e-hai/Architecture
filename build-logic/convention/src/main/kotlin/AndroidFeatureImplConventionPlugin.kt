@@ -5,6 +5,11 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import project.configureKotlinAndroid
 
+/**
+ * Feature Impl 模块的约定插件。
+ * 自动应用：Library + Compose + Koin。
+ * 自动依赖：core:ui（主题/公共组件）+ core:navigation（导航基础设施）。
+ */
 class AndroidFeatureImplConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {

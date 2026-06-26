@@ -6,6 +6,11 @@ import org.gradle.kotlin.dsl.dependencies
 import project.configureKotlinAndroid
 import project.libsCatalog
 
+/**
+ * Feature API 模块的约定插件。
+ * 自动应用：Library + kotlinx.serialization。
+ * 自动依赖：Navigation3 Runtime + kotlinx-serialization-json。
+ */
 class AndroidFeatureApiConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
