@@ -130,7 +130,6 @@ AI 生成模块时必须根据模块类型选择正确的插件（插件 ID 前�
 | `myproject.android.feature.api` | 配置 Feature API 模块 | Library, Serialization, Navigation3 |
 | `myproject.android.feature.impl` | 配置 Feature Impl 模块 | Library, Compose, Koin, core:ui, core:navigation |
 | `myproject.android.compose` | 增加 Compose 支持 | Compose Compiler, Compose BOM, Material3 |
-| `myproject.kotlin.jvm` | 配置纯 Kotlin/JVM 库模块，**禁止引入任何 Android 依赖** | - |
 | `myproject.android.room` | 配置 Room 数据库 | Room, KSP, Schema 导出 |
 | `myproject.koin` | 配置 Koin 依赖注入 | koin-core, koin-android, koin-compose（根据环境） |
 | `myproject.spotless` | 配置 Spotless 代码格式化规则 | ktlint |
@@ -322,7 +321,7 @@ factory { SomeFactory() }
 | 领域 | 选型 |
 |------|------|
 | UI | Jetpack Compose (Material3, Icons Extended) via BOM 2026.05.01 |
-| 导航 | Navigation 3 Runtime + UI（1.2.0-alpha03） |
+| 导航 | Navigation 3 Runtime + UI（1.2.0-alpha04） |
 | DI | Koin 4.2.1（core, android, compose） |
 | 数据库 | Room 2.8.4 + KSP 2.3.8 |
 | 键值存储 | DataStore Preferences 1.2.1 |
