@@ -79,9 +79,8 @@ androidComponents {
         val buildType = variant.buildType ?: "release"
 
         variant.outputs.forEach { output ->
-            val mainOutput = output as? com.android.build.api.variant.impl.VariantOutputImpl
             val versionName = android.defaultConfig.versionName ?: "1.0"
-            mainOutput?.outputFileName?.set("app-$flavorName-$buildType-v$versionName.apk")
+            output.outputFileName.set("app-$flavorName-$buildType-v$versionName.apk")
         }
     }
 }
@@ -99,7 +98,4 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:analytics"))
-
-    // Firebase BOM for version management
-    implementation(platform(libs.firebase.bom))
 }

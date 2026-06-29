@@ -45,8 +45,7 @@ fun Project.configureKotlinAndroid(commonExtension: Any) {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.addAll(
                 listOf(
-                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-opt-in=kotlin.OptIn"
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
                 )
             )
         }
