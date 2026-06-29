@@ -347,6 +347,41 @@ factory { SomeFactory() }
 
 ---
 
+## 多语言配置（i18n）
+
+### 数据源
+- 翻译文案统一由 `i18n/strings.xlsx` 管理，由产品经理维护
+- **一个文件，多个 sheet**，每个 sheet 对应一个 Android 模块
+- sheet 名称与模块的映射关系：
+  - `app` → `app/`
+  - `feature-home-impl` → `feature/home/impl/`
+  - `feature-settings-impl` → `feature/settings/impl/`
+
+### 表格格式
+| key | en | zh | ja | ... |
+|-----|----|----|----|-----|
+| `app_name` | My App | 我的应用 | マイアプリ | ... |
+
+- 首行：语言代码，首列固定为 `key`
+- 首列（`en`）为默认语言，生成 `values/strings.xml`
+- 其他列生成 `values-{lang}/strings.xml`
+
+### 生成脚本
+- `scripts/generate-i18n-strings.py`（Python + `openpyxl`）
+- 读取 `i18n/strings.xlsx`，遍历每个 sheet，生成对应模块的 `strings.xml`
+- 运行方式：
+  ```bash
+  pip install openpyxl
+  python scripts/generate-i18n-strings.py
+  ```
+
+### 规范
+- 新增模块时，在 `i18n/strings.xlsx` 中添加对应 sheet，同时更新脚本中的 `SHEET_TO_RES` 映射表
+- 文案以 xlsx 为唯一权威来源，生成后的 `strings.xml` 不建议手动修改
+- 脚本不纳入 Gradle 构建，PM 无需 Android 环境即可使用
+
+---
+
 ## 禁止项
 
 ### 依赖注入
