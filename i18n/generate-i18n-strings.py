@@ -18,7 +18,7 @@ import xml.sax.saxutils as saxutils
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-XLSX_PATH = PROJECT_ROOT / "i18n" / "strings.xlsx"
+XLSX_PATH = Path(__file__).resolve().parent / "strings.xlsx"
 
 # Sheet 名称 → 模块 res 目录的相对路径
 SHEET_TO_RES = {

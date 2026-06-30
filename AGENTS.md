@@ -367,12 +367,12 @@ factory { SomeFactory() }
 - 其他列生成 `values-{lang}/strings.xml`
 
 ### 生成脚本
-- `scripts/generate-i18n-strings.py`（Python + `openpyxl`）
+- `i18n/generate-i18n-strings.py`（Python + `openpyxl`）
 - 读取 `i18n/strings.xlsx`，遍历每个 sheet，生成对应模块的 `strings.xml`
 - 运行方式：
   ```bash
   pip install openpyxl
-  python scripts/generate-i18n-strings.py
+  python i18n/generate-i18n-strings.py
   ```
 
 ### 规范
