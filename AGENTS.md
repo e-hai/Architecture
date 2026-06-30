@@ -194,7 +194,7 @@ factory { SomeFactory() }
 - **禁止字符串路由**
 
 ### 自适应布局
-- 列表 - 详情页使用 `ListDetailSceneStrategy` 实现自适应布局
+- 在 Compose 中通过 `WindowSizeClass` 实现自适应布局
 
 ### ViewModel 规范
 - 每个 Screen 对应一个 ViewModel
