@@ -3,8 +3,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.myproject.android.application)
-    alias(libs.plugins.myproject.koin)
-    alias(libs.plugins.google.services)
 }
 
 // 从 local.properties 加载签名配置
@@ -85,17 +83,20 @@ androidComponents {
     }
 }
 
-dependencies {
-    implementation(project(":feature:home:api"))
-    implementation(project(":feature:home:impl"))
-    implementation(project(":feature:settings:api"))
-    implementation(project(":feature:settings:impl"))
+// Dev flavor 使用占位 google-services.json，跳过 Crashlytics 映射上传
+tasks.configureEach {
+    if (name.startsWith("uploadCrashlyticsMappingFile")) {
+        enabled = false
+    }
+}
 
+dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":core:data"))
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:analytics"))
+    implementation(project(":core:abtesting"))
+    implementation(project(":core:crashreport"))
 }

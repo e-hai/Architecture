@@ -33,16 +33,16 @@ include(":app")
 
 // Include Core Infrastructure Modules
 include(":core:model")
-include(":core:data")
 include(":core:database")
 include(":core:datastore")
 include(":core:network")
 include(":core:navigation")
 include(":core:ui")
 include(":core:analytics")
+include(":core:abtesting")
+include(":core:crashreport")
 
 // Include Feature Modules
-include(":feature:home:api")
-include(":feature:home:impl")
-include(":feature:settings:api")
-include(":feature:settings:impl")
+// 开发真实项目时，请在此添加 feature 模块：
+// include(":feature:xxx:api")
+// include(":feature:xxx:impl")

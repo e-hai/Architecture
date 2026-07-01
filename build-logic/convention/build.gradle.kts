@@ -10,6 +10,8 @@ dependencies {
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     compileOnly(libs.spotless.gradlePlugin)
+    compileOnly(libs.google.services.gradlePlugin)
+    compileOnly(libs.firebase.crashlytics.gradlePlugin)
 }
 
 gradlePlugin {

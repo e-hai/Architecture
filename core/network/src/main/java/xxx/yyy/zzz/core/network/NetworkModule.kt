@@ -32,8 +32,4 @@ val coreNetworkModule =
                 .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
                 .build()
         }
-
-        single {
-            get<Retrofit>().create(UserService::class.java)
-        }
     }

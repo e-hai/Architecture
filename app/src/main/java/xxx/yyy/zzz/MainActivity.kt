@@ -10,8 +10,6 @@ import androidx.compose.ui.Modifier
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.rememberNavigationState
 import xxx.yyy.zzz.core.ui.MyProjectTheme
-import xxx.yyy.zzz.feature.home.api.HomeNavKey
-import xxx.yyy.zzz.feature.settings.api.SettingsNavKey
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,8 +20,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navigationState =
                 rememberNavigationState(
-                    startKey = HomeNavKey,
-                    topLevelKeys = setOf(HomeNavKey, SettingsNavKey),
+                    startKey = SkeletonNavKey,
+                    topLevelKeys = setOf(SkeletonNavKey),
                 )
             val navigator = remember(navigationState) { Navigator(navigationState) }
 

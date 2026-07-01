@@ -4,6 +4,8 @@
 
 **角色：** Android 架构守护者，严格遵循 Now in Android 工程范式
 
+**项目性质：** 多模块骨架/模板，无业务代码。所有 feature 模块需在真实项目中按需添加。
+
 ---
 
 ##  总体架构
@@ -14,7 +16,7 @@ flowchart TD
         app[":app<br/>Application 入口"]
     end
 
-    subgraph Feature["feature:*"]
+    subgraph Feature["feature:* (按需添加)"]
         direction LR
         feat_api[":feature:xxx:api<br/>NavKey / 接口定义"]
         feat_impl[":feature:xxx:impl<br/>Screen / ViewModel"]
@@ -24,25 +26,25 @@ flowchart TD
     subgraph Core["core:*"]
         core_ui[":core:ui<br/>主题 / 组件"]
         core_nav[":core:navigation<br/>Navigator"]
-        core_data[":core:data<br/>Repository"]
         core_database[":core:database<br/>Room / DAO"]
         core_network[":core:network<br/>Retrofit"]
         core_datastore[":core:datastore<br/>DataStore"]
         core_model[":core:model<br/>领域模型"]
-        core_analytics[":core:analytics<br/>Firebase"]
+        core_analytics[":core:analytics<br/>Firebase 统计"]
+        core_abtesting[":core:abtesting<br/>Remote Config"]
+        core_crashreport[":core:crashreport<br/>Crashlytics"]
     end
 
-    app --> feat_impl
+    app -.-> feat_impl
     app --> core_nav
     app --> core_ui
     app --> core_analytics
-    feat_impl --> core_data
+    feat_impl --> core_database
+    feat_impl --> core_network
+    feat_impl --> core_datastore
+    feat_impl --> core_model
     feat_impl --> core_ui
     feat_impl --> core_nav
-    core_data --> core_database
-    core_data --> core_network
-    core_data --> core_datastore
-    core_data --> core_model
     core_network --> core_model
     core_database --> core_model
 
@@ -54,7 +56,8 @@ flowchart TD
 - 采用 `app` / `feature:*` / `core:*` 三级模块化布局
 - **Feature 模块必须拆分为 `:feature:xxx:api` 和 `:feature:xxx:impl` 两个模块**，外部仅依赖 api 模块
 - **API 模块**只暴露导航公钥（NavKey）、接口和共享数据类，不包含 UI 或业务实现
-- **依赖方向严格单向：** `app → feature:impl → core:data`
+- **依赖方向严格单向：** `app → feature:impl → core:*`
+- **Feature 模块按需添加**，骨架项目不包含任何 feature 模块
 - `applicationId` 和 `namespace` 是独立属性，初始默认一致但必须分别配置，禁止在逻辑中假设二者相同
 
 ---
@@ -104,12 +107,6 @@ flowchart TD
 - 共享领域模型 `data class`
 - **无逻辑**
 
-#### `:core:data`
-- 实现 Repository，组合 Remote/Local
-- **离线优先 + Mapper**
-- Koin 的 `single` 绑定
-- **直接暴露领域模型，无需单独的 domain 层**
-
 #### `:core:network`
 - Retrofit、OkHttp、序列化配置
 - 提供 Remote DataSource
@@ -130,7 +127,6 @@ flowchart TD
 - **数据库迁移：**
   - 修改 Entity 时必须增加版本号
   - 简单变更使用 `AutoMigration`，复杂变更使用手动 `Migration`
-  - 详细指南参考：[core/database/README.md](core/database/README.md)
 
 #### `:core:navigation`
 - 全局导航基础设施：Navigator 封装、NavEntry 接口
@@ -145,8 +141,15 @@ flowchart TD
 #### `:core:analytics`
 - Firebase Analytics 封装
 - 提供统一的分析事件追踪接口
-- **必须在 Application 中初始化 FirebaseApp**
-- **详细配置说明请参考：** [core/analytics/README.md](core/analytics/README.md)
+
+#### `:core:abtesting`
+- Firebase Remote Config 封装
+- 提供 A/B 测试远程参数获取接口
+- 支持字符串/布尔/数值类型，以及 fetch + activate 两阶段触发
+
+#### `:core:crashreport`
+- Firebase Crashlytics 封装
+- 提供崩溃上报、自定义键值、面包屑追踪接口
 
 ---
 
@@ -397,8 +400,6 @@ factory { SomeFactory() }
 - **一个文件，多个 sheet**，每个 sheet 对应一个 Android 模块
 - sheet 名称与模块的映射关系：
   - `app` → `app/`
-  - `feature-home-impl` → `feature/home/impl/`
-  - `feature-settings-impl` → `feature/settings/impl/`
 
 ### 表格格式
 | key | en | zh | ja | ... |

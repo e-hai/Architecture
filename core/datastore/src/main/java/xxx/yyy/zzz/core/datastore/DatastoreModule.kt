@@ -9,11 +9,7 @@ val coreDatastoreModule =
     module {
         single {
             PreferenceDataStoreFactory.create(
-                produceFile = { androidContext().preferencesDataStoreFile("user_preferences") },
+                produceFile = { androidContext().preferencesDataStoreFile("app_settings") },
             )
-        }
-
-        single {
-            UserPreferencesDataSource(get())
         }
     }

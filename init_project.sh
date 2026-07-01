@@ -21,11 +21,26 @@ echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}    Android Modern Architecture Scaffold Init       ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
+# 解析命令行参数
+DRY_RUN=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run) DRY_RUN=true; shift ;;
+        --force) FORCE=true; shift ;;
+        *) break ;;
+    esac
+done
+
 # 1. 引导交互输入
 read -p "请输入新的命名空间 (Namespace, 比如 com.example.myapp): " NEW_NAMESPACE
 if [ -z "$NEW_NAMESPACE" ]; then
     echo -e "${RED}[错误] 命名空间不能为空！${NC}"
     exit 1
+fi
+
+# 校验命名空间格式
+if ! echo "$NEW_NAMESPACE" | grep -qE '^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$'; then
+    echo -e "${YELLOW}[警告] 命名空间格式非标准，请确认（合法格式: com.example.myapp）${NC}"
 fi
 
 read -p "请输入新的应用 ID (ApplicationId, 默认同命名空间): " NEW_APP_ID
@@ -43,11 +58,22 @@ if [ -z "$NEW_APP_NAME" ]; then
     NEW_APP_NAME="My App"
 fi
 
+read -p "请输入 API Base URL (默认 https://api.example.com/): " NEW_BASE_URL
+if [ -z "$NEW_BASE_URL" ]; then
+    NEW_BASE_URL="https://api.example.com/"
+fi
+
 echo -e "\n${YELLOW}[信息] 开始初始化项目...${NC}"
 echo -e "- 新命名空间 (Namespace): ${GREEN}$NEW_NAMESPACE${NC}"
 echo -e "- 新应用 ID (ApplicationId): ${GREEN}$NEW_APP_ID${NC}"
 echo -e "- 约定插件前缀: ${GREEN}$NEW_PREFIX${NC}"
-echo -e "- 应用名称: ${GREEN}$NEW_APP_NAME${NC}\n"
+echo -e "- 应用名称: ${GREEN}$NEW_APP_NAME${NC}"
+echo -e "- API Base URL: ${GREEN}$NEW_BASE_URL${NC}"
+
+if [ "$DRY_RUN" = true ]; then
+    echo -e "\n${YELLOW}[--dry-run 模式] 以上为将要应用的变更。未做任何实际修改。${NC}"
+    exit 0
+fi
 
 # 将点分包名转换为物理路径 (e.g. com.example.myapp -> com/example/myapp)
 OLD_PATH="xxx/yyy/zzz"
@@ -70,6 +96,8 @@ find_and_replace() {
         "${SED_INPLACE[@]}" "s/MyProjectScaffold/${NEW_APP_NAME// /}Scaffold/g" "$file"
         "${SED_INPLACE[@]}" "s/MyProjectTheme/${NEW_APP_NAME// /}Theme/g" "$file"
         "${SED_INPLACE[@]}" "s/MyProjectAppName/${NEW_APP_NAME// /}AppName/g" "$file"
+        # 替换 API base URL
+        "${SED_INPLACE[@]}" "s|https://api\\.example\\.com/|${NEW_BASE_URL}|g" "$file"
     done
 
     # 替换 XML 和 strings 中的显示名称
@@ -77,6 +105,7 @@ find_and_replace() {
         -not -path '*/.*' -not -path '*/build/*' | while read -r file; do
         "${SED_INPLACE[@]}" "s/My App/${NEW_APP_NAME}/g" "$file"
         "${SED_INPLACE[@]}" "s/我的应用/${NEW_APP_NAME}/g" "$file"
+        "${SED_INPLACE[@]}" "s|My Project Scaffold|${NEW_APP_NAME}|g" "$file"
     done
 
     # 针对 app 壳模块的 build.gradle.kts 替换独立的 applicationId（防假设 namespace 与 applicationId 一致）
@@ -107,6 +136,14 @@ done
 
 echo -e "${GREEN}✔ 物理路径迁移完成。${NC}"
 
+# 清理旧的 Room schema 目录（包名变更后必须重新生成）
+echo -e "${YELLOW}[2.5/4] 正在清理旧 Room schema 目录...${NC}"
+find . -type d -path "*/schemas/xxx.yyy.zzz*" 2>/dev/null | while read -r schema_dir; do
+    rm -rf "$schema_dir"
+    echo "  清理: $schema_dir"
+done
+echo -e "${GREEN}✔ Room schema 目录清理完成。${NC}"
+
 # 4. 更新 settings.gradle.kts 中的 rootProject.name
 echo -e "${YELLOW}[3/4] 正在更新项目名称...${NC}"
 "${SED_INPLACE[@]}" "s/rootProject\.name = \"[^\"]*\"/rootProject.name = \"${NEW_APP_NAME// /}\"/" settings.gradle.kts
@@ -120,6 +157,13 @@ chmod +x gradlew
 
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}🎉 项目初始化成功！${NC}"
+echo -e "已应用的配置："
+echo -e "  命名空间:    ${NEW_NAMESPACE}"
+echo -e "  应用 ID:     ${NEW_APP_ID}"
+echo -e "  插件前缀:    ${NEW_PREFIX}"
+echo -e "  应用名称:    ${NEW_APP_NAME}"
+echo -e "  API Base URL: ${NEW_BASE_URL}"
+echo -e ""
 echo -e "Tip: 运行 ${BLUE}./gradlew assemble${NC} 验证项目能否正常编译"
 echo -e "你可以立即在 Android Studio 中导入并运行该项目。${NC}"
 echo -e "${GREEN}====================================================${NC}"

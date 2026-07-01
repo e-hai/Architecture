@@ -7,7 +7,7 @@ import project.libsCatalog
 
 /**
  * App 模块的约定插件。
- * 自动应用：com.android.application + Compose + Spotless。
+ * 自动应用：com.android.application + Compose + Spotless + Serialization + Firebase 插件 + Koin。
  * 从 Version Catalog 统一读取 SDK 版本和 targetSdk。
  */
 class AndroidApplicationConventionPlugin : Plugin<Project> {
@@ -15,8 +15,12 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.application")
+                apply("org.jetbrains.kotlin.plugin.serialization")
+                apply("com.google.gms.google-services")
+                apply("com.google.firebase.crashlytics")
                 apply("myproject.android.compose")
                 apply("myproject.spotless")
+                apply("myproject.koin")
             }
 
             extensions.configure<ApplicationExtension> {

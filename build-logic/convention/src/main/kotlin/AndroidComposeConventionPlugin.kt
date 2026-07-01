@@ -13,7 +13,9 @@ import project.libsCatalog
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
+            with(pluginManager){
+                apply("org.jetbrains.kotlin.plugin.compose")
+            }
 
             // 兼容 Application 和 Library 两种模块类型
             val extension = extensions.findByType(ApplicationExtension::class.java)

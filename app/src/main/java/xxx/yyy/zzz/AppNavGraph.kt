@@ -1,162 +1,80 @@
 package xxx.yyy.zzz
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
-import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
+import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import org.koin.compose.koinInject
-import xxx.yyy.zzz.core.analytics.AnalyticsEvent
-import xxx.yyy.zzz.core.analytics.AnalyticsHelper
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.toEntries
-import xxx.yyy.zzz.feature.home.api.HomeDetailNavKey
-import xxx.yyy.zzz.feature.home.api.HomeNavKey
-import xxx.yyy.zzz.feature.home.api.HomeResultNavKey
-import xxx.yyy.zzz.feature.home.impl.homeEntry
-import xxx.yyy.zzz.feature.settings.api.AboutAppNavKey
-import xxx.yyy.zzz.feature.settings.api.PrivacyPolicyNavKey
-import xxx.yyy.zzz.feature.settings.api.SettingsNavKey
-import xxx.yyy.zzz.feature.settings.api.UserAgreementNavKey
-import xxx.yyy.zzz.feature.settings.impl.settingsEntry
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * 骨架导航图。
+ *
+ * 演示 Navigation3 的 [NavDisplay] + [NavigationState.toEntries] + entryProvider 模式。
+ * 开发真实项目时：
+ *   1. 移除 [SkeletonNavKey]，替换为各个 feature 的 NavKey
+ *   2. 将 entryProvider 替换为真实的 [entryProvider] DSL 调用
+ *   3. 按需添加 Scaffold/TopAppBar/BottomBar
+ */
 @Composable
 fun AppNavGraph(
     navigationState: NavigationState,
     navigator: Navigator,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val analyticsHelper = koinInject<AnalyticsHelper>()
-    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+    /*
+     * 正式用法（添加 feature 模块后启用）：
+     *
+     * val entryProvider = entryProvider {
+     *     featureOneEntry(
+     *         onNavigate = { navigator.navigate(it) },
+     *         onBack = { navigator.goBack() },
+     *     )
+     *     featureTwoEntry(
+     *         onNavigate = { navigator.navigate(it) },
+     *         onBack = { navigator.goBack() },
+     *     )
+     * }
+     *
+     * Scaffold { innerPadding ->
+     *     NavDisplay(
+     *         entries = navigationState.toEntries(entryProvider),
+     *         onBack = { navigator.goBack() },
+     *         modifier = Modifier.padding(innerPadding),
+     *     )
+     * }
+     */
 
-    // Intercept back press when at the root to show "press again to exit" toast
-    BackHandler(enabled = navigationState.isAtRoot) {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastBackPressTime < 2000) {
-            (context as? Activity)?.finish()
-        } else {
-            lastBackPressTime = currentTime
-            Toast.makeText(context, R.string.common_exit_toast, Toast.LENGTH_SHORT).show()
-        }
+    // 骨架占位：直接渲染单个占位页面
+    skeletonEntry(modifier)
+}
+
+@Composable
+private fun skeletonEntry(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = stringResource(R.string.app_name))
     }
+}
 
-    val myEntryProvider =
-        entryProvider {
-            homeEntry(
-                onNavigate = { navigator.navigate(it) },
-                onBack = { navigator.goBack() },
-            )
-            settingsEntry(
-                onNavigate = { navigator.navigate(it) },
-                onBack = { navigator.goBack() },
-            )
-        }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text =
-                            when (val key = navigationState.currentKey) {
-                                is HomeNavKey -> stringResource(R.string.nav_home)
-                                is SettingsNavKey -> stringResource(R.string.nav_settings)
-                                is HomeDetailNavKey -> key.title
-                                is HomeResultNavKey -> key.title
-                                is UserAgreementNavKey -> stringResource(R.string.user_agreement_title)
-                                is PrivacyPolicyNavKey -> stringResource(R.string.privacy_policy_title)
-                                is AboutAppNavKey -> stringResource(R.string.about_app_title)
-                                else -> stringResource(R.string.app_name)
-                            },
-                    )
-                },
-                navigationIcon = {
-                    if (!navigationState.isAtTopLevel) {
-                        IconButton(onClick = { navigator.goBack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.common_back),
-                            )
-                        }
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (navigationState.isAtTopLevel) {
-                NavigationBar {
-                    navigationState.topLevelKeys.forEach { key ->
-                        NavigationBarItem(
-                            selected = key == navigationState.currentTopLevelKey,
-                            onClick = {
-                                // Track tab switch event
-                                analyticsHelper.logEvent(
-                                    AnalyticsEvent(
-                                        name = "tab_switch",
-                                        params = mapOf("tab_name" to key::class.simpleName.orEmpty()),
-                                    ),
-                                )
-                                navigator.navigate(key)
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector =
-                                        when (key) {
-                                            is HomeNavKey -> Icons.Default.Home
-                                            is SettingsNavKey -> Icons.Default.Settings
-                                            else -> Icons.Default.Home
-                                        },
-                                    contentDescription = null,
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text =
-                                        when (key) {
-                                            is HomeNavKey -> stringResource(R.string.nav_home)
-                                            is SettingsNavKey -> stringResource(R.string.nav_settings)
-                                            else -> stringResource(android.R.string.unknownName)
-                                        },
-                                )
-                            },
-                        )
-                    }
-                }
-            }
-        },
-        modifier = modifier,
-    ) { innerPadding ->
-        NavDisplay(
-            entries = navigationState.toEntries(myEntryProvider),
-            onBack = { navigator.goBack() },
-            modifier = Modifier.padding(innerPadding),
-        )
-    }
+/**
+ * entryProvider 占位实现。
+ *
+ * 开发真实项目时替换为由 [entryProvider] DSL 生成的 provider，签名与 [NavigationState.toEntries]
+ * 的 entryProvider 参数兼容。
+ */
+private val skeletonEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
+    error("SkeletonApp 不应触发导航。请替换 feature NavKey 后实现真实 entryProvider。key=$key")
 }

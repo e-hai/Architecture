@@ -23,8 +23,6 @@ XLSX_PATH = Path(__file__).resolve().parent / "strings.xlsx"
 # Sheet 名称 → 模块 res 目录的相对路径
 SHEET_TO_RES = {
     "app": "app/src/main/res",
-    "feature-home-impl": "feature/home/impl/src/main/res",
-    "feature-settings-impl": "feature/settings/impl/src/main/res",
 }
 
 

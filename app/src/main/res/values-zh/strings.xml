@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_app_title">关于应用</string>
     <string name="app_name">我的应用</string>
     <string name="common_back">返回</string>
     <string name="common_exit_toast">再次点击退出应用</string>
-    <string name="nav_home">首页</string>
-    <string name="nav_settings">设置</string>
-    <string name="privacy_policy_title">隐私政策</string>
-    <string name="settings_about_app">关于应用</string>
-    <string name="settings_privacy_policy">隐私政策</string>
-    <string name="settings_title">设置</string>
-    <string name="settings_user_agreement">用户协议</string>
-    <string name="user_agreement_title">用户协议</string>
 </resources>
