@@ -8,6 +8,49 @@
 
 ##  总体架构
 
+```mermaid
+flowchart TD
+    subgraph App["app"]
+        app[":app<br/>Application 入口"]
+    end
+
+    subgraph Feature["feature:*"]
+        direction LR
+        feat_api[":feature:xxx:api<br/>NavKey / 接口定义"]
+        feat_impl[":feature:xxx:impl<br/>Screen / ViewModel"]
+        feat_impl --> feat_api
+    end
+
+    subgraph Core["core:*"]
+        core_ui[":core:ui<br/>主题 / 组件"]
+        core_nav[":core:navigation<br/>Navigator"]
+        core_data[":core:data<br/>Repository"]
+        core_database[":core:database<br/>Room / DAO"]
+        core_network[":core:network<br/>Retrofit"]
+        core_datastore[":core:datastore<br/>DataStore"]
+        core_model[":core:model<br/>领域模型"]
+        core_analytics[":core:analytics<br/>Firebase"]
+    end
+
+    app --> feat_impl
+    app --> core_nav
+    app --> core_ui
+    app --> core_analytics
+    feat_impl --> core_data
+    feat_impl --> core_ui
+    feat_impl --> core_nav
+    core_data --> core_database
+    core_data --> core_network
+    core_data --> core_datastore
+    core_data --> core_model
+    core_network --> core_model
+    core_database --> core_model
+
+    style App fill:#e3f2fd,stroke:#1565c0
+    style Feature fill:#f3e5f5,stroke:#7b1fa2
+    style Core fill:#e8f5e9,stroke:#2e7d32
+```
+
 - 采用 `app` / `feature:*` / `core:*` 三级模块化布局
 - **Feature 模块必须拆分为 `:feature:xxx:api` 和 `:feature:xxx:impl` 两个模块**，外部仅依赖 api 模块
 - **API 模块**只暴露导航公钥（NavKey）、接口和共享数据类，不包含 UI 或业务实现
