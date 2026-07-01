@@ -456,6 +456,33 @@ factory { SomeFactory() }
 - **函数：** camelCase，动词开头（`getUserById`, `saveUser`）
 - **接口：** 名词，不加 `I` 前缀（`UserRepository`, `DataSource`）
 
+### 注释规范
+
+- **所有类、函数/方法必须添加注释**，使用中文
+- 注释说明职责和关键逻辑，不赘述代码本身已明示的内容
+- 单行逻辑用行尾注释 `//`，复杂逻辑用块注释 `/* ... */`
+- **示例：**
+  ```kotlin
+  /**
+   * 首页页面组件，展示推荐内容列表。
+   * @param onItemClick 点击列表项时的回调，携带对应的 NavKey
+   */
+  @Composable
+  fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
+      ...
+  }
+
+  class HomeRepositoryImpl(
+      private val remoteDataSource: HomeRemoteDataSource,
+      private val localDataSource: HomeLocalDataSource,
+  ) : HomeRepository {
+      /**
+       * 获取首页推荐内容列表。离线优先：先返回缓存，再拉取网络更新。
+       */
+      override fun getFeaturedItems(): Flow<Result<List<Item>>> { ... }
+  }
+  ```
+
 ---
 
 ##  最佳实践总结
@@ -466,10 +493,9 @@ factory { SomeFactory() }
 4. **离线优先**：数据层实现缓存策略
 5. **类型安全**：使用 `@Serializable` 路由
 6. **生命周期感知**：使用 `collectAsStateWithLifecycle()`
-7. **测试友好**：使用 Fake 替代 Mock
-8. **代码规范**：Spotless 自动化格式化
-9. **版本统一管理**：使用 Version Catalog
-10. **模块文档完善**：重要模块提供详细 README 说明
+7. **代码注释规范**：类和方法必须写中文注释，说明职责而非语法
+8. **版本统一管理**：使用 Version Catalog
+9. **模块文档完善**：重要模块提供详细 README 说明
 
 ---
 

@@ -1,6 +1,5 @@
 package xxx.yyy.zzz.feature.home.impl
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +21,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeResultRoute(
     title: String,
-    onNavigateBack: (String) -> Unit,
+    onSaveToDetail: (String) -> Unit,
+    onSaveToHome: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeResultViewModel = koinViewModel(),
 ) {
@@ -35,9 +35,11 @@ fun HomeResultRoute(
     HomeResultScreen(
         uiState = uiState,
         onTitleChange = viewModel::onTitleChange,
-        onSaveClick = {
-            Log.d("HomeRoute", "HomeResultScreen onSaveClick: ${uiState.editedTitle}")
-            onNavigateBack(uiState.editedTitle)
+        onSaveToDetail = {
+            onSaveToDetail(uiState.editedTitle)
+        },
+        onSaveToHome = {
+            onSaveToHome(uiState.editedTitle)
         },
         modifier = modifier,
     )
@@ -47,7 +49,8 @@ fun HomeResultRoute(
 fun HomeResultScreen(
     uiState: HomeResultViewModel.HomeResultUiState,
     onTitleChange: (String) -> Unit,
-    onSaveClick: () -> Unit,
+    onSaveToDetail: () -> Unit,
+    onSaveToHome: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -70,10 +73,17 @@ fun HomeResultScreen(
         )
 
         Button(
-            onClick = onSaveClick,
+            onClick = onSaveToDetail,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(stringResource(R.string.result_save))
+            Text(stringResource(R.string.result_save_to_detail))
+        }
+
+        Button(
+            onClick = onSaveToHome,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.result_save_to_home))
         }
     }
 }

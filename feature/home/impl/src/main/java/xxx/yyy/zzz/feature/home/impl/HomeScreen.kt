@@ -35,7 +35,9 @@ fun HomeRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
-    // 监听 TitleEditResult 类型的返回事件
+    // 监听编辑页返回的标题修改结果，更新列表项标题
+    // 编辑页保存后调用 onBack() 退回到详情页，详情页自动退回到首页，
+    // 此时首页收到 TitleEditResult 并更新对应条目的显示文本
     LocalResultEventBus.current.conflateAsState<TitleEditResult?>(null).value?.let {
         viewModel.updateItemTitle(it.id, it.title)
     }

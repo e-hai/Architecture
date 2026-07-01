@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,6 +28,13 @@ fun HomeDetailRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeDetailViewModel = koinViewModel(),
 ) {
+    // 从首页进入时，用传过来的标题初始化 ViewModel 状态
+    LaunchedEffect(title) {
+        viewModel.initialize(title)
+    }
+
+    // 同样收到编辑页的 TitleEditResult（ResultEventBus 按类型广播，当前 Route 也能收到）
+    // 实际生效的是首页的监听（更新列表标题），此处保留以便后续校验数据一致性
     LocalResultEventBus.current.conflateAsState<TitleEditResult?>(null).value?.let {
         viewModel.onTitleChange(it.title)
     }

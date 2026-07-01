@@ -33,8 +33,14 @@ fun EntryProviderScope<NavKey>.homeEntry(
         val resultEventBus = LocalResultEventBus.current
         HomeResultRoute(
             title = key.title,
-            onNavigateBack = { newTitle ->
+            onSaveToDetail = { newTitle ->
                 resultEventBus.sendResult(TitleEditResult(key.id, newTitle))
+                onBack()
+            },
+            onSaveToHome = { newTitle ->
+                resultEventBus.sendResult(TitleEditResult(key.id, newTitle))
+                onBack()
+                onBack()
             },
         )
     }

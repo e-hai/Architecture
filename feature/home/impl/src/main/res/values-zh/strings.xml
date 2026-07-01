@@ -8,5 +8,7 @@
     <string name="home_recent_updates">最近更新</string>
     <string name="result_edit_title">编辑标题</string>
     <string name="result_save">保存</string>
+    <string name="result_save_to_detail">保存更新详情页</string>
+    <string name="result_save_to_home">保存更新首页</string>
     <string name="result_title_label">标题</string>
 </resources>
