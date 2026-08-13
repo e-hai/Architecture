@@ -58,9 +58,7 @@ fun AppNavGraph(
 }
 
 @Composable
-private fun skeletonEntry(
-    modifier: Modifier = Modifier,
-) {
+private fun skeletonEntry(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

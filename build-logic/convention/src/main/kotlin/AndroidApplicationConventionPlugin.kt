@@ -26,6 +26,10 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = libsCatalog.findVersion("targetSdk").get().requiredVersion.toInt()
+                buildFeatures {
+                    // AGP 8+ 默认关闭；Application 需 BuildConfig.DEBUG 等字段
+                    buildConfig = true
+                }
             }
         }
     }

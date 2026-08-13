@@ -1,11 +1,12 @@
 [versions]
 # Android SDK & Tooling Versions
 compileSdk = "37"
+compileSdkMinor = "1"
 minSdk = "26"
 targetSdk = "34"
 
 # Gradle Plugins & Core Tooling
-androidGradlePlugin = "9.2.1"
+androidGradlePlugin = "9.3.1"
 kotlin = "2.3.21"
 ksp = "2.3.8"
 spotless = "8.5.1"
@@ -38,7 +39,19 @@ kotlinxDatetime = "0.8.0"
 kotlinxCoroutines = "1.11.0"
 
 # Firebase
-firebaseBom = "34.5.0"
+firebaseBom = "34.17.0"
+
+# AnalyticsKit (JitPack)
+analyticsKit = "v1.0.0"
+
+# MmpKit / AdsKit / PayKit (JitPack)
+mmpKit = "v1.0.0"
+adsKit = "v1.0.1"
+payKit = "v1.0.0"
+pushKit = "v1.0.0"
+logKit = "v1.0.0"
+abTestingKit = "v1.0.0"
+crashReportKit = "v1.0.0"
 
 # Testing & Verification
 junit = "4.13.2"
@@ -50,6 +63,7 @@ androidxEspresso = "3.7.0"
 # AndroidX Core & Lifecycle
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewModel-navigation3 = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "androidxLifecycle" }
@@ -99,9 +113,31 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # Firebase Platform (BOM)
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
-firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+
+# AnalyticsKit
+analytics-kit-firebase = { group = "com.github.e-hai.AnalyticsKit", name = "analytics-firebase", version.ref = "analyticsKit" }
+
+# AbTestingKit
+abtesting-kit-firebase = { group = "com.github.e-hai.AbTestingKit", name = "abtesting-firebase", version.ref = "abTestingKit" }
+
+# CrashReportKit（Firebase Crashlytics 后端；JitPack 发布为根坐标）
+crashreport-kit = { group = "com.github.e-hai", name = "CrashReportKit", version.ref = "crashReportKit" }
+
+# MmpKit（默认 AppsFlyer 实现，已传递 mmp-core）
+mmp-kit-appsflyer = { group = "com.github.e-hai.MmpKit", name = "mmp-appsflyer", version.ref = "mmpKit" }
+
+# AdsKit（默认仅 AdMob；可改为 AdsKit 全量或 AdsKit-applovin）
+ads-kit-admob = { group = "com.github.e-hai.AdsKit", name = "AdsKit-admob", version.ref = "adsKit" }
+
+# PayKit
+pay-kit = { group = "com.github.e-hai", name = "PayKit", version.ref = "payKit" }
+
+# PushKit（通知 DSL + FCM Provider）
+push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKit" }
+
+# LogKit（Logcat + 磁盘 + 应用内控制台）
+log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
 
 # Testing Libraries
 junit = { group = "junit", name = "junit", version.ref = "junit" }

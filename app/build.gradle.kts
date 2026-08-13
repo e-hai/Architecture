@@ -20,6 +20,24 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Kit 密钥：写入 local.properties，缺省用测试/空占位
+        val mmpAppToken = localProperties.getProperty("mmp.appToken", "")
+        val mmpAppId = localProperties.getProperty("mmp.appId", "")
+        val admobAppId =
+            localProperties.getProperty(
+                "admob.app.id",
+                "ca-app-pub-3940256099942544~3347511713",
+            )
+        val applovinSdkKey = localProperties.getProperty("applovin.sdk.key", "")
+
+        buildConfigField("String", "MMP_APP_TOKEN", "\"$mmpAppToken\"")
+        buildConfigField("String", "MMP_APP_ID", "\"$mmpAppId\"")
+        buildConfigField("String", "ADMOB_APP_ID", "\"$admobAppId\"")
+        buildConfigField("String", "APPLOVIN_SDK_KEY", "\"$applovinSdkKey\"")
+
+        manifestPlaceholders["ADMOB_APP_ID"] = admobAppId
+        manifestPlaceholders["APPLOVIN_SDK_KEY"] = applovinSdkKey
     }
 
     // 签名配置
@@ -99,4 +117,9 @@ dependencies {
     implementation(project(":core:analytics"))
     implementation(project(":core:abtesting"))
     implementation(project(":core:crashreport"))
+    implementation(project(":core:mmp"))
+    implementation(project(":core:ads"))
+    implementation(project(":core:pay"))
+    implementation(project(":core:push"))
+    implementation(project(":core:log"))
 }

@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.koin)
 }
 
 android {
@@ -8,6 +7,6 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
+    // api：业务与 Application 直接使用 CrashReport 门面
+    api(libs.crashreport.kit)
 }

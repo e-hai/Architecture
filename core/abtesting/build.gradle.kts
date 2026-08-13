@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.koin)
 }
 
 android {
@@ -8,6 +7,9 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.config)
+    // api：业务直接使用 AbTestingClient
+    api(libs.abtesting.kit.firebase)
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.android)
 }

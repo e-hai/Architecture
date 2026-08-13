@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:label="My Project Scaffold"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyProjectAppName">
+        android:theme="@style/Theme.MyProjectAppName"
+        tools:replace="android:dataExtractionRules,android:fullBackupContent">
 
         <activity
             android:name=".MainActivity"
@@ -18,6 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- AdMob / AppLovin：由 local.properties → manifestPlaceholders 注入 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${ADMOB_APP_ID}" />
+        <meta-data
+            android:name="applovin.sdk.key"
+            android:value="${APPLOVIN_SDK_KEY}" />
 
     </application>
 

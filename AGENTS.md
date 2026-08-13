@@ -30,15 +30,26 @@ flowchart TD
         core_network[":core:network<br/>Retrofit"]
         core_datastore[":core:datastore<br/>DataStore"]
         core_model[":core:model<br/>领域模型"]
-        core_analytics[":core:analytics<br/>Firebase 统计"]
-        core_abtesting[":core:abtesting<br/>Remote Config"]
-        core_crashreport[":core:crashreport<br/>Crashlytics"]
+        core_analytics[":core:analytics<br/>AnalyticsKit 统计"]
+        core_mmp[":core:mmp<br/>MmpKit 归因"]
+        core_ads[":core:ads<br/>AdsKit 广告"]
+        core_pay[":core:pay<br/>PayKit 支付"]
+        core_push[":core:push<br/>PushKit 推送"]
+        core_log[":core:log<br/>LogKit 日志"]
+        core_abtesting[":core:abtesting<br/>AbTestingKit"]
+        core_crashreport[":core:crashreport<br/>CrashReportKit"]
     end
 
     app -.-> feat_impl
     app --> core_nav
     app --> core_ui
     app --> core_analytics
+    app --> core_mmp
+    app --> core_ads
+    app --> core_pay
+    app --> core_push
+    app --> core_log
+    app --> core_abtesting
     feat_impl --> core_database
     feat_impl --> core_network
     feat_impl --> core_datastore
@@ -139,17 +150,50 @@ flowchart TD
 - （可选）通用 Fake 实现、Turbine 扩展、测试规则
 
 #### `:core:analytics`
-- Firebase Analytics 封装
-- 提供统一的分析事件追踪接口
+- 透出 AnalyticsKit 门面（`api` 依赖 `analytics-firebase`）
+- `AnalyticsInitializer` 统一初始化 Provider（Debug Logging + Firebase）
+- `AnalyticsEvents` / `AnalyticsParams` 集中管理跨模块打点事件名与参数键
+- 业务直接调用 `Analytics.logEvent(AnalyticsEvents.…)`，不另包 Helper / Koin
+
+#### `:core:mmp`
+- 透出 MmpKit 门面（默认 `mmp-appsflyer`）
+- `MmpInitializer` + `MmpEvents` / `MmpParams`
+- 业务直接调用 `Mmp.trackEvent` / `trackRevenue`；**按需**依赖，勿写入 feature.impl 约定插件
+
+#### `:core:ads`
+- 透出 AdsKit 门面（默认 `AdsKit-admob`）
+- `AdsInitializer` + `AdsKeys`（Trigger / 测试 AdUnit）
+- 业务直接调用 `AdsManager`；**按需**依赖
+- `settings.gradle.kts` 需包含 AdsKit mediation Maven 仓库
+
+#### `:core:pay`
+- 透出 PayKit 门面
+- `PayInitializer` + `PayProducts`（商品 ID 三分法）
+- 业务直接调用 `PayKit.shared`；**按需**依赖
+
+#### `:core:push`
+- 透出 PushKit 门面（通知 DSL + FCM Provider）
+- `PushInitializer` 创建默认渠道并注册 FCM
+- `PushChannels` / `PushNotificationIds` 集中管理渠道与本地通知 ID
+- 业务直接调用 `PushKitManager` / `notifyPush`；**按需**依赖
+
+#### `:core:log`
+- 透出 LogKit 门面（Logcat + 可选磁盘 + Compose 控制台）
+- `LogInitializer`（Debug：`initAllLog`；Release：仅 Logcat）
+- `LogTags` 集中管理跨模块 Tag
+- 业务直接调用 `LogKit.d/i/w/e`；**按需**依赖
 
 #### `:core:abtesting`
-- Firebase Remote Config 封装
-- 提供 A/B 测试远程参数获取接口
-- 支持字符串/布尔/数值类型，以及 fetch + activate 两阶段触发
+- 透出 AbTestingKit 门面（`api` 依赖 `abtesting-firebase`）
+- `AbTestingInitializer`：install Firebase Provider → defaults → 异步 fetchAndActivate
+- `AbTestingKeys` 集中管理远程参数 key 与本地 defaults
+- 业务直接调用 `AbTestingClient.getXxx(AbTestingKeys.…)`，不另包 Helper / Koin
 
 #### `:core:crashreport`
-- Firebase Crashlytics 封装
-- 提供崩溃上报、自定义键值、面包屑追踪接口
+- 透出 CrashReportKit 门面（`api` 依赖 `com.github.e-hai:CrashReportKit`）
+- `CrashReportInitializer`：`CrashReport.init` + 默认自定义键
+- `CrashReportKeys` 集中管理自定义键名
+- 业务直接调用 `CrashReport.log` / `recordException` / `setCustomKey`，不另包 Helper / Koin
 
 ---
 
@@ -374,12 +418,19 @@ factory { SomeFactory() }
 | 网络 | Retrofit 3.0.0 + OkHttp 5.3.2 |
 | 序列化 | kotlinx-serialization 1.11.0, kotlinx-datetime 0.8.0 |
 | 异步 | kotlinx-coroutines 1.11.0 |
-| 分析 | Firebase Analytics |
-| 构建 | Gradle 9.x, AGP 9.2.1, Kotlin 2.3.21 |
+| 分析 | AnalyticsKit（Firebase Analytics Provider） |
+| A/B / 远程配置 | AbTestingKit（Firebase Remote Config） |
+| 归因 | MmpKit（默认 AppsFlyer） |
+| 广告 | AdsKit（默认 AdMob） |
+| 支付 | PayKit（Google Play Billing） |
+| 推送 | PushKit（通知 DSL + FCM） |
+| 日志 | LogKit（Logcat / 磁盘 / 应用内控制台） |
+| 崩溃上报 | CrashReportKit（Firebase Crashlytics） |
+| 构建 | Gradle 9.x, AGP 9.3.1, Kotlin 2.3.21 |
 
 ### SDK / JVM 版本
 
-- `compileSdk = 37`, `minSdk = 26`, `targetSdk = 34`
+- `compileSdk = 37.1`, `minSdk = 26`, `targetSdk = 34`
 - Java 17 / Kotlin JVM target 17
 - 所有依赖版本统一通过 `gradle/libs.versions.toml`（Version Catalog）管理
 

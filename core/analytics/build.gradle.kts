@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.koin)
 }
 
 android {
@@ -8,7 +7,6 @@ android {
 }
 
 dependencies {
-    // Firebase BOM for version management
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
+    // api：业务与 Application 直接使用 Analytics 门面与 Provider 类型
+    api(libs.analytics.kit.firebase)
 }
