@@ -19,9 +19,15 @@ import xxx.yyy.zzz.core.mmp.MmpInitializer
 import xxx.yyy.zzz.core.network.coreNetworkModule
 import xxx.yyy.zzz.core.pay.PayInitializer
 import xxx.yyy.zzz.core.push.PushInitializer
+import xxx.yyy.zzz.core.video.VideoInitializer
+import xxx.yyy.zzz.feature.comment.impl.commentModule
+import xxx.yyy.zzz.feature.creator.impl.creatorModule
+import xxx.yyy.zzz.feature.discover.impl.discoverModule
+import xxx.yyy.zzz.feature.feed.impl.feedModule
+import xxx.yyy.zzz.feature.profile.impl.profileModule
 
 /**
- * Application 入口：初始化 Log / CrashReport / Analytics / AbTesting / MMP / Ads / Pay / Push 与 Koin 模块。
+ * Application 入口：初始化 Log / CrashReport / Analytics / AbTesting / MMP / Ads / Pay / Push / Video 与 Koin 模块。
  */
 class MyApplication : Application() {
     override fun onCreate() {
@@ -68,6 +74,11 @@ class MyApplication : Application() {
             },
         )
 
+        VideoInitializer.initialize(
+            context = this,
+            debug = BuildConfig.DEBUG,
+        )
+
         startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@MyApplication)
@@ -75,6 +86,11 @@ class MyApplication : Application() {
                 coreNetworkModule,
                 coreDatabaseModule,
                 coreDatastoreModule,
+                feedModule,
+                commentModule,
+                discoverModule,
+                profileModule,
+                creatorModule,
             )
         }
     }

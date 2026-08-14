@@ -1,28 +1,61 @@
 package xxx.yyy.zzz
 
-import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.ui.NavDisplay
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.toEntries
+import xxx.yyy.zzz.feature.comment.impl.CommentBottomSheet
+import xxx.yyy.zzz.feature.creator.api.CreatorNavKey
+import xxx.yyy.zzz.feature.creator.impl.CreatorScreen
+import xxx.yyy.zzz.feature.discover.api.DiscoverNavKey
+import xxx.yyy.zzz.feature.discover.impl.DiscoverScreen
+import xxx.yyy.zzz.feature.feed.api.FeedNavKey
+import xxx.yyy.zzz.feature.feed.impl.FeedScreen
+import xxx.yyy.zzz.feature.profile.api.ProfileNavKey
+import xxx.yyy.zzz.feature.profile.impl.ProfileScreen
 
 /**
- * 骨架导航图。
+ * 应用主导航图（包含 3-Tab 底部导航、全屏拍摄发布与各页面路由）。
  *
- * 演示 Navigation3 的 [NavDisplay] + [NavigationState.toEntries] + entryProvider 模式。
- * 开发真实项目时：
- *   1. 移除 [SkeletonNavKey]，替换为各个 feature 的 NavKey
- *   2. 将 entryProvider 替换为真实的 [entryProvider] DSL 调用
- *   3. 按需添加 Scaffold/TopAppBar/BottomBar
+ * @param navigationState 全局导航状态机
+ * @param navigator 导航控制器
  */
 @Composable
 fun AppNavGraph(
@@ -30,49 +63,208 @@ fun AppNavGraph(
     navigator: Navigator,
     modifier: Modifier = Modifier,
 ) {
-    /*
-     * 正式用法（添加 feature 模块后启用）：
-     *
-     * val entryProvider = entryProvider {
-     *     featureOneEntry(
-     *         onNavigate = { navigator.navigate(it) },
-     *         onBack = { navigator.goBack() },
-     *     )
-     *     featureTwoEntry(
-     *         onNavigate = { navigator.navigate(it) },
-     *         onBack = { navigator.goBack() },
-     *     )
-     * }
-     *
-     * Scaffold { innerPadding ->
-     *     NavDisplay(
-     *         entries = navigationState.toEntries(entryProvider),
-     *         onBack = { navigator.goBack() },
-     *         modifier = Modifier.padding(innerPadding),
-     *     )
-     * }
-     */
+    val currentKey = navigationState.currentTopLevelKey
+    var activeCommentVideoId by remember { mutableStateOf<String?>(null) }
 
-    // 骨架占位：直接渲染单个占位页面
-    skeletonEntry(modifier)
-}
+    val entryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
+        when (key) {
+            is FeedNavKey -> {
+                NavEntry(key) {
+                    FeedScreen(
+                        onCameraClick = { navigator.navigate(CreatorNavKey()) },
+                        onSearchClick = { navigator.navigate(DiscoverNavKey()) },
+                        onAuthorClick = { authorId -> navigator.navigate(ProfileNavKey(userId = authorId)) },
+                        onCommentClick = { videoId -> activeCommentVideoId = videoId },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
 
-@Composable
-private fun skeletonEntry(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = stringResource(R.string.app_name))
+            is DiscoverNavKey -> {
+                NavEntry(key) {
+                    DiscoverScreen(
+                        onVideoClick = { videoId -> navigator.navigate(FeedNavKey(initialVideoId = videoId)) },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            is ProfileNavKey -> {
+                NavEntry(key) {
+                    ProfileScreen(
+                        userId = key.userId,
+                        onVideoClick = { videoId -> navigator.navigate(FeedNavKey(initialVideoId = videoId)) },
+                        onEditProfileClick = { /* 打开编辑资料页 */ },
+                        onSettingsClick = { /* 打开设置页 */ },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            is CreatorNavKey -> {
+                NavEntry(key) {
+                    CreatorScreen(
+                        onClose = { navigator.goBack() },
+                        onPublishSuccess = { navigator.goBack() },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            else -> {
+                NavEntry(key) {
+                    PlaceholderScreen(title = "未知页面", desc = "Key: $key")
+                }
+            }
+        }
+    }
+
+    val isTopLevelTab =
+        currentKey is FeedNavKey || currentKey is DiscoverNavKey || currentKey is ProfileNavKey
+
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            if (isTopLevelTab) {
+                AppBottomNavBar(
+                    currentKey = currentKey,
+                    onTabSelect = { targetKey ->
+                        navigator.navigate(targetKey)
+                    },
+                )
+            }
+        },
+        containerColor = Color.Black,
+    ) { innerPadding ->
+        NavDisplay(
+            entries = navigationState.toEntries(entryProvider),
+            onBack = { navigator.goBack() },
+            modifier = Modifier.padding(innerPadding),
+        )
+
+        // 评论底部弹窗
+        activeCommentVideoId?.let { videoId ->
+            CommentBottomSheet(
+                videoId = videoId,
+                onDismissRequest = { activeCommentVideoId = null },
+            )
+        }
     }
 }
 
 /**
- * entryProvider 占位实现。
- *
- * 开发真实项目时替换为由 [entryProvider] DSL 生成的 provider，签名与 [NavigationState.toEntries]
- * 的 entryProvider 参数兼容。
+ * 3-Tab 底部导航栏组件。
  */
-private val skeletonEntryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
-    error("SkeletonApp 不应触发导航。请替换 feature NavKey 后实现真实 entryProvider。key=$key")
+@Composable
+private fun AppBottomNavBar(
+    currentKey: NavKey,
+    onTabSelect: (NavKey) -> Unit,
+) {
+    val tabs =
+        listOf(
+            TabItem(
+                key = FeedNavKey(),
+                label = "首页",
+                selectedIcon = Icons.Filled.Home,
+                unselectedIcon = Icons.Outlined.Home,
+            ),
+            TabItem(
+                key = DiscoverNavKey(),
+                label = "发现",
+                selectedIcon = Icons.Filled.Explore,
+                unselectedIcon = Icons.Outlined.Explore,
+            ),
+            TabItem(
+                key = ProfileNavKey(),
+                label = "我",
+                selectedIcon = Icons.Filled.AccountCircle,
+                unselectedIcon = Icons.Outlined.AccountCircle,
+            ),
+        )
+
+    NavigationBar(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding(),
+        containerColor = Color.Black.copy(alpha = 0.9f),
+        contentColor = Color.White,
+        tonalElevation = 0.dp,
+    ) {
+        tabs.forEach { tab ->
+            val isSelected =
+                when (tab.key) {
+                    is FeedNavKey -> currentKey is FeedNavKey
+                    is DiscoverNavKey -> currentKey is DiscoverNavKey
+                    is ProfileNavKey -> currentKey is ProfileNavKey
+                    else -> currentKey == tab.key
+                }
+
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onTabSelect(tab.key) },
+                icon = {
+                    Icon(
+                        imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
+                        contentDescription = tab.label,
+                        modifier = Modifier.size(24.dp),
+                    )
+                },
+                label = {
+                    Text(
+                        text = tab.label,
+                        fontSize = 11.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                },
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Color.White.copy(alpha = 0.5f),
+                        unselectedTextColor = Color.White.copy(alpha = 0.5f),
+                        indicatorColor = Color.Transparent,
+                    ),
+            )
+        }
+    }
+}
+
+private data class TabItem(
+    val key: NavKey,
+    val label: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+)
+
+@Composable
+private fun PlaceholderScreen(
+    title: String,
+    desc: String,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color.Black),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = desc,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f),
+            )
+        }
+    }
 }

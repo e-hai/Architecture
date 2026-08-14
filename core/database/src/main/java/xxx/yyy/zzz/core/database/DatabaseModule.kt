@@ -14,4 +14,8 @@ val coreDatabaseModule =
                     "app_database",
                 ).build()
         }
+
+        single {
+            get<AppDatabase>().videoDao()
+        }
     }

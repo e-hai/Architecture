@@ -195,6 +195,11 @@ flowchart TD
 - `CrashReportKeys` 集中管理自定义键名
 - 业务直接调用 `CrashReport.log` / `recordException` / `setCustomKey`，不另包 Helper / Koin
 
+#### `:core:video`
+- 透出 VideoKit 门面（`api` 依赖 `com.github.e-hai.VideoKit:video`）
+- `VideoInitializer`：集中初始化视频缓存与预加载配置
+- 业务直接使用 VideoKit 门面与 Composable（如 `FeedCoverPlayerView`、`VodPlayer`、`ClipEngine` 等），不另包 Helper / Koin
+
 ---
 
 ##  Build-Logic 与 Gradle 约定插件

@@ -52,6 +52,10 @@ pushKit = "v1.0.0"
 logKit = "v1.0.0"
 abTestingKit = "v1.0.0"
 crashReportKit = "v1.0.0"
+videoKit = "v0.0.1"
+
+# Image Loading
+coil = "3.1.0"
 
 # Testing & Verification
 junit = "4.13.2"
@@ -138,6 +142,14 @@ push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKi
 
 # LogKit（Logcat + 磁盘 + 应用内控制台）
 log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
+
+# VideoKit（Feed 竖滑、VOD 点播、Clip 剪辑、1GB 缓存与预加载）
+videokit-core = { group = "com.github.e-hai.VideoKit", name = "video", version.ref = "videoKit" }
+videokit-ffmpeg = { group = "com.github.e-hai.VideoKit", name = "video-ffmpeg", version.ref = "videoKit" }
+
+# Coil Image Loading
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 # Testing Libraries
 junit = { group = "junit", name = "junit", version.ref = "junit" }

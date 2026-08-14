@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.navigation.rememberNavigationState
 import xxx.yyy.zzz.core.ui.MyProjectTheme
+import xxx.yyy.zzz.feature.discover.api.DiscoverNavKey
+import xxx.yyy.zzz.feature.feed.api.FeedNavKey
+import xxx.yyy.zzz.feature.profile.api.ProfileNavKey
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,10 +21,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val feedKey = remember { FeedNavKey() }
+            val discoverKey = remember { DiscoverNavKey() }
+            val profileKey = remember { ProfileNavKey() }
+            val topLevelKeys = remember { setOf(feedKey, discoverKey, profileKey) }
+
             val navigationState =
                 rememberNavigationState(
-                    startKey = SkeletonNavKey,
-                    topLevelKeys = setOf(SkeletonNavKey),
+                    startKey = feedKey,
+                    topLevelKeys = topLevelKeys,
                 )
             val navigator = remember(navigationState) { Navigator(navigationState) }
 
