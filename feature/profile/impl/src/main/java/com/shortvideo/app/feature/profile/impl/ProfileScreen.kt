@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -58,6 +59,7 @@ import org.koin.androidx.compose.koinViewModel
  * 方案 D（画报杂志生活美学流）个人主页 Composable。
  *
  * @param userId 用户 ID，为空时代表当前登录用户个人主页
+ * @param onBackClick 二级页面返回回调（查看他人主页时有效）
  * @param onVideoClick 点击作品卡片进入播放流回调
  * @param onEditProfileClick 点击编辑资料回调
  * @param onSettingsClick 点击设置回调
@@ -66,6 +68,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ProfileScreen(
     userId: String? = null,
+    onBackClick: (() -> Unit)? = null,
     onVideoClick: (String) -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
@@ -98,6 +101,7 @@ fun ProfileScreen(
         item(span = { GridItemSpan(3) }) {
             ProfileEditorialHeroSection(
                 uiState = uiState,
+                onBackClick = onBackClick,
                 onEditProfileClick = onEditProfileClick,
                 onSettingsClick = onSettingsClick,
             )
@@ -160,6 +164,7 @@ fun ProfileScreen(
 @Composable
 private fun ProfileEditorialHeroSection(
     uiState: ProfileUiState,
+    onBackClick: (() -> Unit)?,
     onEditProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -198,15 +203,35 @@ private fun ProfileEditorialHeroSection(
                         ),
             )
 
-            // 设置按钮
+            // 顶部操作栏（返回 / 设置）
             Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = if (onBackClick != null) Arrangement.SpaceBetween else Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (onBackClick != null) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier =
+                            Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.55f))
+                                .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.4f), CircleShape),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回",
+                            tint = Color(0xFFFAF6EE),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+
                 IconButton(
                     onClick = onSettingsClick,
                     modifier =

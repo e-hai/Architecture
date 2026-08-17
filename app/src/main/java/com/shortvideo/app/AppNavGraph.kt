@@ -71,6 +71,13 @@ fun AppNavGraph(
             is FeedNavKey -> {
                 NavEntry(key) {
                     FeedScreen(
+                        initialVideoId = key.initialVideoId,
+                        onBackClick =
+                            if (key.initialVideoId != null) {
+                                { navigator.goBack() }
+                            } else {
+                                null
+                            },
                         onAuthorClick = { authorId -> navigator.navigate(ProfileNavKey(userId = authorId)) },
                         onCommentClick = { videoId -> activeCommentVideoId = videoId },
                         modifier = Modifier.fillMaxSize(),
@@ -91,6 +98,12 @@ fun AppNavGraph(
                 NavEntry(key) {
                     ProfileScreen(
                         userId = key.userId,
+                        onBackClick =
+                            if (key.userId != null) {
+                                { navigator.goBack() }
+                            } else {
+                                null
+                            },
                         onVideoClick = { videoId -> navigator.navigate(FeedNavKey(initialVideoId = videoId)) },
                         onEditProfileClick = { /* 打开编辑资料页 */ },
                         onSettingsClick = { /* 打开设置页 */ },
@@ -117,8 +130,7 @@ fun AppNavGraph(
         }
     }
 
-    val isTopLevelTab =
-        currentKey is FeedNavKey || currentKey is DiscoverNavKey || currentKey is ProfileNavKey
+    val isTopLevelTab = navigationState.isAtTopLevel
 
     Scaffold(
         modifier = modifier,
