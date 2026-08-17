@@ -52,7 +52,7 @@ import com.shortvideo.app.feature.profile.api.ProfileNavKey
 import com.shortvideo.app.feature.profile.impl.ProfileScreen
 
 /**
- * 应用主导航图（包含 3-Tab 底部导航、全屏拍摄发布与各页面路由）。
+ * 应用主导航图（包含 3-Tab 底部导航、画报美学沉浸流与各页面路由）。
  *
  * @param navigationState 全局导航状态机
  * @param navigator 导航控制器
@@ -63,7 +63,6 @@ fun AppNavGraph(
     navigator: Navigator,
     modifier: Modifier = Modifier,
 ) {
-    val currentKey = navigationState.currentTopLevelKey
     var activeCommentVideoId by remember { mutableStateOf<String?>(null) }
 
     val entryProvider: (NavKey) -> NavEntry<NavKey> = { key ->
@@ -130,14 +129,13 @@ fun AppNavGraph(
         }
     }
 
-    val isTopLevelTab = navigationState.isAtTopLevel
-
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            if (isTopLevelTab) {
+            // 在底栏 Lambda 内部直接观察 isAtTopLevel State，确保二级页面时即时准确隐藏底栏
+            if (navigationState.isAtTopLevel) {
                 AppBottomNavBar(
-                    currentKey = currentKey,
+                    currentKey = navigationState.currentTopLevelKey,
                     onTabSelect = { targetKey ->
                         navigator.navigate(targetKey)
                     },
@@ -163,7 +161,7 @@ fun AppNavGraph(
 }
 
 /**
- * 3-Tab 底部导航栏组件。
+ * 3-Tab 底部导航栏组件（方案 D 画报生活美学调色）。
  */
 @Composable
 private fun AppBottomNavBar(
@@ -197,8 +195,8 @@ private fun AppBottomNavBar(
             Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding(),
-        containerColor = Color.Black.copy(alpha = 0.9f),
-        contentColor = Color.White,
+        containerColor = Color(0xFF0E0D0C).copy(alpha = 0.95f),
+        contentColor = Color(0xFFFAF6EE),
         tonalElevation = 0.dp,
     ) {
         tabs.forEach { tab ->
@@ -229,10 +227,10 @@ private fun AppBottomNavBar(
                 },
                 colors =
                     NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = Color.White,
-                        unselectedIconColor = Color.White.copy(alpha = 0.5f),
-                        unselectedTextColor = Color.White.copy(alpha = 0.5f),
+                        selectedIconColor = Color(0xFFE5C384),
+                        selectedTextColor = Color(0xFFE5C384),
+                        unselectedIconColor = Color(0xFFFAF6EE).copy(alpha = 0.45f),
+                        unselectedTextColor = Color(0xFFFAF6EE).copy(alpha = 0.45f),
                         indicatorColor = Color.Transparent,
                     ),
             )
