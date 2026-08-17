@@ -37,7 +37,7 @@ class CreatorRepositoryImpl(
             VideoItem(
                 id = "v_created_${System.currentTimeMillis()}",
                 title = title.ifBlank { "今天记录的美好瞬间 ✨ #生活 #日常" },
-                videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+                videoUrl = "https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4",
                 coverUrl = "https://picsum.photos/600/1000?random=$randomCoverIndex",
                 author =
                     Author(
