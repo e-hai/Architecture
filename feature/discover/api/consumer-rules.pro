@@ -1,2 +1,2 @@
 # Feature Discover API Proguard Rules
--keep class xxx.yyy.zzz.feature.discover.api.** { *; }
+-keep class com.shortvideo.app.feature.discover.api.** { *; }

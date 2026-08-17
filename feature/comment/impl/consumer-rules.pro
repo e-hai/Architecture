@@ -1,2 +1,2 @@
 # Feature Comment Impl Proguard Rules
--keep class xxx.yyy.zzz.feature.comment.impl.** { *; }
+-keep class com.shortvideo.app.feature.comment.impl.** { *; }

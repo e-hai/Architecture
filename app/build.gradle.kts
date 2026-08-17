@@ -2,7 +2,7 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.myproject.android.application)
+    alias(libs.plugins.shortvideo.android.application)
 }
 
 // 从 local.properties 加载签名配置
@@ -13,10 +13,10 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "xxx.yyy.zzz"
+    namespace = "com.shortvideo.app"
 
     defaultConfig {
-        applicationId = "xxx.yyy.zzz"
+        applicationId = "com.shortvideo.app"
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

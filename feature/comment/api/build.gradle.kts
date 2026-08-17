@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.myproject.android.feature.api)
+    alias(libs.plugins.shortvideo.android.feature.api)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.feature.comment.api"
+    namespace = "com.shortvideo.app.feature.comment.api"
 }

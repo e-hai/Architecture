@@ -11,9 +11,9 @@ class AndroidFeatureImplConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             with(pluginManager) {
-                apply("myproject.android.library")
-                apply("myproject.android.compose")
-                apply("myproject.koin")
+                apply("shortvideo.android.library")
+                apply("shortvideo.android.compose")
+                apply("shortvideo.koin")
             }
 
             dependencies {

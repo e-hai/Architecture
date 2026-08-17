@@ -1,2 +1,2 @@
 # Feature Feed API Proguard Rules
--keep class xxx.yyy.zzz.feature.feed.api.** { *; }
+-keep class com.shortvideo.app.feature.feed.api.** { *; }

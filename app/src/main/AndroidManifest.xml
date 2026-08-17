@@ -9,9 +9,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:label="My Project Scaffold"
+        android:label="Short Video"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyProjectAppName"
+        android:theme="@style/Theme.ShortVideoAppName"
         tools:replace="android:dataExtractionRules,android:fullBackupContent">
 
         <activity

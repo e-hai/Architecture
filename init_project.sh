@@ -21,46 +21,116 @@ echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}    Android Modern Architecture Scaffold Init       ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
+# Java 保留关键字列表（Android namespace / 包名中不可包含）
+JAVA_KEYWORDS="abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null"
+
+validate_java_package() {
+    local pkg="$1"
+    # 格式校验
+    if ! echo "$pkg" | grep -qE '^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$'; then
+        echo -e "${RED}[错误] 包名格式非法: $pkg（合法示例: com.example.myapp）${NC}"
+        return 1
+    fi
+    # 关键字校验
+    local IFS='.'
+    for segment in $pkg; do
+        for kw in $JAVA_KEYWORDS; do
+            if [ "$segment" = "$kw" ]; then
+                echo -e "${RED}[错误] 包名段落 '$segment' 是 Java 保留关键字，无法作为 Android 包名/Namespace！${NC}"
+                echo -e "${YELLOW}提示: 请尝试使用类似 'com.shortvideo.app' 或 'com.shortvideo' 等合规包名。${NC}"
+                return 1
+            fi
+        done
+    done
+    return 0
+}
+
 # 解析命令行参数
 DRY_RUN=false
+FORCE=false
+CLI_NAMESPACE=""
+CLI_APP_ID=""
+CLI_PREFIX=""
+CLI_APP_NAME=""
+CLI_BASE_URL=""
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run) DRY_RUN=true; shift ;;
-        --force) FORCE=true; shift ;;
-        *) break ;;
+        --force|-f) FORCE=true; shift ;;
+        -n|--namespace) CLI_NAMESPACE="$2"; shift 2 ;;
+        -a|--app-id) CLI_APP_ID="$2"; shift 2 ;;
+        -p|--prefix) CLI_PREFIX="$2"; shift 2 ;;
+        -t|--app-name) CLI_APP_NAME="$2"; shift 2 ;;
+        -u|--base-url) CLI_BASE_URL="$2"; shift 2 ;;
+        *) shift ;;
     esac
 done
 
 # 1. 引导交互输入
-read -p "请输入新的命名空间 (Namespace, 比如 com.example.myapp): " NEW_NAMESPACE
+if [ -n "$CLI_NAMESPACE" ]; then
+    NEW_NAMESPACE="$CLI_NAMESPACE"
+else
+    read -p "请输入新的命名空间 (Namespace, 比如 com.shortvideo.app): " NEW_NAMESPACE
+fi
+
 if [ -z "$NEW_NAMESPACE" ]; then
     echo -e "${RED}[错误] 命名空间不能为空！${NC}"
     exit 1
 fi
 
-# 校验命名空间格式
-if ! echo "$NEW_NAMESPACE" | grep -qE '^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$'; then
-    echo -e "${YELLOW}[警告] 命名空间格式非标准，请确认（合法格式: com.example.myapp）${NC}"
+if ! validate_java_package "$NEW_NAMESPACE"; then
+    exit 1
 fi
 
-read -p "请输入新的应用 ID (ApplicationId, 默认同命名空间): " NEW_APP_ID
-if [ -z "$NEW_APP_ID" ]; then
-    NEW_APP_ID=$NEW_NAMESPACE
+if [ -n "$CLI_APP_ID" ]; then
+    NEW_APP_ID="$CLI_APP_ID"
+elif [ -n "$CLI_NAMESPACE" ]; then
+    NEW_APP_ID="$NEW_NAMESPACE"
+else
+    read -p "请输入新的应用 ID (ApplicationId, 默认同命名空间): " NEW_APP_ID
+    if [ -z "$NEW_APP_ID" ]; then
+        NEW_APP_ID=$NEW_NAMESPACE
+    fi
 fi
 
-read -p "请输入新的约定插件前缀 (Plugin Prefix, 默认 myproject): " NEW_PREFIX
-if [ -z "$NEW_PREFIX" ]; then
-    NEW_PREFIX="myproject"
+if [ -n "$CLI_PREFIX" ]; then
+    NEW_PREFIX="$CLI_PREFIX"
+else
+    if [ -n "$CLI_NAMESPACE" ]; then
+        NEW_PREFIX="shortvideo"
+    else
+        read -p "请输入新的约定插件前缀 (Plugin Prefix, 默认 myproject): " NEW_PREFIX
+        if [ -z "$NEW_PREFIX" ]; then
+            NEW_PREFIX="myproject"
+        fi
+    fi
 fi
 
-read -p "请输入新的应用名称 (App Display Name, 默认 My App): " NEW_APP_NAME
-if [ -z "$NEW_APP_NAME" ]; then
-    NEW_APP_NAME="My App"
+if [ -n "$CLI_APP_NAME" ]; then
+    NEW_APP_NAME="$CLI_APP_NAME"
+else
+    if [ -n "$CLI_NAMESPACE" ]; then
+        NEW_APP_NAME="Short Video"
+    else
+        read -p "请输入新的应用名称 (App Display Name, 默认 My App): " NEW_APP_NAME
+        if [ -z "$NEW_APP_NAME" ]; then
+            NEW_APP_NAME="My App"
+        fi
+    fi
 fi
 
-read -p "请输入 API Base URL (默认 https://api.example.com/): " NEW_BASE_URL
-if [ -z "$NEW_BASE_URL" ]; then
-    NEW_BASE_URL="https://api.example.com/"
+if [ -n "$CLI_BASE_URL" ]; then
+    NEW_BASE_URL="$CLI_BASE_URL"
+else
+    if [ -n "$CLI_NAMESPACE" ]; then
+        NEW_BASE_URL="https://api.shortvideo.com/"
+    else
+        read -p "请输入 API Base URL (默认 https://api.example.com/): " NEW_BASE_URL
+        if [ -z "$NEW_BASE_URL" ]; then
+            NEW_BASE_URL="https://api.example.com/"
+        fi
+    fi
 fi
 
 echo -e "\n${YELLOW}[信息] 开始初始化项目...${NC}"
@@ -83,7 +153,6 @@ NEW_PATH=$(echo "$NEW_NAMESPACE" | tr '.' '/')
 echo -e "${YELLOW}[1/4] 正在执行全局文本内容替换...${NC}"
 
 find_and_replace() {
-    local find_args=("$@")
     # 替换命名空间/包名文本以及自定义插件前缀
     find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" \) \
         -not -path '*/.*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './init_project.sh' | while read -r file; do
@@ -122,9 +191,9 @@ echo -e "${YELLOW}[2/4] 正在移动物理文件夹以匹配新包路径...${NC}
 
 find . -type d -path "*/src/*/java/${OLD_PATH}" | while read -r old_dir; do
     # 提取物理 java 根路径 (e.g. ./app/src/main/java)
-    target_parent=$(echo "$old_dir" | sed "s/\/java\/${OLD_PATH}//g")/java
+    target_parent="${old_dir%/java/${OLD_PATH}*}/java"
 
-    # 创建新的深层目录结构 (e.g. ./app/src/main/java/com/example/myapp)
+    # 创建新的深层目录结构 (e.g. ./app/src/main/java/com/shortvideo/app)
     mkdir -p "${target_parent}/${NEW_PATH}"
 
     # 将旧占位包下的所有源码物理移动至新包路径下

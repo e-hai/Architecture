@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 修改后：带上 .NoActionBar -->
-    <style name="Theme.MyProjectAppName" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.ShortVideoAppName" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- 可以在这里统一控制状态栏颜色 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>

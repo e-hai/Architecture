@@ -1,2 +1,2 @@
 # Feature Profile Impl Proguard Rules
--keep class xxx.yyy.zzz.feature.profile.impl.** { *; }
+-keep class com.shortvideo.app.feature.profile.impl.** { *; }

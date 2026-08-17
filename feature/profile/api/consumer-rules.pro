@@ -1,2 +1,2 @@
 # Feature Profile API Proguard Rules
--keep class xxx.yyy.zzz.feature.profile.api.** { *; }
+-keep class com.shortvideo.app.feature.profile.api.** { *; }

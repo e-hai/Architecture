@@ -14,7 +14,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.library")
-                apply("myproject.spotless")
+                apply("shortvideo.spotless")
             }
 
             extensions.configure<LibraryExtension> {

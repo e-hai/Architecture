@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.myproject.android.library)
+    alias(libs.plugins.shortvideo.android.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.core.model"
+    namespace = "com.shortvideo.app.core.model"
 }
 
 dependencies {

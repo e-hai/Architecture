@@ -179,11 +179,11 @@ google-services = { id = "com.google.gms.google-services", version.ref = "google
 firebase-crashlytics-gradle = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
 
 # Project Convention Plugins
-myproject-android-application = { id = "myproject.android.application" }
-myproject-android-library = { id = "myproject.android.library" }
-myproject-android-feature-api = { id = "myproject.android.feature.api" }
-myproject-android-feature-impl = { id = "myproject.android.feature.impl" }
-myproject-android-room = { id = "myproject.android.room" }
-myproject-koin = { id = "myproject.koin" }
-myproject-spotless = { id = "myproject.spotless" }
-myproject-android-compose = { id = "myproject.android.compose" }
+shortvideo-android-application = { id = "shortvideo.android.application" }
+shortvideo-android-library = { id = "shortvideo.android.library" }
+shortvideo-android-feature-api = { id = "shortvideo.android.feature.api" }
+shortvideo-android-feature-impl = { id = "shortvideo.android.feature.impl" }
+shortvideo-android-room = { id = "shortvideo.android.room" }
+shortvideo-koin = { id = "shortvideo.koin" }
+shortvideo-spotless = { id = "shortvideo.spotless" }
+shortvideo-android-compose = { id = "shortvideo.android.compose" }

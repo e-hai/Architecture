@@ -1,9 +1,9 @@
 plugins {
-    alias(libs.plugins.myproject.android.library)
+    alias(libs.plugins.shortvideo.android.library)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.core.pay"
+    namespace = "com.shortvideo.app.core.pay"
 }
 
 dependencies {

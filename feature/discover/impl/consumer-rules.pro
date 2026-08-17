@@ -1,2 +1,2 @@
 # Feature Discover Impl Proguard Rules
--keep class xxx.yyy.zzz.feature.discover.impl.** { *; }
+-keep class com.shortvideo.app.feature.discover.impl.** { *; }

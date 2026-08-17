@@ -2,7 +2,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "xxx.yyy.zzz.buildlogic"
+group = "com.shortvideo.app.buildlogic"
 
 dependencies {
     compileOnly(libs.android.gradlePlugin)
@@ -17,35 +17,35 @@ dependencies {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "myproject.android.application"
+            id = "shortvideo.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidLibrary") {
-            id = "myproject.android.library"
+            id = "shortvideo.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidFeatureApi") {
-            id = "myproject.android.feature.api"
+            id = "shortvideo.android.feature.api"
             implementationClass = "AndroidFeatureApiConventionPlugin"
         }
         register("androidFeatureImpl") {
-            id = "myproject.android.feature.impl"
+            id = "shortvideo.android.feature.impl"
             implementationClass = "AndroidFeatureImplConventionPlugin"
         }
         register("androidRoom") {
-            id = "myproject.android.room"
+            id = "shortvideo.android.room"
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("koin") {
-            id = "myproject.koin"
+            id = "shortvideo.koin"
             implementationClass = "KoinConventionPlugin"
         }
         register("spotless") {
-            id = "myproject.spotless"
+            id = "shortvideo.spotless"
             implementationClass = "SpotlessConventionPlugin"
         }
         register("androidCompose") {
-            id = "myproject.android.compose"
+            id = "shortvideo.android.compose"
             implementationClass = "AndroidComposeConventionPlugin"
         }
     }

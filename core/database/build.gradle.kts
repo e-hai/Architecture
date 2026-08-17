@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.android.room)
-    alias(libs.plugins.myproject.koin)
+    alias(libs.plugins.shortvideo.android.library)
+    alias(libs.plugins.shortvideo.android.room)
+    alias(libs.plugins.shortvideo.koin)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.core.database"
+    namespace = "com.shortvideo.app.core.database"
 }
 
 dependencies {

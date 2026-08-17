@@ -1,9 +1,9 @@
 plugins {
-    alias(libs.plugins.myproject.android.feature.impl)
+    alias(libs.plugins.shortvideo.android.feature.impl)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.feature.feed.impl"
+    namespace = "com.shortvideo.app.feature.feed.impl"
 }
 
 dependencies {

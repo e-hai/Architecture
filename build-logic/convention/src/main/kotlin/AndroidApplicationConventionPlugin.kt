@@ -18,9 +18,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 apply("org.jetbrains.kotlin.plugin.serialization")
                 apply("com.google.gms.google-services")
                 apply("com.google.firebase.crashlytics")
-                apply("myproject.android.compose")
-                apply("myproject.spotless")
-                apply("myproject.koin")
+                apply("shortvideo.android.compose")
+                apply("shortvideo.spotless")
+                apply("shortvideo.koin")
             }
 
             extensions.configure<ApplicationExtension> {

@@ -1,2 +1,2 @@
 # Feature Comment API Proguard Rules
--keep class xxx.yyy.zzz.feature.comment.api.** { *; }
+-keep class com.shortvideo.app.feature.comment.api.** { *; }

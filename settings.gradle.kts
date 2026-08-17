@@ -38,7 +38,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Architecture"
+rootProject.name = "ShortVideo"
 
 // Enable Included Build for convention plugins
 // The build-logic will be executed before assembling the project.

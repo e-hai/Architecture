@@ -1,12 +1,12 @@
 plugins {
-    alias(libs.plugins.myproject.android.library)
-    alias(libs.plugins.myproject.koin)
+    alias(libs.plugins.shortvideo.android.library)
+    alias(libs.plugins.shortvideo.koin)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "xxx.yyy.zzz.core.navigation"
+    namespace = "com.shortvideo.app.core.navigation"
 }
 
 dependencies {
