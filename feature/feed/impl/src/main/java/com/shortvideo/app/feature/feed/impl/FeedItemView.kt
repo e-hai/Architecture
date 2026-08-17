@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,7 +44,7 @@ import com.shortvideo.app.core.video.ShortVideoPlayer
 import kotlinx.coroutines.delay
 
 /**
- * 单页短视频播放容器组件（包含真实视频播放流、双击飞心动效与交互浮层）。
+ * 单页短视频播放容器组件（方案 D：画报生活美学流）。
  *
  * @param video 视频领域模型
  * @param isActive 是否为当前屏幕可见活跃页面
@@ -68,7 +69,6 @@ fun FeedItemView(
     var playbackProgress by remember { mutableFloatStateOf(0f) }
     val heartAnimList = remember { mutableStateListOf<HeartParticle>() }
 
-    // 页面进入/离开当前可见区域时的播放控制
     LaunchedEffect(isActive) {
         isPlaying = isActive
     }
@@ -77,7 +77,7 @@ fun FeedItemView(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color(0xFF0E0D0C))
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = { offset ->
@@ -90,7 +90,7 @@ fun FeedItemView(
                     )
                 },
     ) {
-        // 1. 核心真实短视频播放器组件
+        // 1. 核心短视频播放器组件
         ShortVideoPlayer(
             videoUrl = video.videoUrl,
             coverUrl = video.coverUrl,
@@ -104,7 +104,7 @@ fun FeedItemView(
             modifier = Modifier.fillMaxSize(),
         )
 
-        // 2. 暂停状态居中大图标
+        // 2. 暂停状态居中画报圆环图标
         AnimatedVisibility(
             visible = !isPlaying && isActive,
             enter = fadeIn() + scaleIn(),
@@ -114,15 +114,16 @@ fun FeedItemView(
             Box(
                 modifier =
                     Modifier
-                        .size(72.dp)
-                        .background(Color.Black.copy(alpha = 0.45f), shape = CircleShape),
+                        .size(68.dp)
+                        .background(Color(0x880E0D0C), shape = CircleShape)
+                        .border(1.dp, Color(0xFFE5C384).copy(alpha = 0.6f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "暂停中",
-                    tint = Color.White.copy(alpha = 0.9f),
-                    modifier = Modifier.size(48.dp),
+                    tint = Color(0xFFFAF6EE),
+                    modifier = Modifier.size(40.dp),
                 )
             }
         }
@@ -135,7 +136,7 @@ fun FeedItemView(
             )
         }
 
-        // 4. 右侧互动条与底部作者/文案浮层
+        // 4. 画报生活美学交互浮层
         FeedInteractionOverlay(
             video = video,
             onLikeClick = onLikeClick,
@@ -146,7 +147,7 @@ fun FeedItemView(
             modifier = Modifier.fillMaxSize(),
         )
 
-        // 5. 底部真实播放进度条
+        // 5. 底部香槟金真实播放进度条
         LinearProgressIndicator(
             progress = { playbackProgress },
             modifier =
@@ -154,7 +155,7 @@ fun FeedItemView(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .height(2.dp),
-            color = Color.White.copy(alpha = 0.85f),
+            color = Color(0xFFE5C384),
             trackColor = Color.Transparent,
         )
     }
@@ -202,7 +203,7 @@ private fun DoubleTapHeartAnimation(
         Icon(
             imageVector = Icons.Default.Favorite,
             contentDescription = "点赞动画",
-            tint = Color(0xFFFF2C55).copy(alpha = alpha.value),
+            tint = Color(0xFFFF4066).copy(alpha = alpha.value),
             modifier = Modifier.size(80.dp),
         )
     }

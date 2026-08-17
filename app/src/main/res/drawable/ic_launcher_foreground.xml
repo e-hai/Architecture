@@ -5,18 +5,18 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 方案 D：一笔极简纯白视窗与播放环线（缩小图案尺寸，增加留白呼吸感） -->
+    <!-- 方案 D：画报生活美学 · 香槟金画报视窗与光影光圈 -->
     <group
         android:pivotX="54"
         android:pivotY="54"
-        android:scaleX="0.70"
-        android:scaleY="0.70">
+        android:scaleX="0.68"
+        android:scaleY="0.68">
 
-        <!-- 外层圆角矩形视窗 -->
+        <!-- 1. 外层优雅画报黄金矩形框 (香槟金微暖色) -->
         <path
             android:fillColor="#00000000"
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="5.5"
+            android:strokeColor="#E5C384"
+            android:strokeWidth="4.5"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:pathData="M 52,78
@@ -30,11 +30,11 @@
                               A 8,8 0 0,0 34,78
                               L 38,78" />
 
-        <!-- 内部一笔流畅转折的纯白播放三角 -->
+        <!-- 2. 内部一笔流畅转折的纯白画报光影三角 (温润象牙白) -->
         <path
             android:fillColor="#00000000"
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="5.5"
+            android:strokeColor="#FAF6EE"
+            android:strokeWidth="4.5"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:pathData="M 38,78
@@ -43,6 +43,15 @@
                               L 66,51
                               A 5,5 0 0,1 66,61
                               L 48,70" />
+
+        <!-- 3. 画报右上角微光星标 -->
+        <path
+            android:fillColor="#E5C384"
+            android:pathData="M 72,37
+                              C 72,35 73,34 75,34
+                              C 73,34 72,33 72,31
+                              C 72,33 71,34 69,34
+                              C 71,34 72,35 72,37 Z" />
     </group>
 
 </vector>
