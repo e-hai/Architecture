@@ -71,7 +71,6 @@ fun AppNavGraph(
             is FeedNavKey -> {
                 NavEntry(key) {
                     FeedScreen(
-                        onCameraClick = { navigator.navigate(CreatorNavKey()) },
                         onAuthorClick = { authorId -> navigator.navigate(ProfileNavKey(userId = authorId)) },
                         onCommentClick = { videoId -> activeCommentVideoId = videoId },
                         modifier = Modifier.fillMaxSize(),

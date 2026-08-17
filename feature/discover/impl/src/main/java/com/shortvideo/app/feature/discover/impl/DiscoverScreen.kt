@@ -27,14 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -43,7 +41,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +53,9 @@ import com.shortvideo.app.core.model.VideoItem
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * 发现/探索中心页面 Composable（热点聚合与结构化探索）。
+ * 极简发现/探索中心页面 Composable。
+ *
+ * 遵循全球化极简设计哲学：去繁就简、大量留白、开阔呼吸感，入口直接明了。
  *
  * @param onVideoClick 点击视频卡片跳转播放流回调
  * @param viewModel 发现 ViewModel
@@ -76,62 +75,46 @@ fun DiscoverScreen(
                 .background(Color.Black)
                 .statusBarsPadding(),
     ) {
-        // 顶部统一样式搜索框
-        SearchBarHeader(
+        // 1. 顶部极简开阔搜索栏
+        DiscoverSearchBar(
             query = uiState.searchQuery,
             onQueryChange = viewModel::onSearchQueryChange,
             onClear = { viewModel.onSearchQueryChange("") },
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
         )
 
-        // 主体结构化探索内容（Banner + 实时热搜榜 + 分类筛选 + 瀑布流推荐）
+        // 2. 探索内容瀑布流（话题 Chips + 双列媒体卡片）
         if (uiState.isLoading && uiState.videos.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = Color.White)
+                CircularProgressIndicator(color = Color.White, strokeWidth = 2.5.dp)
             }
         } else {
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalItemSpacing = 10.dp,
+                verticalItemSpacing = 12.dp,
             ) {
-                // 1. 顶部活动 Banner（未在关键词搜索时显示）
-                if (uiState.searchQuery.isBlank() && uiState.banners.isNotEmpty()) {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        DiscoverBannerCard(banner = uiState.banners.first())
-                    }
-                }
-
-                // 2. 实时热搜榜单 Top 5（未在关键词搜索时显示）
-                if (uiState.searchQuery.isBlank() && uiState.trendingTopics.isNotEmpty()) {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        TrendingTopicsCard(
-                            topics = uiState.trendingTopics,
-                            onTopicClick = viewModel::onTrendingTopicClick,
-                        )
-                    }
-                }
-
-                // 3. 话题分类横向选择条
+                // 顶部留白与话题筛选条
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    CategoryFilterRow(
+                    TopicFilterRow(
                         categories = uiState.topics,
                         selectedTopic = uiState.selectedTopic ?: "全部",
                         onTopicSelect = viewModel::onTopicSelect,
+                        modifier = Modifier.padding(bottom = 6.dp),
                     )
                 }
 
-                // 4. 双列瀑布流视频卡片
+                // 双列探索视频流
                 items(uiState.videos, key = { it.id }) { video ->
-                    ExploreVideoCard(
+                    DiscoverVideoCard(
                         video = video,
                         onClick = { onVideoClick(video.id) },
                     )
@@ -142,10 +125,10 @@ fun DiscoverScreen(
 }
 
 /**
- * 顶部搜索框组件。
+ * 极简搜索栏组件。
  */
 @Composable
-private fun SearchBarHeader(
+private fun DiscoverSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit,
@@ -160,17 +143,17 @@ private fun SearchBarHeader(
                 .height(48.dp),
         placeholder = {
             Text(
-                text = "搜索感兴趣的视频、作者或话题...",
+                text = "搜索视频、作者或话题",
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.45f),
+                color = Color.White.copy(alpha = 0.4f),
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "搜索",
-                tint = Color.White.copy(alpha = 0.6f),
-                modifier = Modifier.size(20.dp),
+                tint = Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(18.dp),
             )
         },
         trailingIcon = {
@@ -179,8 +162,8 @@ private fun SearchBarHeader(
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = "清空",
-                        tint = Color.White.copy(alpha = 0.6f),
-                        modifier = Modifier.size(18.dp),
+                        tint = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -189,8 +172,8 @@ private fun SearchBarHeader(
         shape = RoundedCornerShape(24.dp),
         colors =
             OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF1E1E1E),
-                unfocusedContainerColor = Color(0xFF181818),
+                focusedContainerColor = Color(0xFF161616),
+                unfocusedContainerColor = Color(0xFF141414),
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 focusedBorderColor = Color.Transparent,
@@ -200,193 +183,10 @@ private fun SearchBarHeader(
 }
 
 /**
- * 发现页活动/专题 Banner 卡片。
+ * 极简单行话题筛选条。
  */
 @Composable
-private fun DiscoverBannerCard(
-    banner: DiscoverBanner,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .aspectRatio(2.4f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF1E293B)),
-    ) {
-        AsyncImage(
-            model = banner.coverUrl,
-            contentDescription = banner.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
-
-        // 底部渐变蒙层
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
-                        ),
-                    ),
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFFF2C55))
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    text = banner.tag,
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = banner.title,
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = banner.subtitle,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 11.sp,
-            )
-        }
-    }
-}
-
-/**
- * 实时热搜榜 Top 5 卡片。
- */
-@Composable
-private fun TrendingTopicsCard(
-    topics: List<TrendingTopic>,
-    onTopicClick: (TrendingTopic) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF141414))
-                .padding(12.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocalFireDepartment,
-                contentDescription = "热搜",
-                tint = Color(0xFFFF2C55),
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "实时热搜榜",
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "热度飙升",
-                fontSize = 11.sp,
-                color = Color.White.copy(alpha = 0.4f),
-            )
-        }
-
-        topics.take(5).forEach { topic ->
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onTopicClick(topic) }
-                        .padding(vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // 排名标识
-                Text(
-                    text = "${topic.rank}",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color =
-                        when (topic.rank) {
-                            1 -> Color(0xFFFF2C55)
-                            2 -> Color(0xFFFF6B00)
-                            3 -> Color(0xFFFFB800)
-                            else -> Color.White.copy(alpha = 0.4f)
-                        },
-                    modifier = Modifier.width(22.dp),
-                )
-
-                // 话题标题
-                Text(
-                    text = "#${topic.title}",
-                    fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.9f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-
-                // 标签徽标 (热/新)
-                if (topic.isHot) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(Color(0xFFFF2C55).copy(alpha = 0.2f))
-                                .padding(horizontal = 4.dp, vertical = 1.dp),
-                    ) {
-                        Text(text = "热", color = Color(0xFFFF2C55), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                } else if (topic.isNew) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(Color(0xFF00C853).copy(alpha = 0.2f))
-                                .padding(horizontal = 4.dp, vertical = 1.dp),
-                    ) {
-                        Text(text = "新", color = Color(0xFF00C853), fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
-
-                // 热度数值
-                Text(
-                    text = topic.hotScore,
-                    fontSize = 11.sp,
-                    color = Color.White.copy(alpha = 0.35f),
-                )
-            }
-        }
-    }
-}
-
-/**
- * 分类选择 Chips 栏。
- */
-@Composable
-private fun CategoryFilterRow(
+private fun TopicFilterRow(
     categories: List<String>,
     selectedTopic: String,
     onTopicSelect: (String) -> Unit,
@@ -394,7 +194,7 @@ private fun CategoryFilterRow(
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 4.dp),
+        contentPadding = PaddingValues(vertical = 2.dp),
         modifier = modifier.fillMaxWidth(),
     ) {
         items(categories) { category ->
@@ -406,15 +206,15 @@ private fun CategoryFilterRow(
                     Text(
                         text = category,
                         fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     )
                 },
                 colors =
                     FilterChipDefaults.filterChipColors(
-                        containerColor = Color(0xFF181818),
-                        labelColor = Color.White.copy(alpha = 0.7f),
-                        selectedContainerColor = Color(0xFFFF2C55),
-                        selectedLabelColor = Color.White,
+                        containerColor = Color(0xFF141414),
+                        labelColor = Color.White.copy(alpha = 0.6f),
+                        selectedContainerColor = Color.White,
+                        selectedLabelColor = Color.Black,
                     ),
                 shape = RoundedCornerShape(16.dp),
                 border = null,
@@ -424,10 +224,10 @@ private fun CategoryFilterRow(
 }
 
 /**
- * 瀑布流视频卡片。
+ * 极简双列探索媒体卡片。
  */
 @Composable
-private fun ExploreVideoCard(
+private fun DiscoverVideoCard(
     video: VideoItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -436,8 +236,8 @@ private fun ExploreVideoCard(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF141414))
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF121212))
                 .clickable(onClick = onClick),
     ) {
         // 封面图
@@ -445,8 +245,8 @@ private fun ExploreVideoCard(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.75f)
-                    .background(Color(0xFF222222)),
+                    .aspectRatio(0.72f)
+                    .background(Color(0xFF1E1E1E)),
         ) {
             AsyncImage(
                 model = video.coverUrl,
@@ -456,8 +256,8 @@ private fun ExploreVideoCard(
             )
         }
 
-        // 标题与作者信息
-        Column(modifier = Modifier.padding(8.dp)) {
+        // 视频标题与创作者
+        Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
             Text(
                 text = video.title,
                 fontSize = 12.sp,
@@ -485,14 +285,14 @@ private fun ExploreVideoCard(
                         contentScale = ContentScale.Crop,
                         modifier =
                             Modifier
-                                .size(16.dp)
+                                .size(14.dp)
                                 .clip(CircleShape),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = video.author.nickname,
                         fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.6f),
+                        color = Color.White.copy(alpha = 0.55f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -502,14 +302,14 @@ private fun ExploreVideoCard(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = "点赞",
-                        tint = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.size(12.dp),
+                        tint = Color.White.copy(alpha = 0.4f),
+                        modifier = Modifier.size(11.dp),
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = "${video.likeCount}",
                         fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.45f),
                     )
                 }
             }

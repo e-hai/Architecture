@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * 首页短视频流 ViewModel。
+ * 首页推荐短视频流 ViewModel。
  *
  * @param repository 短视频数据仓储
  */
@@ -31,7 +31,7 @@ class FeedViewModel(
         viewModelScope.launch {
             repository.getFeedVideos().collect { list ->
                 if (list.isEmpty()) {
-                    // 本地尚无缓存时，触发一次预置种子数据同步
+                    // 本地尚无缓存时，触发一次推荐种子数据同步
                     repository.refreshFeed()
                 } else {
                     _uiState.update { it.copy(videos = list, isLoading = false) }
@@ -53,13 +53,6 @@ class FeedViewModel(
             }
             LogKit.d("FeedViewModel", "Page changed to index=$pageIndex, videoId=${currentVideo.id}")
         }
-    }
-
-    /**
-     * 切换顶部 Tab (0: 关注, 1: 推荐)。
-     */
-    fun onTabSelected(tabIndex: Int) {
-        _uiState.update { it.copy(selectedTab = tabIndex) }
     }
 
     /**

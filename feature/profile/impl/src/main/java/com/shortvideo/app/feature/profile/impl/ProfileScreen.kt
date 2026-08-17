@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,7 +53,9 @@ import com.shortvideo.app.core.model.VideoItem
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * 个人中心/用户主页 Composable。
+ * 极简个人中心/用户主页 Composable。
+ *
+ * 遵循全球化极简设计原则：开阔留白、大气质感、信息层级清晰、操作直观。
  *
  * @param userId 用户 ID，为空时代表当前登录用户个人主页
  * @param onVideoClick 点击作品卡片进入播放流回调
@@ -94,9 +95,9 @@ fun ProfileScreen(
         horizontalArrangement = Arrangement.spacedBy(1.5.dp),
         verticalArrangement = Arrangement.spacedBy(1.5.dp),
     ) {
-        // 头部个人信息
+        // 头部个人信息与留白
         item(span = { GridItemSpan(3) }) {
-            ProfileHeader(
+            ProfileHeroSection(
                 uiState = uiState,
                 onEditProfileClick = onEditProfileClick,
                 onSettingsClick = onSettingsClick,
@@ -105,7 +106,7 @@ fun ProfileScreen(
 
         // Tab 栏
         item(span = { GridItemSpan(3) }) {
-            ProfileTabBar(
+            ProfileTabs(
                 selectedTab = uiState.selectedTab,
                 worksCount = uiState.works.size,
                 likedCount = uiState.likedVideos.size,
@@ -114,17 +115,17 @@ fun ProfileScreen(
             )
         }
 
-        // 网格作品列表
+        // 媒体内容网格
         if (uiState.isLoading && currentList.isEmpty()) {
             item(span = { GridItemSpan(3) }) {
                 Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(180.dp),
+                            .height(200.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.5.dp)
                 }
             }
         } else if (currentList.isEmpty()) {
@@ -133,19 +134,19 @@ fun ProfileScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(180.dp),
+                            .height(200.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "暂无相关视频",
+                        text = "暂无内容",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.4f),
                     )
                 }
             }
         } else {
             items(currentList, key = { it.id }) { video ->
-                ProfileVideoGridItem(
+                ProfileMediaCard(
                     video = video,
                     onClick = { onVideoClick(video.id) },
                 )
@@ -155,10 +156,10 @@ fun ProfileScreen(
 }
 
 /**
- * 个人主页头部信息。
+ * 个人主页头部区域（大量留白与极简层次）。
  */
 @Composable
-private fun ProfileHeader(
+private fun ProfileHeroSection(
     uiState: ProfileUiState,
     onEditProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -167,7 +168,8 @@ private fun ProfileHeader(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // 顶部操作栏
         Row(
@@ -175,128 +177,121 @@ private fun ProfileHeader(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onSettingsClick) {
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier.size(36.dp),
+            ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "设置",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp),
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
 
-        // 头像与基本资料
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                model = uiState.user?.avatarUrl,
-                contentDescription = uiState.user?.nickname,
-                contentScale = ContentScale.Crop,
-                modifier =
-                    Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.1f)),
-            )
+        Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.width(24.dp))
+        // 头像
+        AsyncImage(
+            model = uiState.user?.avatarUrl,
+            contentDescription = uiState.user?.nickname,
+            contentScale = ContentScale.Crop,
+            modifier =
+                Modifier
+                    .size(86.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.08f)),
+        )
 
-            // 统计数据
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                StatColumn(count = formatNumber(uiState.totalLikedCount), label = "获赞")
-                StatColumn(count = "${uiState.followingCount}", label = "关注")
-                StatColumn(count = formatNumber(uiState.followerCount), label = "粉丝")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // 昵称与简介
         Text(
-            text = uiState.user?.nickname ?: "我的昵称",
-            style = MaterialTheme.typography.titleLarge,
+            text = uiState.user?.nickname ?: "创作者",
+            fontSize = 18.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
         )
+
         Spacer(modifier = Modifier.height(4.dp))
+
         Text(
-            text = uiState.user?.bio ?: "这个人很懒，什么都没写～",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.75f),
+            text = uiState.user?.bio ?: "记录生活的点滴与灵感 ✨",
             fontSize = 13.sp,
+            color = Color.White.copy(alpha = 0.65f),
             lineHeight = 18.sp,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // 操作按钮条
+        // 核心三项数据看板（获赞 · 关注 · 粉丝）
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth(0.85f)
+                    .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Button(
-                onClick = onEditProfileClick,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(8.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.15f),
-                        contentColor = Color.White,
-                    ),
-            ) {
-                Text(text = "编辑资料", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            }
-
-            Button(
-                onClick = { /* 分享主页 */ },
-                shape = RoundedCornerShape(8.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.15f),
-                        contentColor = Color.White,
-                    ),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = "分享",
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            HeroStatItem(count = formatNumber(uiState.totalLikedCount), label = "获赞")
+            HeroStatItem(count = "${uiState.followingCount}", label = "关注")
+            HeroStatItem(count = formatNumber(uiState.followerCount), label = "粉丝")
         }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // 极简操作按钮（全宽药丸设计）
+        Button(
+            onClick = onEditProfileClick,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.12f),
+                    contentColor = Color.White,
+                ),
+        ) {
+            Text(
+                text = "编辑资料",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
     }
 }
 
 @Composable
-private fun StatColumn(
+private fun HeroStatItem(
     count: String,
     label: String,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = count,
-            style = MaterialTheme.typography.titleMedium,
+            fontSize = 16.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.5f),
         )
     }
 }
 
 /**
- * 个人主页 Tab 栏。
+ * 极简 Tab 栏。
  */
 @Composable
-private fun ProfileTabBar(
+private fun ProfileTabs(
     selectedTab: Int,
     worksCount: Int,
     likedCount: Int,
@@ -313,11 +308,11 @@ private fun ProfileTabBar(
             TabRowDefaults.SecondaryIndicator(
                 Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
                 color = Color.White,
-                height = 2.5.dp,
+                height = 2.dp,
             )
         },
         divider = {
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
         },
     ) {
         tabs.forEachIndexed { index, title ->
@@ -328,9 +323,9 @@ private fun ProfileTabBar(
                 text = {
                     Text(
                         text = title,
-                        fontSize = 14.sp,
-                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.5f),
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 13.sp,
+                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.45f),
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     )
                 },
             )
@@ -339,10 +334,10 @@ private fun ProfileTabBar(
 }
 
 /**
- * 3 列作品网格项。
+ * 3 列极简媒体卡片。
  */
 @Composable
-private fun ProfileVideoGridItem(
+private fun ProfileMediaCard(
     video: VideoItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -351,7 +346,7 @@ private fun ProfileVideoGridItem(
         modifier =
             modifier
                 .aspectRatio(0.75f)
-                .background(Color.White.copy(alpha = 0.05f))
+                .background(Color(0xFF141414))
                 .clickable(onClick = onClick),
     ) {
         AsyncImage(
@@ -373,13 +368,13 @@ private fun ProfileVideoGridItem(
                 imageVector = Icons.Default.PlayArrow,
                 contentDescription = "播放数",
                 tint = Color.White,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(13.dp),
             )
             Spacer(modifier = Modifier.width(2.dp))
             Text(
                 text = formatNumber(video.likeCount),
                 color = Color.White,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
             )
         }
