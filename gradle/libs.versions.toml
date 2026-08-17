@@ -18,6 +18,9 @@ androidxCore = "1.19.0"
 androidxLifecycle = "2.11.0"
 androidxActivity = "1.13.0"
 
+# Jetpack Media3 (ExoPlayer)
+androidxMedia3 = "1.5.1"
+
 # Compose
 androidxComposeBom = "2026.08.00"
 androidxNavigation3 = "1.2.0-alpha07"
@@ -52,7 +55,7 @@ pushKit = "v1.0.0"
 logKit = "v1.0.0"
 abTestingKit = "v1.0.0"
 crashReportKit = "v1.0.0"
-videoKit = "v0.0.1"
+videoKit = "1.0.6"
 
 # Image Loading
 coil = "3.5.0"
@@ -144,8 +147,12 @@ push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKi
 log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
 
 # VideoKit（Feed 竖滑、VOD 点播、Clip 剪辑、1GB 缓存与预加载）
-videokit-core = { group = "com.github.e-hai.VideoKit", name = "video", version.ref = "videoKit" }
-videokit-ffmpeg = { group = "com.github.e-hai.VideoKit", name = "video-ffmpeg", version.ref = "videoKit" }
+videokit-core = { group = "com.github.e-hai", name = "VideoKit", version.ref = "videoKit" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
+androidx-media3-datasource = { group = "androidx.media3", name = "media3-datasource", version.ref = "androidxMedia3" }
+androidx-media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "androidxMedia3" }
+androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "androidxMedia3" }
 
 # Coil Image Loading
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }

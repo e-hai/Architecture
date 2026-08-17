@@ -13,13 +13,15 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.shortvideo.app.core.video.VideoPreloader
 import org.koin.androidx.compose.koinViewModel
 
 /**
  * 首页推荐短视频流页面 Composable。
  *
- * 遵循极简纯粹的设计原则：无冗余顶栏遮挡，全屏沉浸播放推荐短视频内容。
+ * 遵循极简纯粹的设计原则：无冗余顶栏遮挡，全屏沉浸播放推荐短视频内容，配合预加载机制达成丝滑起播。
  *
  * @param onAuthorClick 点击作者头像/昵称回调
  * @param onCommentClick 点击评论按钮回调
@@ -33,6 +35,7 @@ fun FeedScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val pagerState =
         rememberPagerState(
@@ -40,9 +43,23 @@ fun FeedScreen(
             pageCount = { uiState.videos.size },
         )
 
+    // 滑动翻页监听与数据打点
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             viewModel.onPageChanged(page)
+        }
+    }
+
+    // 后台智能预加载相邻视频分片，保障下滑秒开无等待
+    LaunchedEffect(pagerState.currentPage, uiState.videos) {
+        val currentIndex = pagerState.currentPage
+        val preloadUrls =
+            listOfNotNull(
+                uiState.videos.getOrNull(currentIndex + 1)?.videoUrl,
+                uiState.videos.getOrNull(currentIndex + 2)?.videoUrl,
+            )
+        if (preloadUrls.isNotEmpty()) {
+            VideoPreloader.preload(context, preloadUrls)
         }
     }
 
