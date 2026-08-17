@@ -25,8 +25,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,6 +64,7 @@ import org.koin.androidx.compose.koinViewModel
  * @param onBackClick 二级页面返回回调（查看他人主页时有效）
  * @param onVideoClick 点击作品卡片进入播放流回调
  * @param onEditProfileClick 点击编辑资料回调
+ * @param onRecordClick 点击拍摄记录回调
  * @param onSettingsClick 点击设置回调
  * @param viewModel 个人主页 ViewModel
  */
@@ -71,6 +74,7 @@ fun ProfileScreen(
     onBackClick: (() -> Unit)? = null,
     onVideoClick: (String) -> Unit = {},
     onEditProfileClick: () -> Unit = {},
+    onRecordClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel(),
     modifier: Modifier = Modifier,
@@ -101,8 +105,10 @@ fun ProfileScreen(
         item(span = { GridItemSpan(3) }) {
             ProfileEditorialHeroSection(
                 uiState = uiState,
+                isSelf = (userId == null),
                 onBackClick = onBackClick,
                 onEditProfileClick = onEditProfileClick,
+                onRecordClick = onRecordClick,
                 onSettingsClick = onSettingsClick,
             )
         }
@@ -133,18 +139,48 @@ fun ProfileScreen(
             }
         } else if (currentList.isEmpty()) {
             item(span = { GridItemSpan(3) }) {
-                Box(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
-                    contentAlignment = Alignment.Center,
+                            .height(220.dp),
                 ) {
                     Text(
                         text = "暂无展陈画报作品",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFFFAF6EE).copy(alpha = 0.4f),
                     )
+                    if (userId == null) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Button(
+                            onClick = onRecordClick,
+                            shape = RoundedCornerShape(18.dp),
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF181716),
+                                    contentColor = Color(0xFFE5C384),
+                                ),
+                            border =
+                                ButtonDefaults.outlinedButtonBorder().copy(
+                                    brush = Brush.horizontalGradient(listOf(Color(0xFFE5C384), Color(0xFFC7A76B))),
+                                ),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = null,
+                                tint = Color(0xFFE5C384),
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "拍摄第一条画报",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+                    }
                 }
             }
         } else {
@@ -164,8 +200,10 @@ fun ProfileScreen(
 @Composable
 private fun ProfileEditorialHeroSection(
     uiState: ProfileUiState,
+    isSelf: Boolean,
     onBackClick: (() -> Unit)?,
     onEditProfileClick: () -> Unit,
+    onRecordClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
     Column(
@@ -203,7 +241,7 @@ private fun ProfileEditorialHeroSection(
                         ),
             )
 
-            // 顶部操作栏（返回 / 设置）
+            // 顶部操作栏（返回 / 拍摄 / 设置）
             Row(
                 modifier =
                     Modifier
@@ -232,20 +270,46 @@ private fun ProfileEditorialHeroSection(
                     }
                 }
 
-                IconButton(
-                    onClick = onSettingsClick,
-                    modifier =
-                        Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.45f)),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "设置",
-                        tint = Color(0xFFFAF6EE),
-                        modifier = Modifier.size(18.dp),
-                    )
+                    // 拍摄创作快捷入口按钮
+                    if (isSelf) {
+                        IconButton(
+                            onClick = onRecordClick,
+                            modifier =
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.55f))
+                                    .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.4f), CircleShape),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = "拍摄记录",
+                                tint = Color(0xFFE5C384),
+                                modifier = Modifier.size(19.dp),
+                            )
+                        }
+                    }
+
+                    // 设置按钮
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier =
+                            Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.45f)),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "设置",
+                            tint = Color(0xFFFAF6EE),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 }
             }
         }
@@ -318,30 +382,93 @@ private fun ProfileEditorialHeroSection(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 极简画报操作按钮
-            Button(
-                onClick = onEditProfileClick,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(38.dp),
-                shape = RoundedCornerShape(19.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF181716),
-                        contentColor = Color(0xFFE5C384),
-                    ),
-                border =
-                    ButtonDefaults.outlinedButtonBorder().copy(
-                        brush = Brush.horizontalGradient(listOf(Color(0xFFE5C384), Color(0xFFC7A76B))),
-                    ),
-            ) {
-                Text(
-                    text = "编辑画报主页 · EDIT PROFILE",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 1.sp,
-                )
+            // 极简画报操作按钮（编辑画报 + 拍摄记录）
+            if (isSelf) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Button(
+                        onClick = onEditProfileClick,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(38.dp),
+                        shape = RoundedCornerShape(19.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF181716),
+                                contentColor = Color(0xFFE5C384),
+                            ),
+                        border =
+                            ButtonDefaults.outlinedButtonBorder().copy(
+                                brush = Brush.horizontalGradient(listOf(Color(0xFFE5C384), Color(0xFFC7A76B))),
+                            ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = Color(0xFFE5C384),
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "编辑画报",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp,
+                        )
+                    }
+
+                    Button(
+                        onClick = onRecordClick,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .height(38.dp),
+                        shape = RoundedCornerShape(19.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE5C384),
+                                contentColor = Color(0xFF0E0D0C),
+                            ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Videocam,
+                            contentDescription = "拍摄",
+                            tint = Color(0xFF0E0D0C),
+                            modifier = Modifier.size(15.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "拍摄创作",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                        )
+                    }
+                }
+            } else {
+                Button(
+                    onClick = onEditProfileClick,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE5C384),
+                            contentColor = Color(0xFF0E0D0C),
+                        ),
+                ) {
+                    Text(
+                        text = if (uiState.user?.isFollowing == true) "已关注 · FOLLOWING" else "关注 · FOLLOW",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
     }

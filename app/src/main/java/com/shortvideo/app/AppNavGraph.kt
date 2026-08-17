@@ -105,6 +105,7 @@ fun AppNavGraph(
                             },
                         onVideoClick = { videoId -> navigator.navigate(FeedNavKey(initialVideoId = videoId)) },
                         onEditProfileClick = { /* 打开编辑资料页 */ },
+                        onRecordClick = { navigator.navigate(CreatorNavKey(mode = "record")) },
                         onSettingsClick = { /* 打开设置页 */ },
                         modifier = Modifier.fillMaxSize(),
                     )
