@@ -7,23 +7,23 @@ targetSdk = "34"
 
 # Gradle Plugins & Core Tooling
 androidGradlePlugin = "9.3.1"
-kotlin = "2.3.21"
+kotlin = "2.4.10"
 ksp = "2.3.8"
-spotless = "8.5.1"
-googleServices = "4.4.3"
+spotless = "8.9.0"
+googleServices = "4.5.0"
 firebaseCrashlyticsPlugin = "3.0.7"
 
 # Core Jetpack Libraries
-androidxCore = "1.18.0"
-androidxLifecycle = "2.10.0"
+androidxCore = "1.19.0"
+androidxLifecycle = "2.11.0"
 androidxActivity = "1.13.0"
 
 # Compose
-androidxComposeBom = "2026.05.01"
-androidxNavigation3 = "1.2.0-alpha04"
+androidxComposeBom = "2026.08.00"
+androidxNavigation3 = "1.2.0-alpha07"
 
 # Dependency Injection
-koin = "4.2.1"
+koin = "4.2.2"
 
 # Database & Storage
 room = "2.8.4"
@@ -31,7 +31,7 @@ datastore = "1.2.1"
 
 # Network & Serialization
 retrofit = "3.0.0"
-okhttp = "5.3.2"
+okhttp = "5.5.0"
 kotlinxSerialization = "1.11.0"
 kotlinxDatetime = "0.8.0"
 
@@ -55,7 +55,7 @@ crashReportKit = "v1.0.0"
 videoKit = "v0.0.1"
 
 # Image Loading
-coil = "3.1.0"
+coil = "3.5.0"
 
 # Testing & Verification
 junit = "4.13.2"

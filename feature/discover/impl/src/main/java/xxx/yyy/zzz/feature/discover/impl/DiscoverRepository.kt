@@ -12,9 +12,14 @@ import xxx.yyy.zzz.core.model.VideoItem
  */
 interface DiscoverRepository {
     /**
-     * 获取热门话题列表。
+     * 获取运营活动与热门 Banner 列表。
      */
-    fun getTrendingTopics(): Flow<List<TopicItem>>
+    fun getBanners(): Flow<List<DiscoverBanner>>
+
+    /**
+     * 获取实时热搜榜单数据。
+     */
+    fun getTrendingTopics(): Flow<List<TrendingTopic>>
 
     /**
      * 获取探索瀑布流视频数据。
@@ -31,16 +36,65 @@ interface DiscoverRepository {
 class DiscoverRepositoryImpl(
     private val videoDao: VideoDao,
 ) : DiscoverRepository {
-    override fun getTrendingTopics(): Flow<List<TopicItem>> =
+    override fun getBanners(): Flow<List<DiscoverBanner>> =
         flow {
             emit(
                 listOf(
-                    TopicItem(id = "t_all", title = "全部", heatCount = "推荐"),
-                    TopicItem(id = "t_1", title = "摄影日常", heatCount = "128.5w 在看"),
-                    TopicItem(id = "t_2", title = "治愈系风景", heatCount = "98.2w 在看"),
-                    TopicItem(id = "t_3", title = "极简生活", heatCount = "76.4w 在看"),
-                    TopicItem(id = "t_4", title = "手冲咖啡", heatCount = "52.1w 在看"),
-                    TopicItem(id = "t_5", title = "Kotlin/Compose", heatCount = "45.0w 在看"),
+                    DiscoverBanner(
+                        id = "b_1",
+                        title = "2026 影像季短视频大赛",
+                        subtitle = "用镜头定格心动瞬间 · 瓜分百万创作流量",
+                        tag = "热门活动",
+                        coverUrl = "https://picsum.photos/800/400?random=banner1",
+                    ),
+                    DiscoverBanner(
+                        id = "b_2",
+                        title = "Android 架构师进阶计划",
+                        subtitle = "探索 Compose 现代响应式短视频流开发",
+                        tag = "技术专题",
+                        coverUrl = "https://picsum.photos/800/400?random=banner2",
+                    ),
+                ),
+            )
+        }
+
+    override fun getTrendingTopics(): Flow<List<TrendingTopic>> =
+        flow {
+            emit(
+                listOf(
+                    TrendingTopic(
+                        rank = 1,
+                        title = "Android 现代架构实战",
+                        tag = "技术",
+                        hotScore = "168.2w",
+                        isHot = true,
+                    ),
+                    TrendingTopic(
+                        rank = 2,
+                        title = "VideoKit 短视频播放器发布",
+                        tag = "新发布",
+                        hotScore = "142.0w",
+                        isNew = true,
+                    ),
+                    TrendingTopic(
+                        rank = 3,
+                        title = "夏日晚霞摄影挑战",
+                        tag = "摄影日常",
+                        hotScore = "98.5w",
+                        isHot = true,
+                    ),
+                    TrendingTopic(
+                        rank = 4,
+                        title = "极简治愈系生活记录",
+                        tag = "生活",
+                        hotScore = "76.4w",
+                    ),
+                    TrendingTopic(
+                        rank = 5,
+                        title = "手冲咖啡风味地图",
+                        tag = "美食",
+                        hotScore = "52.1w",
+                    ),
                 ),
             )
         }
@@ -53,7 +107,11 @@ class DiscoverRepositoryImpl(
             val list = entities.map { it.toDomain() }
             when {
                 !query.isNullOrBlank() -> {
-                    list.filter { it.title.contains(query, ignoreCase = true) || it.author.nickname.contains(query, ignoreCase = true) }
+                    list.filter {
+                        it.title.contains(query, ignoreCase = true) ||
+                            it.author.nickname.contains(query, ignoreCase = true) ||
+                            it.tags.any { tag -> tag.contains(query, ignoreCase = true) }
+                    }
                 }
 
                 !topic.isNullOrBlank() && topic != "全部" -> {

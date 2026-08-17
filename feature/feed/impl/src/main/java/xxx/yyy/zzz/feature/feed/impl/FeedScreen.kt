@@ -16,13 +16,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,18 +38,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * 首页短视频页面 Composable。
+ * 首页短视频流页面 Composable。
  *
- * @param onCameraClick 点击顶部拍摄按钮回调
- * @param onSearchClick 点击顶部搜索按钮回调
- * @param onAuthorClick 点击作者头像回调
+ * @param onCameraClick 点击拍摄按钮回调
+ * @param onAuthorClick 点击作者头像/昵称回调
  * @param onCommentClick 点击评论按钮回调
  * @param viewModel 首页 ViewModel
  */
 @Composable
 fun FeedScreen(
     onCameraClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {},
     onAuthorClick: (String) -> Unit = {},
     onCommentClick: (String) -> Unit = {},
     viewModel: FeedViewModel = koinViewModel(),
@@ -99,7 +97,7 @@ fun FeedScreen(
             }
         }
 
-        // 顶栏 Tab 与快捷操作
+        // 精简顶栏：仅保留创作拍摄入口与关注/推荐 Tab，保证纯粹沉浸体验
         Row(
             modifier =
                 Modifier
@@ -109,17 +107,8 @@ fun FeedScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            IconButton(
-                onClick = onSearchClick,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "搜索",
-                    tint = Color.White,
-                    modifier = Modifier.size(26.dp),
-                )
-            }
+            // 左侧占位以保持中间居中
+            Spacer(modifier = Modifier.size(36.dp))
 
             // 中间 Tab (关注 / 推荐)
             Row(
@@ -138,6 +127,7 @@ fun FeedScreen(
                 )
             }
 
+            // 右侧创作拍摄入口
             IconButton(
                 onClick = onCameraClick,
                 modifier = Modifier.size(36.dp),
@@ -146,7 +136,7 @@ fun FeedScreen(
                     imageVector = Icons.Default.CameraAlt,
                     contentDescription = "拍摄",
                     tint = Color.White,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
@@ -166,10 +156,9 @@ private fun TopTabItem(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
             color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             fontSize = if (isSelected) 18.sp else 16.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
         )
         Spacer(modifier = Modifier.height(4.dp))
         if (isSelected) {
@@ -177,11 +166,12 @@ private fun TopTabItem(
                 modifier =
                     Modifier
                         .width(28.dp)
-                        .height(2.5.dp)
-                        .background(Color.White, shape = androidx.compose.foundation.shape.CircleShape),
+                        .height(2.dp)
+                        .clip(RoundedCornerShape(1.dp))
+                        .background(Color.White),
             )
         } else {
-            Spacer(modifier = Modifier.height(2.5.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
     }
 }
