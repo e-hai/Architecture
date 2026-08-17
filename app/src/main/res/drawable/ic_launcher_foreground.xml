@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 青色投影底层 (短视频动感双色层叠效果) -->
+    <!-- 方案 D：一笔极简纯白视窗与播放环线 -->
+    <!-- 外层圆角矩形视窗 -->
     <path
-        android:fillColor="#25F4EE"
-        android:fillAlpha="0.85"
-        android:pathData="M39,34 C39,30.686 41.686,28 45,28 L65,28 C68.314,28 71,30.686 71,34 L71,68 C71,71.314 68.314,74 65,74 L45,74 C41.686,74 39,71.314 39,68 Z" />
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 52,78
+                          L 74,78
+                          A 8,8 0 0,0 82,70
+                          L 82,38
+                          A 8,8 0 0,0 74,30
+                          L 34,30
+                          A 8,8 0 0,0 26,38
+                          L 26,70
+                          A 8,8 0 0,0 34,78
+                          L 38,78" />
 
-    <!-- 红色主层 (错位叠加呈现立体潮流质感) -->
+    <!-- 内部一笔流畅转折的纯白播放三角 -->
     <path
-        android:fillColor="#FE2C55"
-        android:fillAlpha="0.9"
-        android:pathData="M43,36 C43,32.686 45.686,30 49,30 L69,30 C72.314,30 75,32.686 75,36 L75,70 C75,73.314 72.314,76 69,76 L49,76 C45.686,76 43,73.314 43,70 Z" />
-
-    <!-- 白色主体卡片 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M41,35 C41,31.686 43.686,29 47,29 L67,29 C70.314,29 73,31.686 73,35 L73,69 C73,72.314 70.314,75 67,75 L47,75 C43.686,75 41,72.314 41,69 Z" />
-
-    <!-- 中心纯黑播放三角符号 -->
-    <path
-        android:fillColor="#111827"
-        android:pathData="M53,44 L65,52 L53,60 Z" />
-
-    <!-- 顶部镜头小圆点装饰 -->
-    <path
-        android:fillColor="#FE2C55"
-        android:pathData="M57,33 A2,2 0 1,0 57,37 A2,2 0 1,0 57,33" />
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 38,78
+                          L 38,44
+                          A 5,5 0 0,1 45,39
+                          L 66,51
+                          A 5,5 0 0,1 66,61
+                          L 48,70" />
 
 </vector>
