@@ -5,37 +5,44 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 方案 D：一笔极简纯白视窗与播放环线 -->
-    <!-- 外层圆角矩形视窗 -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="4.5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M 52,78
-                          L 74,78
-                          A 8,8 0 0,0 82,70
-                          L 82,38
-                          A 8,8 0 0,0 74,30
-                          L 34,30
-                          A 8,8 0 0,0 26,38
-                          L 26,70
-                          A 8,8 0 0,0 34,78
-                          L 38,78" />
+    <!-- 方案 D：一笔极简纯白视窗与播放环线（缩小图案尺寸，增加留白呼吸感） -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.70"
+        android:scaleY="0.70">
 
-    <!-- 内部一笔流畅转折的纯白播放三角 -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="4.5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M 38,78
-                          L 38,44
-                          A 5,5 0 0,1 45,39
-                          L 66,51
-                          A 5,5 0 0,1 66,61
-                          L 48,70" />
+        <!-- 外层圆角矩形视窗 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="5.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M 52,78
+                              L 74,78
+                              A 8,8 0 0,0 82,70
+                              L 82,38
+                              A 8,8 0 0,0 74,30
+                              L 34,30
+                              A 8,8 0 0,0 26,38
+                              L 26,70
+                              A 8,8 0 0,0 34,78
+                              L 38,78" />
+
+        <!-- 内部一笔流畅转折的纯白播放三角 -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="5.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M 38,78
+                              L 38,44
+                              A 5,5 0 0,1 45,39
+                              L 66,51
+                              A 5,5 0 0,1 66,61
+                              L 48,70" />
+    </group>
 
 </vector>
