@@ -48,6 +48,7 @@ import kotlinx.coroutines.delay
  *
  * @param video 视频领域模型
  * @param isActive 是否为当前屏幕可见活跃页面
+ * @param onBackClick 二级页面返回回调
  * @param onLikeClick 点赞回调
  * @param onCommentClick 评论回调
  * @param onBookmarkClick 收藏回调
@@ -58,6 +59,7 @@ import kotlinx.coroutines.delay
 fun FeedItemView(
     video: VideoItem,
     isActive: Boolean,
+    onBackClick: (() -> Unit)? = null,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     onBookmarkClick: () -> Unit,
@@ -136,9 +138,10 @@ fun FeedItemView(
             )
         }
 
-        // 4. 画报生活美学交互浮层
+        // 4. 画报生活美学交互浮层 (包含顶栏返回与标题横向无阻排版)
         FeedInteractionOverlay(
             video = video,
+            onBackClick = onBackClick,
             onLikeClick = onLikeClick,
             onCommentClick = onCommentClick,
             onBookmarkClick = onBookmarkClick,

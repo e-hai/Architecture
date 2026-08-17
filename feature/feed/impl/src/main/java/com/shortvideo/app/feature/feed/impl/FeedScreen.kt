@@ -1,30 +1,19 @@
 package com.shortvideo.app.feature.feed.impl
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shortvideo.app.core.video.VideoPreloader
 import org.koin.androidx.compose.koinViewModel
@@ -116,33 +105,12 @@ fun FeedScreen(
                 FeedItemView(
                     video = video,
                     isActive = (page == pagerState.currentPage),
+                    onBackClick = onBackClick,
                     onLikeClick = { viewModel.onToggleLike(video.id) },
                     onCommentClick = { onCommentClick(video.id) },
                     onBookmarkClick = { viewModel.onToggleBookmark(video.id) },
                     onShareClick = { /* 触发系统分享或 Kit 分享 */ },
                     onAuthorClick = { onAuthorClick(video.author.id) },
-                )
-            }
-        }
-
-        // 二级页面返回悬浮按钮（从发现页/个人主页进入时展示）
-        if (onBackClick != null) {
-            IconButton(
-                onClick = onBackClick,
-                modifier =
-                    Modifier
-                        .statusBarsPadding()
-                        .padding(start = 14.dp, top = 8.dp)
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.55f))
-                        .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.5f), CircleShape),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
-                    tint = Color(0xFFFAF6EE),
-                    modifier = Modifier.size(20.dp),
                 )
             }
         }

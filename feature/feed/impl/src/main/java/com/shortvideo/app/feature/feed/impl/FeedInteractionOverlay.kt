@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,6 +59,7 @@ import com.shortvideo.app.core.model.VideoItem
  * 方案 D（画报杂志生活美学流）视频交互浮层。
  *
  * @param video 视频领域模型
+ * @param onBackClick 二级页面返回回调（为 null 表示一级首页）
  * @param onLikeClick 点击点赞回调
  * @param onCommentClick 点击评论回调
  * @param onBookmarkClick 点击收藏回调
@@ -67,6 +70,7 @@ import com.shortvideo.app.core.model.VideoItem
 @Composable
 fun FeedInteractionOverlay(
     video: VideoItem,
+    onBackClick: (() -> Unit)? = null,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     onBookmarkClick: () -> Unit,
@@ -102,15 +106,35 @@ fun FeedInteractionOverlay(
                     ),
                 ).navigationBarsPadding(),
     ) {
-        // 1. 顶部左侧画报期刊标题 (Magazine Header)
+        // 1. 顶部画报顶栏 (支持返回按钮与画报标题水平并排，避免任何遮挡)
         Row(
             modifier =
                 Modifier
                     .align(Alignment.TopStart)
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (onBackClick != null) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier =
+                        Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.55f))
+                            .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.5f), CircleShape),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = Color(0xFFFAF6EE),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+            }
+
             Box(
                 modifier =
                     Modifier
