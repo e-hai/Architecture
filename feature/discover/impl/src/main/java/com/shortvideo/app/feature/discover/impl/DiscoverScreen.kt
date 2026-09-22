@@ -26,24 +26,17 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -76,18 +69,15 @@ fun DiscoverScreen(
                 .background(Color(0xFF0E0D0C))
                 .statusBarsPadding(),
     ) {
-        // 1. 顶部画报品牌标与搜索栏
-        DiscoverHeader(
-            query = uiState.searchQuery,
-            onQueryChange = viewModel::onSearchQueryChange,
-            onClear = { viewModel.onSearchQueryChange("") },
+        // 1. 顶部标题栏
+        DiscoverTopBar(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
         )
 
-        // 2. 探索内容瀑布流（编辑画报精选 + 话题 Chips + 双列画报展陈）
+        // 2. 探索内容瀑布流（话题 Chips + 双列画报展陈）
         if (uiState.isLoading && uiState.videos.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -103,16 +93,6 @@ fun DiscoverScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalItemSpacing = 12.dp,
             ) {
-                // 顶部编辑画报精选大卡 (Curated Spotlight)
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    CuratedSpotlightCard(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 10.dp),
-                    )
-                }
-
                 // 话题筛选条
                 item(span = StaggeredGridItemSpan.FullLine) {
                     TopicFilterRow(
@@ -136,163 +116,21 @@ fun DiscoverScreen(
 }
 
 /**
- * 顶部画报品牌与搜索框。
+ * 发现页顶部标题栏。
  */
 @Composable
-private fun DiscoverHeader(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onClear: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = "EXPLORE · 探索画报",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFAF6EE),
-                letterSpacing = 1.sp,
-            )
-            Icon(
-                imageVector = Icons.Default.AutoAwesome,
-                contentDescription = "画报精选",
-                tint = Color(0xFFE5C384),
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(46.dp),
-            placeholder = {
-                Text(
-                    text = "搜索画报、创作者或美学灵感",
-                    fontSize = 12.sp,
-                    color = Color(0xFFFAF6EE).copy(alpha = 0.4f),
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "搜索",
-                    tint = Color(0xFFE5C384),
-                    modifier = Modifier.size(18.dp),
-                )
-            },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = onClear) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "清空",
-                            tint = Color(0xFFFAF6EE).copy(alpha = 0.6f),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(23.dp),
-            colors =
-                OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF181716),
-                    unfocusedContainerColor = Color(0xFF151413),
-                    focusedTextColor = Color(0xFFFAF6EE),
-                    unfocusedTextColor = Color(0xFFFAF6EE),
-                    focusedBorderColor = Color(0xFFE5C384).copy(alpha = 0.5f),
-                    unfocusedBorderColor = Color(0xFF282624),
-                ),
-        )
-    }
-}
-
-/**
- * 顶部画报编辑精选大卡 (Curated Spotlight Hero)。
- */
-@Composable
-private fun CuratedSpotlightCard(modifier: Modifier = Modifier) {
+private fun DiscoverTopBar(modifier: Modifier = Modifier) {
     Box(
-        modifier =
-            modifier
-                .aspectRatio(2.1f)
-                .clip(RoundedCornerShape(14.dp))
-                .background(Color(0xFF181716))
-                .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.35f), RoundedCornerShape(14.dp)),
+        modifier = modifier,
+        contentAlignment = Alignment.CenterStart,
     ) {
-        AsyncImage(
-            model = "https://picsum.photos/800/400?random=spotlight",
-            contentDescription = "本周精选画报",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
+        Text(
+            text = "发现",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFAF6EE),
+            letterSpacing = 0.5.sp,
         )
-
-        // 渐变暗角遮罩
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors =
-                                listOf(
-                                    Color.Black.copy(alpha = 0.85f),
-                                    Color.Black.copy(alpha = 0.35f),
-                                ),
-                        ),
-                    ),
-        )
-
-        // 期刊标语与探索
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFE5C384).copy(alpha = 0.2f))
-                        .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                        .padding(horizontal = 7.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    text = "ISSUE 04 · 本周画报精选",
-                    fontSize = 10.sp,
-                    color = Color(0xFFE5C384),
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.8.sp,
-                )
-            }
-
-            Column {
-                Text(
-                    text = "光影与极简秘境之旅",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFAF6EE),
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "定格生活中的艺术瞬间 · 沉浸式视听策展",
-                    fontSize = 11.sp,
-                    color = Color(0xFFFAF6EE).copy(alpha = 0.75f),
-                )
-            }
-        }
     }
 }
 
