@@ -6,7 +6,7 @@ minSdk = "26"
 targetSdk = "34"
 
 # Gradle Plugins & Core Tooling
-androidGradlePlugin = "9.3.1"
+androidGradlePlugin = "9.4.1"
 kotlin = "2.4.10"
 ksp = "2.3.8"
 spotless = "8.9.0"

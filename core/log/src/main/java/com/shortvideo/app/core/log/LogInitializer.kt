@@ -19,6 +19,8 @@ object LogInitializer {
         withDisk: Boolean = true,
     ) {
         if (withDisk) {
+            // 初始化前自愈并清洗异常日志文件，防止损坏字符引发崩溃
+            LogSanitizer.sanitize(context)
             LogKit.initAllLog(context)
         } else {
             LogKit.initOnlyAndroidLog()

@@ -500,7 +500,14 @@ fun DebugScreen(
                 Button(
                     onClick = {
                         if (activity != null) {
-                            LogKit.showLogUi(activity)
+                            // 先自愈清洗脏数据，防止 NumberFormatException 崩溃
+                            com.shortvideo.app.core.log.LogSanitizer
+                                .sanitize(context)
+                            try {
+                                LogKit.showLogUi(activity)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "打开控制台失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                         } else {
                             Toast.makeText(context, "Activity 实例不可用", Toast.LENGTH_SHORT).show()
                         }
@@ -573,7 +580,7 @@ fun DebugScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 读取最近磁盘日志预览
+                // 读取最近磁盘日志预览与管理
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -586,20 +593,41 @@ fun DebugScreen(
                         color = Color(0xFFFAF6EE).copy(alpha = 0.8f),
                     )
 
-                    IconButton(
-                        onClick = {
-                            LogKit.readLog { lines ->
-                                recentLogs = lines.takeLast(10).reversed()
-                            }
-                        },
-                        modifier = Modifier.size(28.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "刷新日志",
-                            tint = Color(0xFFE5C384),
-                            modifier = Modifier.size(16.dp),
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Button(
+                            onClick = {
+                                com.shortvideo.app.core.log.LogSanitizer
+                                    .clearAllLogs(context)
+                                recentLogs = emptyList()
+                                Toast.makeText(context, "已清空本地日志文件", Toast.LENGTH_SHORT).show()
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF22201E),
+                                    contentColor = Color(0xFFFF5252),
+                                ),
+                        ) {
+                            Text(text = "清空日志", fontSize = 11.sp)
+                        }
+
+                        IconButton(
+                            onClick = {
+                                com.shortvideo.app.core.log.LogSanitizer
+                                    .sanitize(context)
+                                LogKit.readLog { lines ->
+                                    recentLogs = lines.takeLast(10).reversed()
+                                }
+                            },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "刷新日志",
+                                tint = Color(0xFFE5C384),
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
                     }
                 }
 

@@ -33,6 +33,20 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // 防御拦截：防止第三方库 LogKit 后台线程解析脏日志字符时崩溃
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            if (throwable is NumberFormatException &&
+                throwable.stackTrace.any { it.className.contains("LogViewModel") || it.className.contains("DiskLog") }
+            ) {
+                android.util.Log.e("MyApplication", "已拦截 LogKit 日志解析异常，重置异常日志文件", throwable)
+                com.shortvideo.app.core.log.LogSanitizer
+                    .clearAllLogs(this)
+                return@setDefaultUncaughtExceptionHandler
+            }
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
         LogInitializer.initialize(
             context = this,
             withDisk = BuildConfig.DEBUG,
