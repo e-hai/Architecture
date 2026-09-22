@@ -122,6 +122,15 @@ fun AppNavGraph(
                 }
             }
 
+            is com.shortvideo.app.debug.DebugNavKey -> {
+                NavEntry(key) {
+                    com.shortvideo.app.debug.DebugScreen(
+                        onBackClick = { navigator.goBack() },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
             else -> {
                 NavEntry(key) {
                     PlaceholderScreen(title = "未知页面", desc = "Key: $key")
@@ -145,18 +154,36 @@ fun AppNavGraph(
         },
         containerColor = Color.Black,
     ) { innerPadding ->
-        NavDisplay(
-            entries = navigationState.toEntries(entryProvider),
-            onBack = { navigator.goBack() },
-            modifier = Modifier.padding(innerPadding),
-        )
-
-        // 评论底部弹窗
-        activeCommentVideoId?.let { videoId ->
-            CommentBottomSheet(
-                videoId = videoId,
-                onDismissRequest = { activeCommentVideoId = null },
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+        ) {
+            NavDisplay(
+                entries = navigationState.toEntries(entryProvider),
+                onBack = { navigator.goBack() },
+                modifier = Modifier.fillMaxSize(),
             )
+
+            // 全局可拖拽 Debug 悬浮入口按钮（进入 Debug 页面自身时隐藏）
+            if (navigationState.currentKey !is com.shortvideo.app.debug.DebugNavKey) {
+                com.shortvideo.app.debug.DebugFloatingButton(
+                    onClick = { navigator.navigate(com.shortvideo.app.debug.DebugNavKey) },
+                    modifier =
+                        Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 8.dp),
+                )
+            }
+
+            // 评论底部弹窗
+            activeCommentVideoId?.let { videoId ->
+                CommentBottomSheet(
+                    videoId = videoId,
+                    onDismissRequest = { activeCommentVideoId = null },
+                )
+            }
         }
     }
 }
