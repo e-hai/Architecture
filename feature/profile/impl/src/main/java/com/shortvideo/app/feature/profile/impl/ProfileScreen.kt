@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -25,7 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Videocam
@@ -36,6 +34,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
@@ -46,7 +45,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -58,13 +56,15 @@ import com.shortvideo.app.core.model.VideoItem
 import org.koin.androidx.compose.koinViewModel
 
 /**
- * 方案 D（画报杂志生活美学流）个人主页 Composable。
+ * 极简现代个人主页 Composable。
  *
- * @param userId 用户 ID，为空时代表当前登录用户个人主页
- * @param onBackClick 二级页面返回回调（查看他人主页时有效）
+ * 遵循全球化主流短视频应用的极简原则：去除繁复冗余的背景装饰，强化留白，直观呈现核心个人信息、数据统计、拍摄入口与作品流。
+ *
+ * @param userId 用户 ID，为空时代表当前登录用户主页
+ * @param onBackClick 二级页面返回回调（查看他人主页时生效）
  * @param onVideoClick 点击作品卡片进入播放流回调
  * @param onEditProfileClick 点击编辑资料回调
- * @param onRecordClick 点击拍摄记录回调
+ * @param onRecordClick 点击拍摄创作回调
  * @param onSettingsClick 点击设置回调
  * @param viewModel 个人主页 ViewModel
  */
@@ -80,6 +80,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isSelf = (userId == null)
 
     LaunchedEffect(userId) {
         viewModel.loadUserProfile(userId)
@@ -101,21 +102,29 @@ fun ProfileScreen(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        // 头部沉浸画报与个人资料
+        // 1. 顶部操作栏
         item(span = { GridItemSpan(3) }) {
-            ProfileEditorialHeroSection(
-                uiState = uiState,
-                isSelf = (userId == null),
+            ProfileTopBar(
+                isSelf = isSelf,
+                nickname = uiState.user?.nickname.orEmpty(),
                 onBackClick = onBackClick,
-                onEditProfileClick = onEditProfileClick,
-                onRecordClick = onRecordClick,
                 onSettingsClick = onSettingsClick,
             )
         }
 
-        // 典雅 Tab 栏
+        // 2. 核心用户资料与操作入口
         item(span = { GridItemSpan(3) }) {
-            ProfileEditorialTabs(
+            ProfileHeaderSection(
+                uiState = uiState,
+                isSelf = isSelf,
+                onEditProfileClick = onEditProfileClick,
+                onRecordClick = onRecordClick,
+            )
+        }
+
+        // 3. 极简作品 Tab 栏
+        item(span = { GridItemSpan(3) }) {
+            ProfileTabs(
                 selectedTab = uiState.selectedTab,
                 worksCount = uiState.works.size,
                 likedCount = uiState.likedVideos.size,
@@ -124,17 +133,17 @@ fun ProfileScreen(
             )
         }
 
-        // 媒体内容网格
+        // 4. 媒体作品列表网格
         if (uiState.isLoading && currentList.isEmpty()) {
             item(span = { GridItemSpan(3) }) {
                 Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
+                            .height(180.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(color = Color(0xFFE5C384), strokeWidth = 2.5.dp)
+                    CircularProgressIndicator(color = Color(0xFFE5C384), strokeWidth = 2.dp)
                 }
             }
         } else if (currentList.isEmpty()) {
@@ -145,18 +154,18 @@ fun ProfileScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(220.dp),
+                            .height(180.dp),
                 ) {
                     Text(
-                        text = "暂无展陈画报作品",
+                        text = "暂无作品",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFFFAF6EE).copy(alpha = 0.4f),
                     )
-                    if (userId == null) {
-                        Spacer(modifier = Modifier.height(14.dp))
+                    if (isSelf) {
+                        Spacer(modifier = Modifier.height(12.dp))
                         Button(
                             onClick = onRecordClick,
-                            shape = RoundedCornerShape(18.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors =
                                 ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF181716),
@@ -164,19 +173,21 @@ fun ProfileScreen(
                                 ),
                             border =
                                 ButtonDefaults.outlinedButtonBorder().copy(
-                                    brush = Brush.horizontalGradient(listOf(Color(0xFFE5C384), Color(0xFFC7A76B))),
+                                    brush =
+                                        androidx.compose.ui.graphics
+                                            .SolidColor(Color(0xFFE5C384).copy(alpha = 0.5f)),
                                 ),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Videocam,
                                 contentDescription = null,
                                 tint = Color(0xFFE5C384),
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(15.dp),
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "拍摄第一条画报",
-                                fontSize = 11.sp,
+                                text = "去拍摄",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                             )
                         }
@@ -185,7 +196,7 @@ fun ProfileScreen(
             }
         } else {
             items(currentList, key = { it.id }) { video ->
-                ProfileEditorialMediaCard(
+                ProfileMediaCard(
                     video = video,
                     onClick = { onVideoClick(video.id) },
                 )
@@ -195,265 +206,161 @@ fun ProfileScreen(
 }
 
 /**
- * 个人主页头部画报与资料区域。
+ * 极简主页顶部栏。
  */
 @Composable
-private fun ProfileEditorialHeroSection(
-    uiState: ProfileUiState,
+private fun ProfileTopBar(
     isSelf: Boolean,
+    nickname: String,
     onBackClick: (() -> Unit)?,
-    onEditProfileClick: () -> Unit,
-    onRecordClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (onBackClick != null) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "返回",
+                    tint = Color(0xFFFAF6EE),
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
+        }
+
+        Text(
+            text = if (isSelf) "我" else nickname,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFFFAF6EE),
+        )
+
+        if (isSelf) {
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "设置",
+                    tint = Color(0xFFFAF6EE),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
+        }
+    }
+}
+
+/**
+ * 用户核心资料与操作按钮区域。
+ */
+@Composable
+private fun ProfileHeaderSection(
+    uiState: ProfileUiState,
+    isSelf: Boolean,
+    onEditProfileClick: () -> Unit,
+    onRecordClick: () -> Unit,
+) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // 顶部沉浸全景画报 Banner
-        Box(
+        // 1. 头像
+        AsyncImage(
+            model = uiState.user?.avatarUrl,
+            contentDescription = uiState.user?.nickname,
+            contentScale = ContentScale.Crop,
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .height(130.dp)
-                    .background(Color(0xFF181716)),
-        ) {
-            AsyncImage(
-                model = "https://picsum.photos/900/300?random=banner_curated",
-                contentDescription = "画报背景",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-
-            // 底部渐变暗调过渡
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        Color.Black.copy(alpha = 0.35f),
-                                        Color(0xFF0E0D0C),
-                                    ),
-                            ),
-                        ),
-            )
-
-            // 顶部操作栏（返回 / 拍摄 / 设置）
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = if (onBackClick != null) Arrangement.SpaceBetween else Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (onBackClick != null) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier =
-                            Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.55f))
-                                .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.4f), CircleShape),
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
-                            tint = Color(0xFFFAF6EE),
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // 拍摄创作快捷入口按钮
-                    if (isSelf) {
-                        IconButton(
-                            onClick = onRecordClick,
-                            modifier =
-                                Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.55f))
-                                    .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.4f), CircleShape),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Videocam,
-                                contentDescription = "拍摄记录",
-                                tint = Color(0xFFE5C384),
-                                modifier = Modifier.size(19.dp),
-                            )
-                        }
-                    }
-
-                    // 设置按钮
-                    IconButton(
-                        onClick = onSettingsClick,
-                        modifier =
-                            Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.45f)),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "设置",
-                            tint = Color(0xFFFAF6EE),
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                }
-            }
-        }
-
-        // 悬浮交叠大头像（香槟金环）
-        Box(
-            modifier =
-                Modifier
-                    .offset(y = (-40).dp)
-                    .size(86.dp)
+                    .size(80.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF0E0D0C))
-                    .padding(3.dp)
-                    .border(1.5.dp, Color(0xFFE5C384), CircleShape),
+                    .background(Color(0xFF181716))
+                    .border(1.dp, Color(0xFFE5C384).copy(alpha = 0.5f), CircleShape),
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 2. 昵称与简介
+        Text(
+            text = uiState.user?.nickname ?: "用户",
+            fontSize = 18.sp,
+            color = Color(0xFFFAF6EE),
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = uiState.user?.bio ?: "分享生活的美好瞬间 ✨",
+            fontSize = 12.sp,
+            color = Color(0xFFFAF6EE).copy(alpha = 0.6f),
+            lineHeight = 16.sp,
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // 3. 核心统计数据（获赞 · 关注 · 粉丝）- 留白排版，无厚重边框
+        Row(
+            modifier = Modifier.fillMaxWidth(0.88f),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            AsyncImage(
-                model = uiState.user?.avatarUrl,
-                contentDescription = uiState.user?.nickname,
-                contentScale = ContentScale.Crop,
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-            )
+            StatItem(count = formatNumber(uiState.totalLikedCount), label = "获赞")
+            StatItem(count = "${uiState.followingCount}", label = "关注")
+            StatItem(count = formatNumber(uiState.followerCount), label = "粉丝")
         }
 
-        // 昵称与简介
-        Column(
-            modifier =
-                Modifier
-                    .offset(y = (-32).dp)
-                    .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = uiState.user?.nickname ?: "CURATOR · 策展人",
-                fontSize = 18.sp,
-                color = Color(0xFFFAF6EE),
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp,
-            )
+        Spacer(modifier = Modifier.height(18.dp))
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = uiState.user?.bio ?: "记录生活的闪光瞬间 ✨ | 摄影 · 旅行 · 美学策展",
-                fontSize = 12.sp,
-                color = Color(0xFFFAF6EE).copy(alpha = 0.65f),
-                lineHeight = 17.sp,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 核心三项数据看板（获赞 · 关注 · 粉丝）
+        // 4. 核心功能按钮
+        if (isSelf) {
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth(0.9f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF141312))
-                        .border(0.5.dp, Color(0xFFE5C384).copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                        .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                HeroStatItem(count = formatNumber(uiState.totalLikedCount), label = "获赞 LIKES")
-                HeroStatItem(count = "${uiState.followingCount}", label = "关注 FOLLOWING")
-                HeroStatItem(count = formatNumber(uiState.followerCount), label = "粉丝 CURATORS")
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // 极简画报操作按钮（编辑画报 + 拍摄记录）
-            if (isSelf) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Button(
-                        onClick = onEditProfileClick,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(38.dp),
-                        shape = RoundedCornerShape(19.dp),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF181716),
-                                contentColor = Color(0xFFE5C384),
-                            ),
-                        border =
-                            ButtonDefaults.outlinedButtonBorder().copy(
-                                brush = Brush.horizontalGradient(listOf(Color(0xFFE5C384), Color(0xFFC7A76B))),
-                            ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            tint = Color(0xFFE5C384),
-                            modifier = Modifier.size(13.dp),
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "编辑画报",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 0.5.sp,
-                        )
-                    }
-
-                    Button(
-                        onClick = onRecordClick,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(38.dp),
-                        shape = RoundedCornerShape(19.dp),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFE5C384),
-                                contentColor = Color(0xFF0E0D0C),
-                            ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Videocam,
-                            contentDescription = "拍摄",
-                            tint = Color(0xFF0E0D0C),
-                            modifier = Modifier.size(15.dp),
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "拍摄创作",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp,
-                        )
-                    }
-                }
-            } else {
-                Button(
+                // 编辑资料
+                OutlinedButton(
                     onClick = onEditProfileClick,
                     modifier =
                         Modifier
-                            .fillMaxWidth()
+                            .weight(1f)
+                            .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFFFAF6EE),
+                        ),
+                    border =
+                        ButtonDefaults.outlinedButtonBorder().copy(
+                            brush =
+                                androidx.compose.ui.graphics
+                                    .SolidColor(Color(0xFF33302C)),
+                        ),
+                ) {
+                    Text(
+                        text = "编辑资料",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+
+                // 核心拍摄入口
+                Button(
+                    onClick = onRecordClick,
+                    modifier =
+                        Modifier
+                            .weight(1f)
                             .height(38.dp),
                     shape = RoundedCornerShape(19.dp),
                     colors =
@@ -462,53 +369,82 @@ private fun ProfileEditorialHeroSection(
                             contentColor = Color(0xFF0E0D0C),
                         ),
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Videocam,
+                        contentDescription = "拍摄",
+                        tint = Color(0xFF0E0D0C),
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (uiState.user?.isFollowing == true) "已关注 · FOLLOWING" else "关注 · FOLLOW",
-                        fontSize = 11.sp,
+                        text = "拍摄",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
                     )
                 }
             }
+        } else {
+            Button(
+                onClick = onEditProfileClick,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(38.dp),
+                shape = RoundedCornerShape(19.dp),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE5C384),
+                        contentColor = Color(0xFF0E0D0C),
+                    ),
+            ) {
+                Text(
+                    text = if (uiState.user?.isFollowing == true) "已关注" else "关注",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
+/**
+ * 统计数据项。
+ */
 @Composable
-private fun HeroStatItem(
+private fun StatItem(
     count: String,
     label: String,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = count,
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             color = Color(0xFFFAF6EE),
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = label,
-            fontSize = 9.sp,
-            color = Color(0xFFE5C384).copy(alpha = 0.85f),
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 0.5.sp,
+            fontSize = 11.sp,
+            color = Color(0xFFFAF6EE).copy(alpha = 0.5f),
         )
     }
 }
 
 /**
- * 极简画报 Tab 栏。
+ * 作品/喜欢/收藏 Tab 栏。
  */
 @Composable
-private fun ProfileEditorialTabs(
+private fun ProfileTabs(
     selectedTab: Int,
     worksCount: Int,
     likedCount: Int,
     bookmarksCount: Int,
     onTabSelect: (Int) -> Unit,
 ) {
-    val tabs = listOf("POSTS · 作品 $worksCount", "SERIES · 喜欢 $likedCount", "CURATIONS · 收藏 $bookmarksCount")
+    val tabs = listOf("作品 $worksCount", "喜欢 $likedCount", "收藏 $bookmarksCount")
 
     SecondaryTabRow(
         selectedTabIndex = selectedTab,
@@ -522,7 +458,7 @@ private fun ProfileEditorialTabs(
             )
         },
         divider = {
-            HorizontalDivider(color = Color(0xFFE5C384).copy(alpha = 0.15f))
+            HorizontalDivider(color = Color(0xFFFAF6EE).copy(alpha = 0.08f))
         },
     ) {
         tabs.forEachIndexed { index, title ->
@@ -533,9 +469,9 @@ private fun ProfileEditorialTabs(
                 text = {
                     Text(
                         text = title,
-                        fontSize = 11.sp,
-                        color = if (isSelected) Color(0xFFE5C384) else Color(0xFFFAF6EE).copy(alpha = 0.45f),
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = if (isSelected) Color(0xFFFAF6EE) else Color(0xFFFAF6EE).copy(alpha = 0.45f),
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     )
                 },
             )
@@ -544,10 +480,10 @@ private fun ProfileEditorialTabs(
 }
 
 /**
- * 3 列画报媒体卡片。
+ * 3 列媒体卡片。
  */
 @Composable
-private fun ProfileEditorialMediaCard(
+private fun ProfileMediaCard(
     video: VideoItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -566,7 +502,7 @@ private fun ProfileEditorialMediaCard(
             modifier = Modifier.fillMaxSize(),
         )
 
-        // 底部播放数指示
+        // 底部播放点赞数
         Row(
             modifier =
                 Modifier
