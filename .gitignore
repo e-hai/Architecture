@@ -1,0 +1,41 @@
+# IDE
+.idea/
+.vscode/
+
+# Xcode
+## User settings
+xcuserdata/
+*.xcscmblueprint
+*.xcuserstate
+
+## Build products
+DerivedData/
+build/
+DerivedData
+.build/
+
+## Architecture / SPM
+.swiftpm/
+Package.resolved
+
+## CocoaPods (if used)
+Pods/
+
+## Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+## macOS
+.DS_Store
+*.swp
+*~
+
+## Secrets & Configs
+local.properties
+Secrets.swift
+*.p8
+*.mobileprovision
+*.cer
+*.key
