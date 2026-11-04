@@ -30,3 +30,6 @@ Secrets.swift
 *.key
 *.jks
 *.keystore
+
+# Kotlin Multiplatform
+.kotlin/

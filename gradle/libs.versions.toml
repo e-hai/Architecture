@@ -1,0 +1,132 @@
+[versions]
+# SDK & Tooling
+compileSdk = "37"
+compileSdkMinor = "1"
+minSdk = "26"
+targetSdk = "34"
+
+# Gradle Plugins & Core Tooling
+androidGradlePlugin = "9.3.1"
+kotlin = "2.3.21"
+ksp = "2.3.8"
+spotless = "8.5.1"
+composeMultiplatform = "1.8.0"
+
+# Kotlinx
+kotlinxCoroutines = "1.11.0"
+kotlinxSerialization = "1.11.0"
+kotlinxDatetime = "0.8.0"
+
+# Ktor
+ktor = "3.1.1"
+
+# Database & Storage
+room = "2.8.4"
+sqliteBundled = "2.5.0"
+datastore = "1.2.1"
+
+# Dependency Injection (Koin)
+koin = "4.2.1"
+
+# AndroidX Lifecycle (KMP)
+androidxLifecycle = "2.9.0"
+
+# AndroidX Base (Android Host)
+androidxActivity = "1.10.1"
+androidxCore = "1.15.0"
+
+# e-hai Kits (Android JitPack)
+analyticsKit = "v1.0.0"
+abTestingKit = "v1.0.0"
+crashReportKit = "v1.0.0"
+mmpKit = "v1.0.0"
+adsKit = "v1.0.1"
+payKit = "v1.0.0"
+pushKit = "v1.0.0"
+logKit = "v1.0.0"
+
+# Testing
+junit = "4.13.2"
+turbine = "1.2.1"
+
+[libraries]
+# Kotlinx
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
+# Ktor
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+
+# Room KMP
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqliteBundled" }
+
+# DataStore KMP
+datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
+
+# Koin
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
+
+# Lifecycle (KMP)
+androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+
+# Android App Host Specific
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
+
+# e-hai Kits (Android JitPack AARs)
+analytics-kit-firebase = { group = "com.github.e-hai.AnalyticsKit", name = "analytics-firebase", version.ref = "analyticsKit" }
+abtesting-kit-firebase = { group = "com.github.e-hai.AbTestingKit", name = "abtesting-firebase", version.ref = "abTestingKit" }
+crashreport-kit = { group = "com.github.e-hai", name = "CrashReportKit", version.ref = "crashReportKit" }
+mmp-kit-appsflyer = { group = "com.github.e-hai.MmpKit", name = "mmp-appsflyer", version.ref = "mmpKit" }
+ads-kit-admob = { group = "com.github.e-hai.AdsKit", name = "AdsKit-admob", version.ref = "adsKit" }
+pay-kit = { group = "com.github.e-hai", name = "PayKit", version.ref = "payKit" }
+push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKit" }
+log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+
+# Gradle Plugins
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-gradlePlugin = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "composeMultiplatform" }
+compose-compiler-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
+room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
+spotless-gradlePlugin = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room = { id = "androidx.room", version.ref = "room" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+
+# Custom Convention Plugins
+myproject-android-application = { id = "myproject.android.application" }
+myproject-kmp-library = { id = "myproject.kmp.library" }
+myproject-kmp-compose = { id = "myproject.kmp.compose" }
+myproject-kmp-feature-api = { id = "myproject.kmp.feature.api" }
+myproject-kmp-feature-impl = { id = "myproject.kmp.feature.impl" }
+myproject-kmp-room = { id = "myproject.kmp.room" }
+myproject-koin = { id = "myproject.koin" }
+myproject-spotless = { id = "myproject.spotless" }
