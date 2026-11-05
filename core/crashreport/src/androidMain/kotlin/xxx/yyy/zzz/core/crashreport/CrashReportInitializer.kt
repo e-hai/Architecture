@@ -25,7 +25,7 @@ object CrashReportInitializer {
                         backend = CrashBackend.FIREBASE,
                     ),
             )
-            AndroidNativeCrashReport.setCustomKey(CrashReportKeys.DEBUG, debug)
+            AndroidNativeCrashReport.setCustomKey(CrashReportKeys.IS_DEBUG, debug)
         }.onFailure {
             android.util.Log.w("CrashReport", "CrashReport init skipped or failed: ${it.message}")
         }

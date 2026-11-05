@@ -17,6 +17,14 @@ kotlin {
             baseName = "Shared"
             binaryOption("bundleId", "xxx.yyy.zzz.shared")
             isStatic = true
+            export(project(":core:log"))
+            export(project(":core:crashreport"))
+            export(project(":core:analytics"))
+            export(project(":core:abtesting"))
+            export(project(":core:mmp"))
+            export(project(":core:ads"))
+            export(project(":core:pay"))
+            export(project(":core:push"))
         }
     }
 
@@ -28,14 +36,14 @@ kotlin {
             implementation(project(":core:database"))
             implementation(project(":core:datastore"))
             implementation(project(":core:ui"))
-            implementation(project(":core:log"))
-            implementation(project(":core:crashreport"))
-            implementation(project(":core:analytics"))
-            implementation(project(":core:abtesting"))
-            implementation(project(":core:mmp"))
-            implementation(project(":core:ads"))
-            implementation(project(":core:pay"))
-            implementation(project(":core:push"))
+            api(project(":core:log"))
+            api(project(":core:crashreport"))
+            api(project(":core:analytics"))
+            api(project(":core:abtesting"))
+            api(project(":core:mmp"))
+            api(project(":core:ads"))
+            api(project(":core:pay"))
+            api(project(":core:push"))
         }
 
         androidMain.dependencies {
