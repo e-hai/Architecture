@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core:ads"))
     implementation(project(":core:pay"))
     implementation(project(":core:push"))
+    implementation(libs.log.kit)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }
