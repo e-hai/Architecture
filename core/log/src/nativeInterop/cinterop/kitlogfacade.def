@@ -1,3 +1,0 @@
-language = Objective-C
-headers = KitLogFacade.h
-package = xxx.yyy.zzz.core.log.interop
