@@ -16,10 +16,8 @@ import Shared
 @main
 public struct iOSApp: App {
     public init() {
-        // Phase 1: 安装 iOS 8 大原生 Kit SPM Bridge
-        KmpKitBridgeBootstrapper.installAll()
-        // Phase 2 & 3: 统一初始化跨平台容器与就绪日志
-        AppBootstrap.shared.doInitCommon()
+        // 通过 iOS 便捷扩展方法，一行代码完成 Kit Bridge 安装与跨平台三阶段冷启动
+        AppBootstrap.initIos()
     }
 
     public var body: some Scene {
@@ -45,9 +43,10 @@ public struct iOSApp: App {
  */
 public struct iOSAppView: View {
     public init() {
-        KmpKitBridgeBootstrapper.installAll()
         #if canImport(Shared)
-        AppBootstrap.shared.doInitCommon()
+        AppBootstrap.initIos()
+        #else
+        KmpKitBridgeBootstrapper.installAll()
         #endif
     }
 

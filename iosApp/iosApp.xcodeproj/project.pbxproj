@@ -20,6 +20,7 @@
 		B17BEB737012F375F69763F2 /* PushKit in Frameworks */ = {isa = PBXBuildFile; productRef = EABB6F6F0441181A9F08E9D8 /* PushKit */; };
 		B7C4F6137AC8345E71E92063 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA0531400E56665F58DE0E /* Analytics */; };
 		D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6140256AB44C34E202280CFC /* KmpKitBridges.swift */; };
+		F6E4B05035D3BCEA71086EAD /* AppBootstrap+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,6 +42,7 @@
 		6140256AB44C34E202280CFC /* KmpKitBridges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpKitBridges.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE37482C3835DBB11C07617 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppBootstrap+iOS.swift"; sourceTree = "<group>"; };
 		E40E380030A38B8C1BFADAB8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -92,6 +94,7 @@
 		AA88BF38A774B8DCBBD18B1D /* Bridge */ = {
 			isa = PBXGroup;
 			children = (
+				DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */,
 				6140256AB44C34E202280CFC /* KmpKitBridges.swift */,
 			);
 			path = Bridge;
@@ -205,6 +208,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6E4B05035D3BCEA71086EAD /* AppBootstrap+iOS.swift in Sources */,
 				22EAE4D97482DC72463673EB /* ContentView.swift in Sources */,
 				D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */,
 				0FD8694A1DC2F51686D81E32 /* iOSApp.swift in Sources */,
