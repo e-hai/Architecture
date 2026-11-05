@@ -1,4 +1,4 @@
-package xxx.yyy.zzz.shared.di
+package xxx.yyy.zzz.android.bridge
 
 import android.app.Application
 import xxx.yyy.zzz.core.abtesting.AbTestingInitializer

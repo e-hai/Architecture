@@ -2,8 +2,8 @@ package xxx.yyy.zzz.android
 
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
+import xxx.yyy.zzz.android.bridge.NativeKitBootstrap
 import xxx.yyy.zzz.shared.di.AppBootstrap
-import xxx.yyy.zzz.shared.di.NativeKitBootstrap
 
 /**
  * Android 独立宿主 Application 入口。
