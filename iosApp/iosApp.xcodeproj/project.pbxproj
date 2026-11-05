@@ -15,12 +15,11 @@
 		445C052442747365B7CB2124 /* CrashReportKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB0D23ABA705888A0EB57B4 /* CrashReportKit */; };
 		4E77AFD5C2B00E927573D493 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BCACD5445C37FEB9733A013 /* Shared.framework */; };
 		56A46FB5D95B5B7AB587F7E2 /* PayKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0E52E19D4F7B7CB0FCA803A7 /* PayKit */; };
+		8890FEBAFB0C17EFCDA552DD /* NativeKitBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */; };
 		904B143AD85747788BDF9954 /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0BCACD5445C37FEB9733A013 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A825AC5F0531A8569219D47A /* MmpCore in Frameworks */ = {isa = PBXBuildFile; productRef = DAD0B032E490846231F0FAF9 /* MmpCore */; };
 		B17BEB737012F375F69763F2 /* PushKit in Frameworks */ = {isa = PBXBuildFile; productRef = EABB6F6F0441181A9F08E9D8 /* PushKit */; };
 		B7C4F6137AC8345E71E92063 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA0531400E56665F58DE0E /* Analytics */; };
-		D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6140256AB44C34E202280CFC /* KmpKitBridges.swift */; };
-		F6E4B05035D3BCEA71086EAD /* AppBootstrap+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,10 +38,9 @@
 
 /* Begin PBXFileReference section */
 		0BCACD5445C37FEB9733A013 /* Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Shared.framework; path = ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework; sourceTree = "<group>"; };
-		6140256AB44C34E202280CFC /* KmpKitBridges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpKitBridges.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE37482C3835DBB11C07617 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
-		DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppBootstrap+iOS.swift"; sourceTree = "<group>"; };
+		B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeKitBootstrap.swift; sourceTree = "<group>"; };
 		E40E380030A38B8C1BFADAB8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,8 +92,7 @@
 		AA88BF38A774B8DCBBD18B1D /* Bridge */ = {
 			isa = PBXGroup;
 			children = (
-				DBF620D0FE25BE605DCEAE59 /* AppBootstrap+iOS.swift */,
-				6140256AB44C34E202280CFC /* KmpKitBridges.swift */,
+				B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */,
 			);
 			path = Bridge;
 			sourceTree = "<group>";
@@ -208,9 +205,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6E4B05035D3BCEA71086EAD /* AppBootstrap+iOS.swift in Sources */,
 				22EAE4D97482DC72463673EB /* ContentView.swift in Sources */,
-				D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */,
+				8890FEBAFB0C17EFCDA552DD /* NativeKitBootstrap.swift in Sources */,
 				0FD8694A1DC2F51686D81E32 /* iOSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

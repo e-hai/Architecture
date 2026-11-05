@@ -9,17 +9,14 @@ import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.network.coreNetworkModule
 
 /**
- * 跨平台应用统一启动器（AppBootstrap）。
- * 统一调度双端标准三阶段生命周期：
- * 1. 平台原生 Kit / Bridge 挂载 (Platform Kits / Bridges)
- * 2. Koin 依赖注入容器启动 (Dependency Injection)
- * 3. 业务就绪与冷启动确认 (App Ready)
+ * 跨平台 KMP 核心库引导器（AppBootstrap）。
+ * 专职负责已实现跨平台的纯 KMP 基础设施（Koin DI 容器：Room / DataStore / Ktor）初始化。
  */
 object AppBootstrap {
     private var isInitialized = false
 
     /**
-     * 基础跨平台依赖注入容器启动（带防重复启动保护）。
+     * 启动纯 KMP 跨平台依赖注入容器（带防重复启动保护）。
      *
      * @param platformDeclaration 平台特定注入声明（如 Android 注入 androidContext）
      */
@@ -34,15 +31,12 @@ object AppBootstrap {
                     coreDatastoreModule,
                 )
             }
-            LogKit.i(LogTags.APP, "Koin DI container initialized successfully.")
+            LogKit.i(LogTags.APP, "KMP Koin DI container initialized successfully.")
         }
     }
 
     /**
-     * 通用跨平台初始化（供 iOS / 桌面端 / 单元测试等无 Android Context 的环境统一调用）。
+     * 无参重载：供 iOS 等无需传入平台 Context 的宿主直接调用。
      */
-    fun initCommon() {
-        doInitKoin()
-        LogKit.i(LogTags.APP, "Application bootstrap completed on Common/iOS.")
-    }
+    fun doInitKoin() = doInitKoin {}
 }

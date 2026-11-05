@@ -7,11 +7,11 @@ import Testing
 @Suite("iOS App Host & Kit Bridge Tests")
 struct IOSAppTests {
     /**
-     * 验证 KmpKitBridgeBootstrapper.installAll 桥接批量安装逻辑安全执行且无异常。
+     * 验证 NativeKitBootstrap.initKits 桥接批量安装逻辑安全执行且无异常。
      */
-    @Test("Bootstrapper installAll runs safely")
-    func testBootstrapInstallAll() {
-        KmpKitBridgeBootstrapper.installAll()
+    @Test("Bootstrapper initKits runs safely")
+    func testBootstrapInitKits() {
+        NativeKitBootstrap.initKits()
     }
 
     /**

@@ -9,15 +9,19 @@ import Shared
  * 职责：
  * 1. 作为完整 iOS 可执行 App（.app）的独立主入口（标记 @main）；
  * 2. 负责顶层 WindowGroup 窗口生命周期与渲染容器配置；
- * 3. 执行冷启动标准初始化（Phase 1: SPM 原生 Kit Bridge 安装；Phase 2 & 3: 跨平台 Koin DI 容器与日志确认）。
+ * 3. 执行冷启动标准化初始化：
+ *    - Phase 1: NativeKitBootstrap.initKits()（未跨平台原生 Kit 初始化与桥接）
+ *    - Phase 2: AppBootstrap.shared.doInitKoin()（已跨平台纯 KMP 库 Koin 容器启动）
  *
  * 注：仅在存在 Shared.framework 的完整应用工程中编译生效。
  */
 @main
 public struct iOSApp: App {
     public init() {
-        // 通过 iOS 便捷扩展方法，一行代码完成 Kit Bridge 安装与跨平台三阶段冷启动
-        AppBootstrap.initIos()
+        // 1. 初始化未实现跨平台的 iOS 原生 Kit (8 大 Swift SPM Bridge)
+        NativeKitBootstrap.initKits()
+        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor)
+        AppBootstrap.shared.doInitKoin()
     }
 
     public var body: some Scene {
@@ -43,10 +47,9 @@ public struct iOSApp: App {
  */
 public struct iOSAppView: View {
     public init() {
+        NativeKitBootstrap.initKits()
         #if canImport(Shared)
-        AppBootstrap.initIos()
-        #else
-        KmpKitBridgeBootstrapper.installAll()
+        AppBootstrap.shared.doInitKoin()
         #endif
     }
 
