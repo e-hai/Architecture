@@ -16,10 +16,10 @@ import Shared
 @main
 public struct iOSApp: App {
     public init() {
-        // Phase 1: 安装 iOS 8 大原生 Kit SPM Bridge
+        // Phase 1: 安装其余原生 Kit SPM Bridge（注：LogKit 已通过 cinterop 直连 KitLogFacade，无需手动桥接）
         KmpKitBridgeBootstrapper.installAll()
-        // Phase 2 & 3: 统一初始化跨平台容器与就绪日志
-        AppBootstrap.shared.doInitCommon()
+        // Phase 1 (LogKit) + Phase 2 & 3: 在 Kotlin 内部统一完成 Kit 与 Koin 初始化
+        AppBootstrap.shared.doInitIos(withDiskLog: true)
     }
 
     public var body: some Scene {
@@ -47,7 +47,7 @@ public struct iOSAppView: View {
     public init() {
         KmpKitBridgeBootstrapper.installAll()
         #if canImport(Shared)
-        AppBootstrap.shared.doInitCommon()
+        AppBootstrap.shared.doInitIos(withDiskLog: true)
         #endif
     }
 

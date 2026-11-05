@@ -20,6 +20,7 @@
 		B17BEB737012F375F69763F2 /* PushKit in Frameworks */ = {isa = PBXBuildFile; productRef = EABB6F6F0441181A9F08E9D8 /* PushKit */; };
 		B7C4F6137AC8345E71E92063 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA0531400E56665F58DE0E /* Analytics */; };
 		D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6140256AB44C34E202280CFC /* KmpKitBridges.swift */; };
+		EB2B85E9C5C0FB15AC591830 /* KitLogFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 733D6BF7B313B2DF5A14FE47 /* KitLogFacade.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +40,7 @@
 /* Begin PBXFileReference section */
 		0BCACD5445C37FEB9733A013 /* Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Shared.framework; path = ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework; sourceTree = "<group>"; };
 		6140256AB44C34E202280CFC /* KmpKitBridges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpKitBridges.swift; sourceTree = "<group>"; };
+		733D6BF7B313B2DF5A14FE47 /* KitLogFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitLogFacade.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE37482C3835DBB11C07617 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		E40E380030A38B8C1BFADAB8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -64,6 +66,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		22039CAFDE2C4C85AB5A5B16 /* KitFacade */ = {
+			isa = PBXGroup;
+			children = (
+				733D6BF7B313B2DF5A14FE47 /* KitLogFacade.swift */,
+			);
+			path = KitFacade;
+			sourceTree = "<group>";
+		};
 		3666012298E772D226418813 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -103,6 +113,7 @@
 				E40E380030A38B8C1BFADAB8 /* ContentView.swift */,
 				8AE37482C3835DBB11C07617 /* iOSApp.swift */,
 				AA88BF38A774B8DCBBD18B1D /* Bridge */,
+				22039CAFDE2C4C85AB5A5B16 /* KitFacade */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -206,6 +217,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				22EAE4D97482DC72463673EB /* ContentView.swift in Sources */,
+				EB2B85E9C5C0FB15AC591830 /* KitLogFacade.swift in Sources */,
 				D0446A6C42D8B249698BE731 /* KmpKitBridges.swift in Sources */,
 				0FD8694A1DC2F51686D81E32 /* iOSApp.swift in Sources */,
 			);
