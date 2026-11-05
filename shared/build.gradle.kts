@@ -37,5 +37,9 @@ kotlin {
             implementation(project(":core:pay"))
             implementation(project(":core:push"))
         }
+
+        androidMain.dependencies {
+            implementation(libs.koin.android)
+        }
     }
 }
