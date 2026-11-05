@@ -1,0 +1,75 @@
+name: iosApp
+options:
+  bundleIdPrefix: xxx.yyy.zzz
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+
+packages:
+  LogKit:
+    url: https://github.com/e-hai/LogKit-iOS.git
+    from: 1.0.0
+  CrashReportKit:
+    url: https://github.com/e-hai/CrashReportKit-iOS.git
+    from: 1.0.0
+  AnalyticsKit:
+    url: https://github.com/e-hai/AnalyticsKit-iOS.git
+    from: 1.0.0
+  AbTestingKit:
+    url: https://github.com/e-hai/AbTestingKit-iOS.git
+    from: 1.0.0
+  MmpKit:
+    url: https://github.com/e-hai/MmpKit-iOS.git
+    from: 1.0.0
+  AdsKit:
+    url: https://github.com/e-hai/AdsKit-iOS.git
+    from: 1.0.0
+  PayKit:
+    url: https://github.com/e-hai/PayKit-iOS.git
+    from: 1.0.0
+  PushKit:
+    url: https://github.com/e-hai/PushKit-iOS.git
+    from: 1.0.0
+
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    dependencies:
+      - package: LogKit
+        product: LogKit
+      - package: CrashReportKit
+        product: CrashReportKit
+      - package: AnalyticsKit
+        product: Analytics
+      - package: AbTestingKit
+        product: AbTesting
+      - package: MmpKit
+        product: MmpCore
+      - package: AdsKit
+        product: AdsCore
+      - package: PayKit
+        product: PayKit
+      - package: PushKit
+        product: PushKit
+      - framework: ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework
+        embed: true
+    preBuildScripts:
+      - name: Compile KMP Framework
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: "YES"
+        PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz.iosApp
+        INFOPLIST_KEY_CFBundleDisplayName: Architecture
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+          - $(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
