@@ -17,7 +17,7 @@ import xxx.yyy.zzz.core.abtesting.AbTestingClient
 import xxx.yyy.zzz.core.abtesting.AbTestingKeys
 import xxx.yyy.zzz.core.analytics.Analytics
 import xxx.yyy.zzz.core.analytics.AnalyticsEvents
-import xxx.yyy.zzz.core.log.AppLog
+import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.navigation.Navigator
 
@@ -36,7 +36,7 @@ fun AppNavGraph(
             HomeScreen(
                 onNavigateToSettings = {
                     Analytics.logEvent(AnalyticsEvents.Common.BUTTON_CLICK)
-                    AppLog.d(LogTags.NAV, "Navigate to Settings")
+                    CoreLog.d(LogTags.NAV, "Navigate to Settings")
                     navigator.navigate(SettingsNavKey)
                 },
                 modifier = modifier,
@@ -46,7 +46,7 @@ fun AppNavGraph(
         is SettingsNavKey -> {
             SettingsScreen(
                 onBack = {
-                    AppLog.d(LogTags.NAV, "Go back from Settings")
+                    CoreLog.d(LogTags.NAV, "Go back from Settings")
                     navigator.goBack()
                 },
                 modifier = modifier,

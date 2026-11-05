@@ -6,7 +6,7 @@ import xxx.yyy.zzz.core.abtesting.AbTestingInitializer
 import xxx.yyy.zzz.core.ads.AdsInitializer
 import xxx.yyy.zzz.core.analytics.AnalyticsInitializer
 import xxx.yyy.zzz.core.crashreport.CrashReportInitializer
-import xxx.yyy.zzz.core.log.AppLog
+import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogDelegate
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.mmp.MmpInitializer
@@ -29,9 +29,9 @@ object NativeKitBootstrap {
         application: Application,
         debug: Boolean = true,
     ) {
-        // 1. 向 core:log 门面 (AppLog) 注入宿主 AndroidLogDelegate 代理，并通过门面统一初始化
-        AppLog.install(AndroidLogDelegate(application))
-        AppLog.doInitAllLog()
+        // 1. 向 core:log 门面 (CoreLog) 注入宿主 AndroidLogDelegate 代理，并通过门面统一初始化
+        CoreLog.install(AndroidLogDelegate(application))
+        CoreLog.doInitAllLog()
 
         CrashReportInitializer.initialize(application, debug = debug)
         AnalyticsInitializer.initialize(application, debug = debug)
@@ -40,7 +40,7 @@ object NativeKitBootstrap {
         AdsInitializer.initialize(application, apiKey = "ca-app-pub-3940256099942544~3347511713")
         PayInitializer.configure(application)
         PushInitializer.initialize(application, registerFcm = false)
-        AppLog.i(LogTags.APP, "Android native kits initialized successfully.")
+        CoreLog.i(LogTags.APP, "Android native kits initialized successfully.")
     }
 }
 
