@@ -23,6 +23,13 @@ dependencies {
     implementation(project(":core:pay"))
     implementation(project(":core:push"))
     implementation(libs.log.kit)
+    implementation(libs.crashreport.kit)
+    implementation(libs.analytics.kit.firebase)
+    implementation(libs.abtesting.kit.firebase)
+    implementation(libs.mmp.kit.appsflyer)
+    implementation(libs.ads.kit.admob)
+    implementation(libs.pay.kit)
+    implementation(libs.push.kit)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }

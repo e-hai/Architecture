@@ -5,11 +5,3 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.crashreport"
 }
-
-kotlin {
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.crashreport.kit)
-        }
-    }
-}

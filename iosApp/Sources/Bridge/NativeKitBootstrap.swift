@@ -15,65 +15,75 @@ import Shared
 
 /**
  * iOS 原生商业化 Kit 引导器（NativeKitBootstrap）。
- * 专职负责未实现跨平台 KMP 的 8 大 iOS 原生 Swift SPM SDK 的初始化与 Bridge 桥接挂载，
- * 与 Android 端的 NativeKitBootstrap 保持命名与职责 100% 对齐。
+ * 专职负责 8 大 iOS 原生 Swift SPM SDK 的委托实现与跨平台门面挂载，
+ * 与 Android 端的 NativeKitBootstrap 保持 1:1 对称与相同设计范式。
  */
 public final class NativeKitBootstrap: Sendable {
     /**
-     * 批量初始化并注册所有 iOS 原生 Kit 的 Swift SPM 桥接实现。
+     * 批量初始化并注册所有 iOS 原生 Kit 的 Swift SPM 委托实现至 Core 跨平台门面。
      */
     public static func initKits() {
-        print("[KMP-iOS] Initializing 8 native Kit SPM SDKs & Bridges...")
+        print("[KMP-iOS] Initializing 8 native Kit SPM SDKs & Delegates...")
 
-        // 1. 注册 CoreLog (通过 core:log 门面挂载代理并初始化，外部不直接调用原生 Kit API)
         #if canImport(Shared)
+        // 1. CoreLog (日志)
         CoreLog.shared.install(delegate: IosLogDelegate())
         CoreLog.shared.doInitAllLog()
+
+        // 2. CoreCrashReport (崩溃采集)
+        CoreCrashReport.shared.install(delegate: IosCrashReportDelegate())
+        CoreCrashReport.shared.doInit()
+
+        // 3. CoreAnalytics (数据埋点)
+        CoreAnalytics.shared.install(delegate: IosAnalyticsDelegate())
+        CoreAnalytics.shared.doInit()
+
+        // 4. CoreAbTesting (A/B 测试 & Remote Config)
+        CoreAbTesting.shared.install(delegate: IosAbTestingDelegate())
+        CoreAbTesting.shared.doInit()
+
+        // 5. CoreMmp (归因统计)
+        CoreMmp.shared.install(delegate: IosMmpDelegate())
+        CoreMmp.shared.doInit(appToken: "dummy_appsflyer_key")
+
+        // 6. CoreAds (广告聚合)
+        CoreAds.shared.install(delegate: IosAdsDelegate())
+        CoreAds.shared.doInit(apiKey: "ca-app-pub-3940256099942544~3347511713")
+
+        // 7. CorePay (支付结算)
+        CorePay.shared.install(delegate: IosPayDelegate())
+        CorePay.shared.doInit()
+
+        // 8. CorePush (推送通知)
+        CorePush.shared.install(delegate: IosPushDelegate())
+        CorePush.shared.doInit(registerFcm: false)
+
+        print("[KMP-iOS] 8 native Kit delegates successfully installed and initialized.")
         #else
+        // CLI 测试环境兜底（当未链接 Shared.framework 时）
         LogKit.initAllLog()
-        #endif
-
-        // 2. 初始化 CrashReportKit
         CrashReport.initialize(config: CrashReportConfig(enabled: true))
-
-        // 3. 初始化 AnalyticsKit (控制台输出 Provider)
         Analytics.initialize(config: AnalyticsConfig(
             providers: [LoggingAnalyticsProvider()],
             enabled: true,
             debug: true
         ))
-
-        // 4. 初始化 AbTestingKit (默认本地/测试 Fake Provider)
         AbTestingClient.install(FakeAbTestingProvider())
-
-        // 5. 初始化 MmpKit
         Mmp.setLogEnabled(true)
-
-        // 6. 初始化 PayKit
         PayKit.configure(configuration: PayKitConfiguration())
-
-        // 7. 初始化 PushKit (仅在具有 Bundle Identifier 的实际 App 运行时初始化通知中心)
         if Bundle.main.bundleIdentifier != nil {
             PushKitManager.shared.setup()
         }
-
-        // 8. 挂载 8 大原生 Kit 桥接实现到 KMP 跨平台门面
-        #if canImport(Shared)
-        CrashReportIosBridgeKt.registerCrashReportIosBridge(bridge: CrashReportBridge())
-        AnalyticsIosBridgeKt.registerAnalyticsIosBridge(bridge: AnalyticsBridge())
-        AbTestingIosBridgeKt.registerAbTestingIosBridge(bridge: AbTestingBridge())
-        MmpIosBridgeKt.registerMmpIosBridge(bridge: MmpBridge())
-        AdsIosBridgeKt.registerAdsIosBridge(bridge: AdsBridge())
-        PayIosBridgeKt.registerPayIosBridge(bridge: PayBridge())
-        PushIosBridgeKt.registerPushIosBridge(bridge: PushBridge())
-        print("[KMP-iOS] 8 native Kit bridges successfully registered to KMP.")
         #endif
     }
 }
 
-// MARK: - KMP Bridge Implementations
+// MARK: - iOS Native Kit Delegates (1:1 Symmetric with Android Android*Delegates)
 
 #if canImport(Shared)
+/**
+ * iOS 日志委托实现。
+ */
 private final class IosLogDelegate: NSObject, LogDelegate {
     func doInitAllLog() {
         LogKit.initAllLog()
@@ -104,7 +114,14 @@ private final class IosLogDelegate: NSObject, LogDelegate {
     }
 }
 
-private final class CrashReportBridge: NSObject, CrashReportIosBridge {
+/**
+ * iOS 崩溃采集委托实现。
+ */
+private final class IosCrashReportDelegate: NSObject, CrashReportDelegate {
+    func doInit() {
+        CrashReport.initialize(config: CrashReportConfig(enabled: true))
+    }
+
     func setUserId(userId_: String) {
         CrashReport.setUserId(userId_)
     }
@@ -127,7 +144,18 @@ private final class CrashReportBridge: NSObject, CrashReportIosBridge {
     }
 }
 
-private final class AnalyticsBridge: NSObject, AnalyticsIosBridge {
+/**
+ * iOS 数据埋点委托实现。
+ */
+private final class IosAnalyticsDelegate: NSObject, AnalyticsDelegate {
+    func doInit() {
+        Analytics.initialize(config: AnalyticsConfig(
+            providers: [LoggingAnalyticsProvider()],
+            enabled: true,
+            debug: true
+        ))
+    }
+
     func logEvent(name: String, params: [String: Any]) {
         var analyticsParams: [String: AnalyticsValue] = [:]
         for (key, val) in params {
@@ -153,25 +181,39 @@ private final class AnalyticsBridge: NSObject, AnalyticsIosBridge {
     }
 }
 
-private final class AbTestingBridge: NSObject, AbTestingIosBridge {
+/**
+ * iOS A/B 测试委托实现。
+ */
+private final class IosAbTestingDelegate: NSObject, AbTestingDelegate {
+    func doInit() {
+        AbTestingClient.install(FakeAbTestingProvider())
+    }
+
     func getBoolean(key: String, defaultValue: Bool) -> Bool {
         AbTestingClient.getBoolean(key, default: defaultValue)
-    }
-
-    func getDouble(key: String, defaultValue: Double) -> Double {
-        AbTestingClient.getDouble(key, default: defaultValue)
-    }
-
-    func getLong(key: String, defaultValue: Int64) -> Int64 {
-        AbTestingClient.getLong(key, default: defaultValue)
     }
 
     func getString(key: String, defaultValue: String) -> String {
         AbTestingClient.getString(key, default: defaultValue)
     }
+
+    func getLong(key: String, defaultValue: Int64) -> Int64 {
+        Int64(AbTestingClient.getInt(key, default: Int(defaultValue)))
+    }
+
+    func getDouble(key: String, defaultValue: Double) -> Double {
+        AbTestingClient.getDouble(key, default: defaultValue)
+    }
 }
 
-private final class MmpBridge: NSObject, MmpIosBridge {
+/**
+ * iOS 归因统计委托实现。
+ */
+private final class IosMmpDelegate: NSObject, MmpDelegate {
+    func doInit(appToken: String) {
+        Mmp.setLogEnabled(true)
+    }
+
     func trackEvent(eventName: String, params: [String: Any]) {
         Mmp.trackEvent(eventName, params: params)
     }
@@ -183,24 +225,33 @@ private final class MmpBridge: NSObject, MmpIosBridge {
     }
 }
 
-private final class AdsBridge: NSObject, AdsIosBridge {
-    func isReady(triggerId: String) -> Bool {
-        // AdsKit 预加载状态检查
-        return true
+/**
+ * iOS 广告聚合委托实现。
+ */
+private final class IosAdsDelegate: NSObject, AdsDelegate {
+    func doInit(apiKey: String) {
+        // iOS AdsKit 初始化逻辑
     }
 
     func loadAd(triggerId: String, adUnitId: String) {
-        print("[AdsBridge] loadAd: triggerId=\(triggerId), adUnitId=\(adUnitId)")
+        print("[Ads-iOS] loadAd: triggerId=\(triggerId), adUnitId=\(adUnitId)")
+    }
+
+    func isReady(triggerId: String) -> Bool {
+        return true
     }
 
     func showAd(triggerId: String) {
-        print("[AdsBridge] showAd: triggerId=\(triggerId)")
+        print("[Ads-iOS] showAd: triggerId=\(triggerId)")
     }
 }
 
-private final class PayBridge: NSObject, PayIosBridge {
-    func isSubscribed(productId: String) -> Bool {
-        return PayKit.shared.findActiveSubscription(productId: productId) != nil
+/**
+ * iOS 支付结算委托实现。
+ */
+private final class IosPayDelegate: NSObject, PayDelegate {
+    func doInit() {
+        PayKit.configure(configuration: PayKitConfiguration())
     }
 
     func purchase(productId: String, onResult: @escaping (KotlinBoolean, String?) -> Void) {
@@ -214,9 +265,22 @@ private final class PayBridge: NSObject, PayIosBridge {
             }
         }
     }
+
+    func isSubscribed(productId: String) -> Bool {
+        return PayKit.shared.findActiveSubscription(productId: productId) != nil
+    }
 }
 
-private final class PushBridge: NSObject, PushIosBridge {
+/**
+ * iOS 推送通知委托实现。
+ */
+private final class IosPushDelegate: NSObject, PushDelegate {
+    func doInit(registerFcm: Bool) {
+        if Bundle.main.bundleIdentifier != nil {
+            PushKitManager.shared.setup()
+        }
+    }
+
     func registerPush() {
         Task {
             _ = try? await PushKitManager.shared.requestPermission()
@@ -224,7 +288,7 @@ private final class PushBridge: NSObject, PushIosBridge {
     }
 
     func setPushToken(token: String) {
-        print("[PushBridge] setPushToken: \(token)")
+        print("[IosPushDelegate] setPushToken: \(token)")
     }
 }
 #endif

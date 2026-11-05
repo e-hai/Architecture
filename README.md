@@ -36,13 +36,13 @@ Architecture/
 │   ├── navigation/                    # 跨端类型安全导航状态机 (NavKey / Navigator)
 │   ├── ui/                            # Compose Multiplatform Material3 主题与通用组件
 │   ├── log/                           # CoreLog 门面 + LogTags (直连 e-hai/LogKit)
-│   ├── crashreport/                   # CrashReport 门面 + CrashReportKeys
-│   ├── analytics/                     # Analytics 门面 + Events / Params
-│   ├── abtesting/                     # AbTestingClient 门面 + Keys
-│   ├── mmp/                           # MmpKit 归因门面 + Events / Params
-│   ├── ads/                           # AdsManager 广告门面 + AdsKeys
-│   ├── pay/                           # PayKit 支付门面 + PayProducts
-│   └── push/                          # PushKitManager 推送门面 + PushChannels
+│   ├── crashreport/                   # CoreCrashReport 门面 + CrashReportKeys
+│   ├── analytics/                     # CoreAnalytics 门面 + Events / Params
+│   ├── abtesting/                     # CoreAbTesting 门面 + Keys
+│   ├── mmp/                           # CoreMmp 门面 + Events / Params
+│   ├── ads/                           # CoreAds 门面 + AdsKeys
+│   ├── pay/                           # CorePay 门面 + PayProducts
+│   └── push/                          # CorePush 门面 + PushChannels
 ├── build-logic/                       # Gradle 约定插件 (Convention Plugins)
 ├── gradle/libs.versions.toml          # Version Catalog 依赖版本目录
 ├── init_project.sh                    # 一键替换包名与工程名初始化脚本
@@ -59,7 +59,7 @@ Architecture/
 flowchart LR
     subgraph Common["commonMain (业务代码)"]
         Biz["业务 Feature / UI"]
-        Facade["静态门面<br/>(Analytics / AdsManager / PayKit...)"]
+        Facade["静态门面<br/>(CoreAnalytics / CoreAds / CorePay...)"]
         Delegate["委托协议<br/>(*Delegate)"]
         Biz --> Facade
         Facade --> Delegate

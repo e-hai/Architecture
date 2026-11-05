@@ -5,11 +5,3 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.abtesting"
 }
-
-kotlin {
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.abtesting.kit.firebase)
-        }
-    }
-}

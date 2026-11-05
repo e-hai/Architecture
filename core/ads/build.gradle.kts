@@ -5,11 +5,3 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.ads"
 }
-
-kotlin {
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.ads.kit.admob)
-        }
-    }
-}

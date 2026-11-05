@@ -5,11 +5,3 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.push"
 }
-
-kotlin {
-    sourceSets {
-        androidMain.dependencies {
-            implementation(libs.push.kit)
-        }
-    }
-}

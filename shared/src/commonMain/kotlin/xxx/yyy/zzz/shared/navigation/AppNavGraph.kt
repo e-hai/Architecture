@@ -13,10 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import xxx.yyy.zzz.core.abtesting.AbTestingClient
 import xxx.yyy.zzz.core.abtesting.AbTestingKeys
-import xxx.yyy.zzz.core.analytics.Analytics
+import xxx.yyy.zzz.core.abtesting.CoreAbTesting
 import xxx.yyy.zzz.core.analytics.AnalyticsEvents
+import xxx.yyy.zzz.core.analytics.CoreAnalytics
 import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.navigation.Navigator
@@ -35,7 +35,7 @@ fun AppNavGraph(
         is HomeNavKey -> {
             HomeScreen(
                 onNavigateToSettings = {
-                    Analytics.logEvent(AnalyticsEvents.Common.BUTTON_CLICK)
+                    CoreAnalytics.logEvent(AnalyticsEvents.Common.BUTTON_CLICK)
                     CoreLog.d(LogTags.NAV, "Navigate to Settings")
                     navigator.navigate(SettingsNavKey)
                 },
@@ -67,7 +67,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val welcomeMessage = AbTestingClient.getString(AbTestingKeys.WELCOME_MESSAGE, "Welcome to KMP Architecture")
+    val welcomeMessage = CoreAbTesting.getString(AbTestingKeys.WELCOME_MESSAGE, "Welcome to KMP Architecture")
 
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
