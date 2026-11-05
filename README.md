@@ -35,7 +35,7 @@ Architecture/
 │   ├── datastore/                     # DataStore Preferences KMP 跨平台键值存储
 │   ├── navigation/                    # 跨端类型安全导航状态机 (NavKey / Navigator)
 │   ├── ui/                            # Compose Multiplatform Material3 主题与通用组件
-│   ├── log/                           # LogKit 门面 + LogTags (直连 e-hai/LogKit)
+│   ├── log/                           # AppLog 门面 + LogTags (直连 e-hai/LogKit)
 │   ├── crashreport/                   # CrashReport 门面 + CrashReportKeys
 │   ├── analytics/                     # Analytics 门面 + Events / Params
 │   ├── abtesting/                     # AbTestingClient 门面 + Keys

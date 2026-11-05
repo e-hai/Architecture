@@ -70,10 +70,10 @@ object DefaultLogDelegate : LogDelegate {
 }
 
 /**
- * 跨平台静态日志门面，与 Android / iOS 分支体验 100% 对齐。
+ * 跨平台静态日志门面（AppLog），与底层原生 SDK 完全解耦。
  * 外部（包括业务层、UI 层及宿主层）所有日志初始化与打印统一通过此门面调用。
  */
-object LogKit : LogDelegate {
+object AppLog : LogDelegate {
     private var delegate: LogDelegate = DefaultLogDelegate
 
     /**

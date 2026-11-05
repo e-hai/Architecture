@@ -1,17 +1,17 @@
 package xxx.yyy.zzz.android.bridge
 
 import android.app.Application
+import com.kit.log.LogKit
 import xxx.yyy.zzz.core.abtesting.AbTestingInitializer
 import xxx.yyy.zzz.core.ads.AdsInitializer
 import xxx.yyy.zzz.core.analytics.AnalyticsInitializer
 import xxx.yyy.zzz.core.crashreport.CrashReportInitializer
+import xxx.yyy.zzz.core.log.AppLog
 import xxx.yyy.zzz.core.log.LogDelegate
-import xxx.yyy.zzz.core.log.LogKit
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.mmp.MmpInitializer
 import xxx.yyy.zzz.core.pay.PayInitializer
 import xxx.yyy.zzz.core.push.PushInitializer
-import com.kit.log.LogKit as AndroidNativeLogKit
 
 /**
  * Android 原生商业化 Kit 引导器（NativeKitBootstrap）。
@@ -29,9 +29,9 @@ object NativeKitBootstrap {
         application: Application,
         debug: Boolean = true,
     ) {
-        // 1. 向 core:log 门面注入宿主 AndroidLogDelegate 代理，并通过门面统一初始化
-        LogKit.install(AndroidLogDelegate(application))
-        LogKit.doInitAllLog()
+        // 1. 向 core:log 门面 (AppLog) 注入宿主 AndroidLogDelegate 代理，并通过门面统一初始化
+        AppLog.install(AndroidLogDelegate(application))
+        AppLog.doInitAllLog()
 
         CrashReportInitializer.initialize(application, debug = debug)
         AnalyticsInitializer.initialize(application, debug = debug)
@@ -40,7 +40,7 @@ object NativeKitBootstrap {
         AdsInitializer.initialize(application, apiKey = "ca-app-pub-3940256099942544~3347511713")
         PayInitializer.configure(application)
         PushInitializer.initialize(application, registerFcm = false)
-        LogKit.i(LogTags.APP, "Android native kits initialized successfully.")
+        AppLog.i(LogTags.APP, "Android native kits initialized successfully.")
     }
 }
 
@@ -49,34 +49,34 @@ object NativeKitBootstrap {
 // =========================================================================
 
 /**
- * Android 端 LogDelegate 代理实现类（与 iOS 端 LogBridge 保持 1:1 对称）。
+ * Android 端 LogDelegate 代理实现类（与 iOS 端 IosLogDelegate 保持 1:1 对称）。
  * 仅在实现类内部调用原生 com.kit.log.LogKit AAR，外部绝不直接调用原生 Kit API。
  */
 private class AndroidLogDelegate(
     private val application: Application,
 ) : LogDelegate {
     override fun doInitAllLog() {
-        AndroidNativeLogKit.initAllLog(application)
+        LogKit.initAllLog(application)
     }
 
     override fun doInitOnlyConsoleLog() {
-        AndroidNativeLogKit.initOnlyAndroidLog()
+        LogKit.initOnlyAndroidLog()
     }
 
     override fun d(
         tag: String,
         message: String,
-    ) = AndroidNativeLogKit.d(tag, message)
+    ) = LogKit.d(tag, message)
 
     override fun i(
         tag: String,
         message: String,
-    ) = AndroidNativeLogKit.i(tag, message)
+    ) = LogKit.i(tag, message)
 
     override fun w(
         tag: String,
         message: String,
-    ) = AndroidNativeLogKit.w(tag, message)
+    ) = LogKit.w(tag, message)
 
     override fun e(
         tag: String,
@@ -84,9 +84,9 @@ private class AndroidLogDelegate(
         throwable: Throwable?,
     ) {
         if (throwable != null) {
-            AndroidNativeLogKit.e(tag, throwable, message)
+            LogKit.e(tag, throwable, message)
         } else {
-            AndroidNativeLogKit.e(tag, message)
+            LogKit.e(tag, message)
         }
     }
 }

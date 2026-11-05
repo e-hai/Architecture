@@ -4,7 +4,7 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 import xxx.yyy.zzz.core.database.coreDatabaseModule
 import xxx.yyy.zzz.core.datastore.coreDatastoreModule
-import xxx.yyy.zzz.core.log.LogKit
+import xxx.yyy.zzz.core.log.AppLog
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.network.coreNetworkModule
 
@@ -23,7 +23,7 @@ object AppBootstrap {
     fun doInitKoin(platformDeclaration: KoinAppDeclaration = {}) {
         if (!isInitialized) {
             isInitialized = true
-            LogKit.doInitAllLog()
+            AppLog.doInitAllLog()
             startKoin {
                 platformDeclaration()
                 modules(
@@ -32,7 +32,7 @@ object AppBootstrap {
                     coreDatastoreModule,
                 )
             }
-            LogKit.i(LogTags.APP, "KMP Koin DI container initialized successfully.")
+            AppLog.i(LogTags.APP, "KMP Koin DI container initialized successfully.")
         }
     }
 
