@@ -5,12 +5,13 @@ import xxx.yyy.zzz.core.abtesting.AbTestingInitializer
 import xxx.yyy.zzz.core.ads.AdsInitializer
 import xxx.yyy.zzz.core.analytics.AnalyticsInitializer
 import xxx.yyy.zzz.core.crashreport.CrashReportInitializer
-import xxx.yyy.zzz.core.log.LogInitializer
+import xxx.yyy.zzz.core.log.LogDelegate
 import xxx.yyy.zzz.core.log.LogKit
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.mmp.MmpInitializer
 import xxx.yyy.zzz.core.pay.PayInitializer
 import xxx.yyy.zzz.core.push.PushInitializer
+import com.kit.log.LogKit as AndroidNativeLogKit
 
 /**
  * Android 原生商业化 Kit 引导器（NativeKitBootstrap）。
@@ -28,7 +29,39 @@ object NativeKitBootstrap {
         application: Application,
         debug: Boolean = true,
     ) {
-        LogInitializer.initialize(application, withDisk = true)
+        // 1. 初始化 Android 原生 LogKit 并直接挂载委托至 commonMain 的 LogKit 门面
+        AndroidNativeLogKit.initAllLog(application)
+        LogKit.install(
+            object : LogDelegate {
+                override fun d(
+                    tag: String,
+                    message: String,
+                ) = AndroidNativeLogKit.d(tag, message)
+
+                override fun i(
+                    tag: String,
+                    message: String,
+                ) = AndroidNativeLogKit.i(tag, message)
+
+                override fun w(
+                    tag: String,
+                    message: String,
+                ) = AndroidNativeLogKit.w(tag, message)
+
+                override fun e(
+                    tag: String,
+                    message: String,
+                    throwable: Throwable?,
+                ) {
+                    if (throwable != null) {
+                        AndroidNativeLogKit.e(tag, throwable, message)
+                    } else {
+                        AndroidNativeLogKit.e(tag, message)
+                    }
+                }
+            },
+        )
+
         CrashReportInitializer.initialize(application, debug = debug)
         AnalyticsInitializer.initialize(application, debug = debug)
         AbTestingInitializer.initialize(application, debug = debug)

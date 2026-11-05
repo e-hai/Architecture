@@ -54,7 +54,7 @@ public final class NativeKitBootstrap: Sendable {
 
         // 8. 挂载 8 大原生 Kit 桥接实现到 KMP 跨平台门面
         #if canImport(Shared)
-        LogIosBridgeKt.registerLogIosBridge(bridge: LogBridge())
+        Shared.LogKit.shared.install(delegate: LogBridge())
         CrashReportIosBridgeKt.registerCrashReportIosBridge(bridge: CrashReportBridge())
         AnalyticsIosBridgeKt.registerAnalyticsIosBridge(bridge: AnalyticsBridge())
         AbTestingIosBridgeKt.registerAbTestingIosBridge(bridge: AbTestingBridge())
@@ -70,7 +70,7 @@ public final class NativeKitBootstrap: Sendable {
 // MARK: - KMP Bridge Implementations
 
 #if canImport(Shared)
-private final class LogBridge: NSObject, LogIosBridge {
+private final class LogBridge: NSObject, LogDelegate {
     func d(tag: String, message: String) {
         LogKit.d(tag, message)
     }

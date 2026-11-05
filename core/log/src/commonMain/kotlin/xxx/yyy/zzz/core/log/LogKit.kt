@@ -60,8 +60,13 @@ object DefaultLogDelegate : LogDelegate {
 object LogKit : LogDelegate {
     private var delegate: LogDelegate = DefaultLogDelegate
 
-    fun install(platformDelegate: LogDelegate) {
-        delegate = platformDelegate
+    /**
+     * 挂载平台特定的日志委托实现（由 Android / iOS 宿主引导器初始化时注入）。
+     *
+     * @param delegate 平台实现的日志委托接口
+     */
+    fun install(delegate: LogDelegate) {
+        this.delegate = delegate
     }
 
     override fun d(
