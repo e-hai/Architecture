@@ -1,9 +1,20 @@
 package xxx.yyy.zzz.core.log
 
 /**
- * 跨平台日志委托协议。
+ * 跨平台日志委托协议（涵盖初始化与各级别日志输出）。
+ * 约束：仅允许在该接口的各端实现类内部调用原生 LogKit SDK。
  */
 interface LogDelegate {
+    /**
+     * 初始化控制台与磁盘全量日志。
+     */
+    fun doInitAllLog()
+
+    /**
+     * 仅初始化控制台日志。
+     */
+    fun doInitOnlyConsoleLog()
+
     fun d(
         tag: String,
         message: String,
@@ -30,6 +41,10 @@ interface LogDelegate {
  * 默认控制台兜底实现。
  */
 object DefaultLogDelegate : LogDelegate {
+    override fun doInitAllLog() = Unit
+
+    override fun doInitOnlyConsoleLog() = Unit
+
     override fun d(
         tag: String,
         message: String,
@@ -56,6 +71,7 @@ object DefaultLogDelegate : LogDelegate {
 
 /**
  * 跨平台静态日志门面，与 Android / iOS 分支体验 100% 对齐。
+ * 外部（包括业务层、UI 层及宿主层）所有日志初始化与打印统一通过此门面调用。
  */
 object LogKit : LogDelegate {
     private var delegate: LogDelegate = DefaultLogDelegate
@@ -68,6 +84,10 @@ object LogKit : LogDelegate {
     fun install(delegate: LogDelegate) {
         this.delegate = delegate
     }
+
+    override fun doInitAllLog() = delegate.doInitAllLog()
+
+    override fun doInitOnlyConsoleLog() = delegate.doInitOnlyConsoleLog()
 
     override fun d(
         tag: String,

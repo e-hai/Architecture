@@ -5,3 +5,11 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.log"
 }
+
+kotlin {
+    sourceSets {
+        androidMain.dependencies {
+            implementation(libs.log.kit)
+        }
+    }
+}

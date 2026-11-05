@@ -25,8 +25,13 @@ public final class NativeKitBootstrap: Sendable {
     public static func initKits() {
         print("[KMP-iOS] Initializing 8 native Kit SPM SDKs & Bridges...")
 
-        // 1. 初始化 LogKit (控制台与磁盘日志)
+        // 1. 注册 LogKit (通过 core:log 门面挂载代理并初始化，外部不直接调用原生 Kit API)
+        #if canImport(Shared)
+        Shared.LogKit.shared.install(delegate: LogBridge())
+        Shared.LogKit.shared.doInitAllLog()
+        #else
         LogKit.initAllLog()
+        #endif
 
         // 2. 初始化 CrashReportKit
         CrashReport.initialize(config: CrashReportConfig(enabled: true))
@@ -54,7 +59,6 @@ public final class NativeKitBootstrap: Sendable {
 
         // 8. 挂载 8 大原生 Kit 桥接实现到 KMP 跨平台门面
         #if canImport(Shared)
-        Shared.LogKit.shared.install(delegate: LogBridge())
         CrashReportIosBridgeKt.registerCrashReportIosBridge(bridge: CrashReportBridge())
         AnalyticsIosBridgeKt.registerAnalyticsIosBridge(bridge: AnalyticsBridge())
         AbTestingIosBridgeKt.registerAbTestingIosBridge(bridge: AbTestingBridge())
@@ -71,6 +75,14 @@ public final class NativeKitBootstrap: Sendable {
 
 #if canImport(Shared)
 private final class LogBridge: NSObject, LogDelegate {
+    func doInitAllLog() {
+        LogKit.initAllLog()
+    }
+
+    func doInitOnlyConsoleLog() {
+        LogKit.initOnlyConsoleLog()
+    }
+
     func d(tag: String, message: String) {
         LogKit.d(tag, message)
     }

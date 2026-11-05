@@ -23,6 +23,7 @@ object AppBootstrap {
     fun doInitKoin(platformDeclaration: KoinAppDeclaration = {}) {
         if (!isInitialized) {
             isInitialized = true
+            LogKit.doInitAllLog()
             startKoin {
                 platformDeclaration()
                 modules(
