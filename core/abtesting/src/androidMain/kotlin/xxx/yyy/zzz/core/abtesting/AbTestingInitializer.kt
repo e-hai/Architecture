@@ -17,15 +17,19 @@ object AbTestingInitializer {
         debug: Boolean,
         defaults: Map<String, Any> = AbTestingKeys.defaults(),
     ) {
-        AndroidNativeAbTestingClient.install(
-            FirebaseAbTestingProvider(
-                context = context.applicationContext,
-                config =
-                    AbTestingConfig(
-                        minimumFetchIntervalInSeconds = if (debug) 0L else 3600L,
-                    ),
-            ),
-        )
+        runCatching {
+            AndroidNativeAbTestingClient.install(
+                FirebaseAbTestingProvider(
+                    context = context.applicationContext,
+                    config =
+                        AbTestingConfig(
+                            minimumFetchIntervalInSeconds = if (debug) 0L else 3600L,
+                        ),
+                ),
+            )
+        }.onFailure {
+            android.util.Log.w("AbTesting", "AbTesting init skipped or failed: ${it.message}")
+        }
 
         CoroutineScope(Dispatchers.Default).launch {
             runCatching {
@@ -39,22 +43,22 @@ object AbTestingInitializer {
                 override fun getBoolean(
                     key: String,
                     defaultValue: Boolean,
-                ) = AndroidNativeAbTestingClient.getBoolean(key, defaultValue)
+                ) = runCatching { AndroidNativeAbTestingClient.getBoolean(key, defaultValue) }.getOrDefault(defaultValue)
 
                 override fun getString(
                     key: String,
                     defaultValue: String,
-                ) = AndroidNativeAbTestingClient.getString(key, defaultValue)
+                ) = runCatching { AndroidNativeAbTestingClient.getString(key, defaultValue) }.getOrDefault(defaultValue)
 
                 override fun getLong(
                     key: String,
                     defaultValue: Long,
-                ) = AndroidNativeAbTestingClient.getLong(key, defaultValue)
+                ) = runCatching { AndroidNativeAbTestingClient.getLong(key, defaultValue) }.getOrDefault(defaultValue)
 
                 override fun getDouble(
                     key: String,
                     defaultValue: Double,
-                ) = AndroidNativeAbTestingClient.getDouble(key, defaultValue)
+                ) = runCatching { AndroidNativeAbTestingClient.getDouble(key, defaultValue) }.getOrDefault(defaultValue)
             },
         )
     }

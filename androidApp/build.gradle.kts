@@ -14,6 +14,14 @@ android {
 
 dependencies {
     implementation(project(":shared"))
+    implementation(project(":core:log"))
+    implementation(project(":core:crashreport"))
+    implementation(project(":core:analytics"))
+    implementation(project(":core:abtesting"))
+    implementation(project(":core:mmp"))
+    implementation(project(":core:ads"))
+    implementation(project(":core:pay"))
+    implementation(project(":core:push"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }

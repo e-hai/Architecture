@@ -42,8 +42,12 @@ object PushInitializer {
         )
 
         if (registerFcm) {
-            val fcm = FcmPushProvider()
-            push.registerProvider(fcm)
+            runCatching {
+                val fcm = FcmPushProvider()
+                push.registerProvider(fcm)
+            }.onFailure {
+                android.util.Log.w("PushKit", "FCM push provider registration skipped or failed: ${it.message}")
+            }
         }
 
         PushKitManager.install(

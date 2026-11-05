@@ -14,21 +14,25 @@ object AnalyticsInitializer {
         context: Context,
         debug: Boolean,
     ) {
-        AndroidNativeAnalytics.initialize(
-            context = context,
-            config =
-                AnalyticsConfig(
-                    providers =
-                        buildList {
-                            if (debug) {
-                                add(LoggingAnalyticsProvider())
-                            }
-                            add(FirebaseAnalyticsProvider())
-                        },
-                    enabled = true,
-                    debug = debug,
-                ),
-        )
+        runCatching {
+            AndroidNativeAnalytics.initialize(
+                context = context,
+                config =
+                    AnalyticsConfig(
+                        providers =
+                            buildList {
+                                if (debug) {
+                                    add(LoggingAnalyticsProvider())
+                                }
+                                add(FirebaseAnalyticsProvider())
+                            },
+                        enabled = true,
+                        debug = debug,
+                    ),
+            )
+        }.onFailure {
+            android.util.Log.w("Analytics", "Analytics init skipped or failed: ${it.message}")
+        }
 
         Analytics.install(
             object : AnalyticsDelegate {

@@ -25,14 +25,21 @@ let package = Package(
             dependencies: [
                 .product(name: "LogKit", package: "LogKit-iOS"),
                 .product(name: "CrashReportKit", package: "CrashReportKit-iOS"),
-                .product(name: "AnalyticsKit", package: "AnalyticsKit-iOS"),
-                .product(name: "AbTestingKit", package: "AbTestingKit-iOS"),
+                .product(name: "Analytics", package: "AnalyticsKit-iOS"),
+                .product(name: "AbTesting", package: "AbTestingKit-iOS"),
                 .product(name: "MmpCore", package: "MmpKit-iOS"),
                 .product(name: "AdsCore", package: "AdsKit-iOS"),
                 .product(name: "PayKit", package: "PayKit-iOS"),
                 .product(name: "PushKit", package: "PushKit-iOS"),
             ],
             path: "Sources"
+        ),
+        .testTarget(
+            name: "iosAppTests",
+            dependencies: [
+                "iosAppLib",
+            ],
+            path: "Tests"
         )
     ]
 )

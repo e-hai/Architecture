@@ -15,16 +15,20 @@ object CrashReportInitializer {
         enabled: Boolean = true,
         collectionEnabled: Boolean = true,
     ) {
-        AndroidNativeCrashReport.init(
-            context = context,
-            config =
-                CrashReportConfig(
-                    enabled = enabled,
-                    collectionEnabled = collectionEnabled,
-                    backend = CrashBackend.FIREBASE,
-                ),
-        )
-        AndroidNativeCrashReport.setCustomKey(CrashReportKeys.DEBUG, debug)
+        runCatching {
+            AndroidNativeCrashReport.init(
+                context = context,
+                config =
+                    CrashReportConfig(
+                        enabled = enabled,
+                        collectionEnabled = collectionEnabled,
+                        backend = CrashBackend.FIREBASE,
+                    ),
+            )
+            AndroidNativeCrashReport.setCustomKey(CrashReportKeys.DEBUG, debug)
+        }.onFailure {
+            android.util.Log.w("CrashReport", "CrashReport init skipped or failed: ${it.message}")
+        }
 
         CrashReport.install(
             object : CrashReportDelegate {
