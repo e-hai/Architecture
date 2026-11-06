@@ -7,9 +7,6 @@ import org.koin.dsl.module
  */
 val coreDatastoreModule =
     module {
-        single {
-            val context = runCatching { get<Any>() }.getOrNull()
-            createDataStore(context)
-        }
+        single { createDataStore() }
         single<KeyValueStorage> { DataStoreStorage(get()) }
     }

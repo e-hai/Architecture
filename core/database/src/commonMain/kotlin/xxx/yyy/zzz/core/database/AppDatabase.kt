@@ -4,6 +4,7 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import org.koin.core.scope.Scope
 
 /**
  * 跨平台 Room 核心数据库。
@@ -18,6 +19,6 @@ abstract class AppDatabase : RoomDatabase() {
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase>
 
 /**
- * 平台数据库构造器抽象。
+ * 平台数据库构造器抽象（通过 Koin Scope 扩展实现平台参数安全获取）。
  */
-expect fun getDatabaseBuilder(context: Any? = null): RoomDatabase.Builder<AppDatabase>
+expect fun Scope.getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase>

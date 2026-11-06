@@ -8,11 +8,12 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.koin.core.scope.Scope
 
 /**
- * 跨平台 DataStore Preferences 工厂抽象。
+ * 跨平台 DataStore Preferences 工厂抽象（通过 Koin Scope 扩展实现平台参数安全获取）。
  */
-expect fun createDataStore(context: Any? = null): DataStore<Preferences>
+expect fun Scope.createDataStore(): DataStore<Preferences>
 
 /**
  * 基于 DataStore Preferences 的跨平台键值存储实现。

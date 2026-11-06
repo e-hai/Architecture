@@ -3,6 +3,7 @@ package xxx.yyy.zzz.core.database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import kotlinx.cinterop.ExperimentalForeignApi
+import org.koin.core.scope.Scope
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
@@ -11,7 +12,7 @@ import platform.Foundation.NSUserDomainMask
  * iOS 端数据库构造器实现。
  */
 @OptIn(ExperimentalForeignApi::class)
-actual fun getDatabaseBuilder(context: Any?): RoomDatabase.Builder<AppDatabase> {
+actual fun Scope.getDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> {
     val documentDirectory =
         NSFileManager.defaultManager.URLForDirectory(
             directory = NSDocumentDirectory,

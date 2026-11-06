@@ -9,8 +9,7 @@ import org.koin.dsl.module
 val coreDatabaseModule =
     module {
         single<AppDatabase> {
-            val context = runCatching { get<Any>() }.getOrNull()
-            getDatabaseBuilder(context)
+            getDatabaseBuilder()
                 .setDriver(BundledSQLiteDriver())
                 .build()
         }

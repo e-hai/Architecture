@@ -5,12 +5,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toPath
+import org.koin.core.scope.Scope
 
 /**
- * Android 端 DataStore 路径提供与实例构建。
+ * Android 端 DataStore 路径提供与实例构建（在 Koin Scope 内安全获取 Context）。
  */
-actual fun createDataStore(context: Any?): DataStore<Preferences> {
-    val appContext = (context as? Context) ?: error("Android Context must be provided to create DataStore")
+actual fun Scope.createDataStore(): DataStore<Preferences> {
+    val appContext = get<Context>()
     return PreferenceDataStoreFactory.createWithPath(
         produceFile = {
             appContext.filesDir
