@@ -14,7 +14,9 @@ Architecture/
 │   ├── src/main/AndroidManifest.xml
 │   └── src/main/kotlin/xxx/yyy/zzz/android/
 │       ├── MyApplication.kt           # 初始化双端 Kit 与 Koin 全局容器
-│       └── MainActivity.kt            # 挂载 Compose Multiplatform 根视图
+│       ├── MainActivity.kt            # 挂载 Compose Multiplatform 根视图
+│       └── bridge/
+│           └── NativeKitBootstrap.kt  # 注入 8 大 Android*Delegate 并调用门面初始化
 ├── shared/                            # [共享内核根库] 纯 KMP 库 (myproject.kmp.library + CMP)
 │   └── src/
 │       ├── commonMain/kotlin/xxx/yyy/zzz/shared/
@@ -27,7 +29,8 @@ Architecture/
 │   ├── Package.swift                  # 引入 e-hai/*-iOS 8 大 Kit (GitHub SPM)
 │   └── Sources/
 │       ├── iOSApp.swift               # SwiftUI App 入口
-│       └── Bridge/KmpKitBridges.swift # 桥接 8 大 Kit 协议至 SPM 原生库
+│       └── Bridge/
+│           └── NativeKitBootstrap.swift # 注入 8 大 Ios*Delegate 并调用门面初始化
 ├── core/                              # [Core 基础设施层] 纯 KMP 库
 │   ├── model/                         # 领域模型 (@Serializable) 与网络结果契约
 │   ├── network/                       # Ktor HTTP Client (OkHttp + Darwin 引擎)
@@ -57,25 +60,32 @@ Architecture/
 
 ```mermaid
 flowchart LR
-    subgraph Common["commonMain (业务代码)"]
+    subgraph Common["commonMain (纯 KMP 契约与业务代码)"]
         Biz["业务 Feature / UI"]
-        Facade["静态门面<br/>(CoreAnalytics / CoreAds / CorePay...)"]
-        Delegate["委托协议<br/>(*Delegate)"]
+        Facade["Core* 静态门面<br/>(CoreAnalytics / CoreAds / CorePay...)"]
+        Delegate["*Delegate 委托契约<br/>(纯 commonMain 接口)"]
         Biz --> Facade
         Facade --> Delegate
     end
 
-    subgraph Android["androidApp / androidMain"]
-        AndroidSDK["JitPack AAR<br/>com.github.e-hai.*-Android"]
-        Delegate -.->|单行透传| AndroidSDK
+    subgraph Android["androidApp 宿主 (Kotlin)"]
+        AndDelegate["Android*Delegate<br/>(私有实现类)"]
+        AndroidSDK["JitPack 原生 AAR<br/>com.github.e-hai.*"]
+        AndDelegate --> AndroidSDK
     end
 
-    subgraph iOS["iosApp (Swift)"]
-        IosSPM["GitHub SPM<br/>e-hai/*-iOS"]
-        Delegate -.->|单行透传| IosSPM
+    subgraph iOS["iosApp 宿主 (Swift 6)"]
+        IosDelegate["Ios*Delegate<br/>(私有实现类)"]
+        IosSPM["GitHub 原生 SPM<br/>e-hai/*-iOS"]
+        IosDelegate --> IosSPM
     end
+
+    Delegate -.->|装配注入| AndDelegate
+    Delegate -.->|装配注入| IosDelegate
 ```
 
+- **零命名冲突**：门面统一使用 `Core*` 前缀，Android 端彻底告别 `as` 别名，iOS 端彻底告别 `Shared.` 前缀消歧；
+- **原生 SDK 物理隔离**：全工程唯一调用原生 AAR / SPM API 的地方严格限制在双端宿主私有的 `*Delegate` 实现内部；
 - **零学习成本**：业务调用语法与 `android` / `ios` 原生分支 100% 一致；
 - **零性能损耗**：底层 1:1 单行透传直达原生 SDK；
 - **支持 Fake 测试**：内部 Delegate 机制满足「Fake over Mock」全平台铁律，单测无需任何 Mock 框架。
