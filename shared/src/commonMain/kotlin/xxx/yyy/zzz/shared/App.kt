@@ -1,7 +1,10 @@
 package xxx.yyy.zzz.shared
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -18,7 +21,10 @@ import xxx.yyy.zzz.shared.navigation.SettingsNavKey
 @Composable
 fun App() {
     MyProjectTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets.safeDrawing,
+        ) { innerPadding ->
             val navState =
                 remember {
                     NavigationState(
@@ -27,7 +33,10 @@ fun App() {
                     )
                 }
             val navigator = remember { Navigator(navState) }
-            AppNavGraph(navigator = navigator)
+            AppNavGraph(
+                navigator = navigator,
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+            )
         }
     }
 }

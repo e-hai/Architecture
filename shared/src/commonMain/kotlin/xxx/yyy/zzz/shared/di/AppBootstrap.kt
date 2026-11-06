@@ -2,10 +2,12 @@ package xxx.yyy.zzz.shared.di
 
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
+import org.koin.dsl.module
 import xxx.yyy.zzz.core.database.coreDatabaseModule
 import xxx.yyy.zzz.core.datastore.coreDatastoreModule
 import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogTags
+import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.network.coreNetworkModule
 
 /**
@@ -18,26 +20,36 @@ object AppBootstrap {
     /**
      * 启动纯 KMP 跨平台依赖注入容器（带防重复启动保护）。
      *
+     * @param appConfig 宿主传入的应用运行时环境配置
      * @param platformDeclaration 平台特定注入声明（如 Android 注入 androidContext）
      */
-    fun doInitKoin(platformDeclaration: KoinAppDeclaration = {}) {
+    fun doInitKoin(
+        appConfig: AppConfig = AppConfig(),
+        platformDeclaration: KoinAppDeclaration = {},
+    ) {
         if (!isInitialized) {
             isInitialized = true
             CoreLog.doInitAllLog()
             startKoin {
                 platformDeclaration()
                 modules(
+                    module { single { appConfig } },
                     coreNetworkModule,
                     coreDatabaseModule,
                     coreDatastoreModule,
                 )
             }
-            CoreLog.i(LogTags.APP, "KMP Koin DI container initialized successfully.")
+            CoreLog.i(LogTags.APP, "KMP Koin DI container initialized for env: ${appConfig.env}, debug: ${appConfig.isDebug}.")
         }
     }
 
     /**
-     * 无参重载：供 iOS 等无需传入平台 Context 的宿主直接调用。
+     * 重载方法：使用默认配置启动。
      */
-    fun doInitKoin() = doInitKoin {}
+    fun doInitKoin() = doInitKoin(AppConfig()) {}
+
+    /**
+     * 供 iOS 等宿主传入配置启动。
+     */
+    fun doInitKoin(appConfig: AppConfig) = doInitKoin(appConfig) {}
 }

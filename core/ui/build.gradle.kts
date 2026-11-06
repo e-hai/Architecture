@@ -6,3 +6,8 @@ plugins {
 android {
     namespace = "xxx.yyy.zzz.core.ui"
 }
+
+compose.resources {
+    packageOfResClass = "xxx.yyy.zzz.core.ui.generated.resources"
+    publicResClass = true
+}

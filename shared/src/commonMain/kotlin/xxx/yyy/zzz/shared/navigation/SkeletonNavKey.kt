@@ -14,3 +14,9 @@ data object HomeNavKey : NavKey
  */
 @Serializable
 data object SettingsNavKey : NavKey
+
+/**
+ * 开发者调试面板路由 Key。
+ */
+@Serializable
+data object DebugNavKey : NavKey

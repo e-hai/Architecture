@@ -69,16 +69,18 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 OLD_PATH="xxx/yyy/zzz"
+OLD_DOT_PKG="xxx.yyy.zzz"
 NEW_PATH=$(echo "$NEW_NAMESPACE" | tr '.' '/')
 
 # 2. 全局文本替换
-echo -e "${YELLOW}[1/4] 正在执行全局文本内容替换...${NC}"
+echo -e "${YELLOW}[1/5] 正在执行全局文本内容替换...${NC}"
 
-find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" \) \
+find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" \) \
     -not -path '*/.*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './init_project.sh' | while read -r file; do
     "${SED_INPLACE[@]}" "s/xxx\.yyy\.zzz/${NEW_NAMESPACE}/g" "$file"
     "${SED_INPLACE[@]}" "s/myproject/${NEW_PREFIX}/g" "$file"
     "${SED_INPLACE[@]}" "s/MyProjectTheme/${NEW_APP_NAME// /}Theme/g" "$file"
+    "${SED_INPLACE[@]}" "s/INFOPLIST_KEY_CFBundleDisplayName: Architecture/INFOPLIST_KEY_CFBundleDisplayName: \"${NEW_APP_NAME}\"/g" "$file"
 done
 
 # 替换 Android 独立宿主应用 ID
@@ -86,10 +88,13 @@ if [ "$NEW_NAMESPACE" != "$NEW_APP_ID" ]; then
     "${SED_INPLACE[@]}" "s/applicationId = \"${NEW_NAMESPACE}\"/applicationId = \"${NEW_APP_ID}\"/g" androidApp/build.gradle.kts
 fi
 
+# 替换 iOS project.yml 中的 Bundle Identifier
+"${SED_INPLACE[@]}" "s/PRODUCT_BUNDLE_IDENTIFIER: ${NEW_NAMESPACE}\.iosApp/PRODUCT_BUNDLE_IDENTIFIER: ${NEW_APP_ID}\.iosApp/g" iosApp/project.yml
+
 echo -e "${GREEN}✔ 文本替换完成。${NC}"
 
-# 3. 物理目录结构迁移
-echo -e "${YELLOW}[2/4] 正在移动源码文件夹以匹配新包路径...${NC}"
+# 3. 物理源码目录结构迁移
+echo -e "${YELLOW}[2/5] 正在移动源码文件夹以匹配新包路径...${NC}"
 
 find . -type d \( -path "*/src/*/kotlin/${OLD_PATH}" -o -path "*/src/*/java/${OLD_PATH}" \) | while read -r old_dir; do
     base_dir=$(echo "$old_dir" | sed "s/\/${OLD_PATH}//g")
@@ -98,16 +103,29 @@ find . -type d \( -path "*/src/*/kotlin/${OLD_PATH}" -o -path "*/src/*/java/${OL
     rm -rf "${base_dir}/xxx"
 done
 
+# 4. Room 数据库 Schema 目录重命名
+echo -e "${YELLOW}[3/5] 正在同步 Room Schema 快照目录...${NC}"
+find core/database/schemas -maxdepth 1 -type d -name "${OLD_DOT_PKG}*" 2>/dev/null | while read -r schema_dir; do
+    target_dir=$(echo "$schema_dir" | sed "s/${OLD_DOT_PKG}/${NEW_NAMESPACE}/g")
+    mv "$schema_dir" "$target_dir"
+done
+
 echo -e "${GREEN}✔ 物理路径迁移完成。${NC}"
 
-# 4. 更新 settings.gradle.kts 中的 rootProject.name
-echo -e "${YELLOW}[3/4] 正在更新项目名称...${NC}"
+# 5. 更新 settings.gradle.kts 中的 rootProject.name 与重新生成 Xcode 工程
+echo -e "${YELLOW}[4/5] 正在更新项目名称与 iOS Xcode 工程配置...${NC}"
 "${SED_INPLACE[@]}" "s/rootProject\.name = \"[^\"]*\"/rootProject.name = \"${NEW_APP_NAME// /}\"/" settings.gradle.kts
 
-echo -e "${GREEN}✔ 项目名称更新完成。${NC}"
+if command -v xcodegen &> /dev/null; then
+    echo -e "- 检测到 xcodegen，正在重新生成 iosApp.xcodeproj..."
+    (cd iosApp && xcodegen generate --spec project.yml > /dev/null)
+    echo -e "${GREEN}✔ iosApp.xcodeproj 重新生成完成。${NC}"
+fi
 
-# 5. 格式化代码
-echo -e "${YELLOW}[4/4] 正在自动触发 Spotless 代码格式化...${NC}"
+echo -e "${GREEN}✔ 项目名称与 iOS 配置更新完成。${NC}"
+
+# 6. 格式化代码
+echo -e "${YELLOW}[5/5] 正在自动触发 Spotless 代码格式化...${NC}"
 chmod +x gradlew
 ./gradlew spotlessApply || echo -e "${YELLOW}[警告] Spotless 格式化失败，可能需要手动修复语法。${NC}"
 

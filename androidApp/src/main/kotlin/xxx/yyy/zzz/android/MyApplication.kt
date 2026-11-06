@@ -3,6 +3,8 @@ package xxx.yyy.zzz.android
 import android.app.Application
 import org.koin.android.ext.koin.androidContext
 import xxx.yyy.zzz.android.bridge.NativeKitBootstrap
+import xxx.yyy.zzz.core.model.AppConfig
+import xxx.yyy.zzz.core.model.AppEnvironment
 import xxx.yyy.zzz.shared.di.AppBootstrap
 
 /**
@@ -12,10 +14,22 @@ import xxx.yyy.zzz.shared.di.AppBootstrap
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        val isDebug = BuildConfig.DEBUG
+        val isDevFlavor = BuildConfig.FLAVOR == "dev"
+        val env = if (isDevFlavor) AppEnvironment.DEV else AppEnvironment.PROD
+
         // 1. 初始化未实现跨平台的 Android 原生 Kit (8 大 AAR)
-        NativeKitBootstrap.initKits(this)
-        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor)
-        AppBootstrap.doInitKoin {
+        NativeKitBootstrap.initKits(application = this, debug = isDebug)
+
+        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
+        val appConfig =
+            AppConfig(
+                env = env,
+                isDebug = isDebug,
+                versionName = BuildConfig.VERSION_NAME,
+                versionCode = BuildConfig.VERSION_CODE,
+            )
+        AppBootstrap.doInitKoin(appConfig = appConfig) {
             androidContext(this@MyApplication)
         }
     }

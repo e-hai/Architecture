@@ -13,5 +13,8 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
     }
 }

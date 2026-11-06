@@ -17,6 +17,7 @@ kotlin {
             baseName = "Shared"
             binaryOption("bundleId", "xxx.yyy.zzz.shared")
             isStatic = true
+            export(project(":core:model"))
             export(project(":core:log"))
             export(project(":core:crashreport"))
             export(project(":core:analytics"))
@@ -30,7 +31,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":core:model"))
+            api(project(":core:model"))
             implementation(project(":core:navigation"))
             implementation(project(":core:network"))
             implementation(project(":core:database"))

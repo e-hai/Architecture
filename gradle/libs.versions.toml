@@ -45,6 +45,9 @@ payKit = "v1.0.0"
 pushKit = "v1.0.0"
 logKit = "v1.0.0"
 
+# Image Loading (Coil 3 KMP)
+coil = "3.1.0"
+
 # Testing
 junit = "4.13.2"
 turbine = "1.2.1"
@@ -96,10 +99,15 @@ pay-kit = { group = "com.github.e-hai", name = "PayKit", version.ref = "payKit" 
 push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKit" }
 log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
 
+# Coil 3 Image Loading (KMP)
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
+
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 
 # Gradle Plugins
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }

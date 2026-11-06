@@ -1,0 +1,46 @@
+name: KMP Architecture CI
+
+on:
+  push:
+    branches:
+      - kmp
+      - main
+  pull_request:
+    branches:
+      - kmp
+      - main
+
+jobs:
+  kmp-build-and-test:
+    name: Code Quality, Unit Tests & Multiplatform Build
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make Gradle Wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run Spotless Code Style Check
+        run: ./gradlew spotlessCheck
+
+      - name: Run KMP Unit Tests (Fake over Mock)
+        run: ./gradlew allTests
+
+      - name: Build Android Host Debug APK
+        run: ./gradlew :androidApp:assembleDevDebug
+
+      - name: Link Shared.framework for iOS Simulator
+        run: ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+
+      - name: Run Swift Package Tests
+        run: |
+          cd iosApp
+          swift test
