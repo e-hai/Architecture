@@ -1,0 +1,48 @@
+// ===================================================================
+// iOS 正式环境配置文件 (Prod / Release Environment)
+// 职责：App Store 上架打包 (Archive) 与生产环境发布
+// ===================================================================
+
+// -------------------------------------------------------------------
+// 1. 应用身份与版本信息 (Application Identity & Versions)
+// -------------------------------------------------------------------
+PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz
+INFOPLIST_KEY_CFBundleDisplayName = Architecture
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+
+// -------------------------------------------------------------------
+// 2. iOS 正式签名配置 (Code Signing)
+// -------------------------------------------------------------------
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Distribution
+DEVELOPMENT_TEAM = 
+
+// -------------------------------------------------------------------
+// 3. 基础网络与 API 环境 (Network & Production Gateway)
+// 注：xcconfig 中 // 为注释符号，URL 协议头需使用 :/$()/ 转义
+// -------------------------------------------------------------------
+BASE_URL = https:/$()/api.example.com
+ENABLE_HTTP_LOG = NO
+
+// -------------------------------------------------------------------
+// 4. Google AdMob 正式广告 ID (上线前在 AdMob iOS 控制台创建并替换)
+// -------------------------------------------------------------------
+ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+ADMOB_BANNER_ID = 
+ADMOB_INTERSTITIAL_ID = 
+ADMOB_REWARDED_ID = 
+ADMOB_APP_OPEN_ID = 
+
+// -------------------------------------------------------------------
+// 5. 八大商业化 Kit 正式凭证 (Commercial Kits Production Credentials)
+// -------------------------------------------------------------------
+// CoreMmp (AppsFlyer 生产 Token 与 Apple App ID)
+APPSFLYER_KEY = dummy_appsflyer_prod_key
+APPSFLYER_APP_ID = 
+
+// CoreAnalytics (埋点调试模式)
+ANALYTICS_DEBUG_MODE = NO
+
+// CoreAbTesting (远程配置拉取间隔)
+REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS = 3600

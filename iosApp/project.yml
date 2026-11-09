@@ -37,6 +37,22 @@ targets:
     platform: iOS
     sources:
       - Sources
+    configFiles:
+      Debug: Config/Dev.xcconfig
+      Release: Config/Prod.xcconfig
+    info:
+      path: Sources/Info.plist
+      properties:
+        CADisableMinimumFrameDurationOnPhone: true
+        CFBundleDisplayName: "$(INFOPLIST_KEY_CFBundleDisplayName)"
+        GADApplicationIdentifier: "$(ADMOB_APP_ID)"
+        BASE_URL: "$(BASE_URL)"
+        APPSFLYER_KEY: "$(APPSFLYER_KEY)"
+        ADMOB_BANNER_ID: "$(ADMOB_BANNER_ID)"
+        ADMOB_INTERSTITIAL_ID: "$(ADMOB_INTERSTITIAL_ID)"
+        ADMOB_REWARDED_ID: "$(ADMOB_REWARDED_ID)"
+        ADMOB_APP_OPEN_ID: "$(ADMOB_APP_OPEN_ID)"
+        UILaunchScreen: {}
     dependencies:
       - package: LogKit
         product: LogKit
@@ -49,7 +65,7 @@ targets:
       - package: MmpKit
         product: MmpCore
       - package: AdsKit
-        product: AdsCore
+        product: AdsKit
       - package: PayKit
         product: PayKit
       - package: PushKit
@@ -64,12 +80,18 @@ targets:
         basedOnDependencyAnalysis: false
     settings:
       base:
-        GENERATE_INFOPLIST_FILE: "YES"
-        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: "YES"
-        PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz.iosApp
-        INFOPLIST_KEY_CFBundleDisplayName: Architecture
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
           - $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
           - $(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework
-        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+      configs:
+        Debug:
+          PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz.dev
+          INFOPLIST_KEY_CFBundleDisplayName: "Architecture (Dev)"
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz
+          INFOPLIST_KEY_CFBundleDisplayName: "Architecture"
+          CODE_SIGN_IDENTITY: "Apple Distribution"

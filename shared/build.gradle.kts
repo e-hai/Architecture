@@ -45,6 +45,11 @@ kotlin {
             api(project(":core:ads"))
             api(project(":core:pay"))
             api(project(":core:push"))
+
+            // [FEATURE_DEPENDENCIES_START]
+            implementation(project(":features:home:api"))
+            implementation(project(":features:home:impl"))
+            // [FEATURE_DEPENDENCIES_END]
         }
 
         androidMain.dependencies {

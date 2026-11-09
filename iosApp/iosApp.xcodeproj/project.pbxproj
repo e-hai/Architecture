@@ -10,7 +10,7 @@
 		0FD8694A1DC2F51686D81E32 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE37482C3835DBB11C07617 /* iOSApp.swift */; };
 		1C81D6F669B7BB6D2FFCCEB3 /* LogKit in Frameworks */ = {isa = PBXBuildFile; productRef = 05A2800FDFC10A25706378C9 /* LogKit */; };
 		22EAE4D97482DC72463673EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40E380030A38B8C1BFADAB8 /* ContentView.swift */; };
-		24323778ABA0C668C758086B /* AdsCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7F5A84BC9091BFD3C566170 /* AdsCore */; };
+		24323778ABA0C668C758086B /* AdsKit in Frameworks */ = {isa = PBXBuildFile; productRef = 064C9A570893EDA25897A902 /* AdsKit */; };
 		379D4C6DBBA934A8EF44CDDE /* AbTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 36FCDD465E47D25E6604F768 /* AbTesting */; };
 		445C052442747365B7CB2124 /* CrashReportKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB0D23ABA705888A0EB57B4 /* CrashReportKit */; };
 		4E77AFD5C2B00E927573D493 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BCACD5445C37FEB9733A013 /* Shared.framework */; };
@@ -38,9 +38,12 @@
 
 /* Begin PBXFileReference section */
 		0BCACD5445C37FEB9733A013 /* Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Shared.framework; path = ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework; sourceTree = "<group>"; };
+		805100242D65472522739FE9 /* Prod.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Prod.xcconfig; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE37482C3835DBB11C07617 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeKitBootstrap.swift; sourceTree = "<group>"; };
+		C59114F647E69202552CE362 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DCEB00BD559BA0FF2B8C23EB /* Dev.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Dev.xcconfig; sourceTree = "<group>"; };
 		E40E380030A38B8C1BFADAB8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -54,7 +57,7 @@
 				B7C4F6137AC8345E71E92063 /* Analytics in Frameworks */,
 				379D4C6DBBA934A8EF44CDDE /* AbTesting in Frameworks */,
 				A825AC5F0531A8569219D47A /* MmpCore in Frameworks */,
-				24323778ABA0C668C758086B /* AdsCore in Frameworks */,
+				24323778ABA0C668C758086B /* AdsKit in Frameworks */,
 				56A46FB5D95B5B7AB587F7E2 /* PayKit in Frameworks */,
 				B17BEB737012F375F69763F2 /* PushKit in Frameworks */,
 				4E77AFD5C2B00E927573D493 /* Shared.framework in Frameworks */,
@@ -75,6 +78,7 @@
 		38B69C3F79CD97858CF7B609 = {
 			isa = PBXGroup;
 			children = (
+				FFC9BEF0F7452C90A6A82EFC /* Config */,
 				B53BB82DD7780F3657A03A11 /* Sources */,
 				3666012298E772D226418813 /* Frameworks */,
 				94C98B8B3A2BFC1966447269 /* Products */,
@@ -101,10 +105,20 @@
 			isa = PBXGroup;
 			children = (
 				E40E380030A38B8C1BFADAB8 /* ContentView.swift */,
+				C59114F647E69202552CE362 /* Info.plist */,
 				8AE37482C3835DBB11C07617 /* iOSApp.swift */,
 				AA88BF38A774B8DCBBD18B1D /* Bridge */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		FFC9BEF0F7452C90A6A82EFC /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				DCEB00BD559BA0FF2B8C23EB /* Dev.xcconfig */,
+				805100242D65472522739FE9 /* Prod.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -130,7 +144,7 @@
 				8BAA0531400E56665F58DE0E /* Analytics */,
 				36FCDD465E47D25E6604F768 /* AbTesting */,
 				DAD0B032E490846231F0FAF9 /* MmpCore */,
-				F7F5A84BC9091BFD3C566170 /* AdsCore */,
+				064C9A570893EDA25897A902 /* AdsKit */,
 				0E52E19D4F7B7CB0FCA803A7 /* PayKit */,
 				EABB6F6F0441181A9F08E9D8 /* PushKit */,
 			);
@@ -147,6 +161,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					78B53CC79860CBFC2F5543C6 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */;
@@ -335,9 +353,11 @@
 		};
 		9221A1FDC06803E8A2FC6E61 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DCEB00BD559BA0FF2B8C23EB /* Dev.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -345,14 +365,13 @@
 					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework",
 					"\"../shared/build/bin/iosSimulatorArm64/debugFramework\"",
 				);
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Architecture;
+				INFOPLIST_FILE = Sources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Architecture (Dev)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz.iosApp;
+				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz.dev;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -360,9 +379,11 @@
 		};
 		AF835BFF1220CA5AB5B867E4 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 805100242D65472522739FE9 /* Prod.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -370,14 +391,13 @@
 					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework",
 					"\"../shared/build/bin/iosSimulatorArm64/debugFramework\"",
 				);
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Architecture;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz.iosApp;
+				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -479,6 +499,11 @@
 			package = 466AFD90C81F2F353A2FB373 /* XCRemoteSwiftPackageReference "LogKit-iOS" */;
 			productName = LogKit;
 		};
+		064C9A570893EDA25897A902 /* AdsKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 550B0496E53A86249672A004 /* XCRemoteSwiftPackageReference "AdsKit-iOS" */;
+			productName = AdsKit;
+		};
 		0E52E19D4F7B7CB0FCA803A7 /* PayKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2244C4C7DBE4E3B628757671 /* XCRemoteSwiftPackageReference "PayKit-iOS" */;
@@ -508,11 +533,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BF9362A3EFE8879C4CC744AF /* XCRemoteSwiftPackageReference "PushKit-iOS" */;
 			productName = PushKit;
-		};
-		F7F5A84BC9091BFD3C566170 /* AdsCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 550B0496E53A86249672A004 /* XCRemoteSwiftPackageReference "AdsKit-iOS" */;
-			productName = AdsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

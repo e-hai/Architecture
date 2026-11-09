@@ -19,13 +19,19 @@ class MyApplication : Application() {
         val env = if (isDevFlavor) AppEnvironment.DEV else AppEnvironment.PROD
 
         // 1. 初始化未实现跨平台的 Android 原生 Kit (8 大 AAR)
-        NativeKitBootstrap.initKits(application = this, debug = isDebug)
+        NativeKitBootstrap.initKits(
+            application = this,
+            debug = isDebug,
+            admobAppId = BuildConfig.ADMOB_APP_ID,
+            appsFlyerKey = BuildConfig.APPSFLYER_KEY,
+        )
 
         // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
         val appConfig =
             AppConfig(
                 env = env,
                 isDebug = isDebug,
+                baseUrl = BuildConfig.BASE_URL,
                 versionName = BuildConfig.VERSION_NAME,
                 versionCode = BuildConfig.VERSION_CODE,
             )

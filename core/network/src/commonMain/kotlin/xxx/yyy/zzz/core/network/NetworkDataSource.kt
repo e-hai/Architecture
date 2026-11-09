@@ -20,12 +20,12 @@ class FakeNetworkDataSource : NetworkDataSource {
     override suspend fun fetchDummyData(): NetworkResult<List<DummyModel>> {
         delay(10)
         return if (shouldReturnError) {
-            NetworkResult.Error(message = "Fake Network Error")
+            NetworkResult.Error(message = "网络请求失败（模拟故障）")
         } else {
             NetworkResult.Success(
                 listOf(
-                    DummyModel("1", "KMP Item 1", "Powered by Compose Multiplatform"),
-                    DummyModel("2", "KMP Item 2", "Native Kit Delegation"),
+                    DummyModel("1", "模拟数据条目 1", "基于 Compose Multiplatform 跨平台呈现"),
+                    DummyModel("2", "模拟数据条目 2", "原生 Kit 双端对称委托驱动"),
                 ),
             )
         }

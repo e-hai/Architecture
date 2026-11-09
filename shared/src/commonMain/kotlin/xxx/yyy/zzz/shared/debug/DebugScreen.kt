@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.firstOrNull
@@ -73,6 +74,7 @@ import xxx.yyy.zzz.core.push.CorePush
 import xxx.yyy.zzz.core.push.PushChannels
 import xxx.yyy.zzz.core.ui.generated.resources.Res
 import xxx.yyy.zzz.core.ui.generated.resources.back
+import xxx.yyy.zzz.core.ui.generated.resources.clear_log
 import xxx.yyy.zzz.core.ui.generated.resources.debug_console_title
 
 /**
@@ -132,12 +134,17 @@ fun DebugScreen(
                 OutlinedButton(onClick = onBack) {
                     Text(stringResource(Res.string.back))
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(Res.string.debug_console_title),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(onClick = { consoleLogs.clear() }) {
-                    Text("Clear Log")
+                    Text(stringResource(Res.string.clear_log))
                 }
             }
         }
@@ -151,7 +158,7 @@ fun DebugScreen(
             ) {
                 Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
                     Text(
-                        text = "CONSOLE OUTPUT (${consoleLogs.size})",
+                        text = "控制台实时输出 (${consoleLogs.size})",
                         color = Color(0xFF888888),
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace,
@@ -165,7 +172,7 @@ fun DebugScreen(
                         if (consoleLogs.isEmpty()) {
                             item {
                                 Text(
-                                    text = "Tap buttons below to execute Kit actions...",
+                                    text = "点击下方按钮触发各 Kit 接口联调...",
                                     color = Color(0xFF555555),
                                     fontSize = 12.sp,
                                     fontFamily = FontFamily.Monospace,
@@ -192,12 +199,12 @@ fun DebugScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("1. Environment & AppConfig", style = MaterialTheme.typography.titleMedium)
+                    Text("1. 运行环境与 App 配置", style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text("• Environment: ${appConfig.env}", style = MaterialTheme.typography.bodyMedium)
-                    Text("• isDebug: ${appConfig.isDebug}", style = MaterialTheme.typography.bodyMedium)
-                    Text("• Base URL: ${appConfig.baseUrl}", style = MaterialTheme.typography.bodyMedium)
-                    Text("• Version: ${appConfig.versionName} (${appConfig.versionCode})", style = MaterialTheme.typography.bodyMedium)
+                    Text("• 运行环境: ${appConfig.env}", style = MaterialTheme.typography.bodyMedium)
+                    Text("• 调试模式 (isDebug): ${appConfig.isDebug}", style = MaterialTheme.typography.bodyMedium)
+                    Text("• 服务端基地址: ${appConfig.baseUrl}", style = MaterialTheme.typography.bodyMedium)
+                    Text("• 应用版本: ${appConfig.versionName} (${appConfig.versionCode})", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
@@ -209,115 +216,115 @@ fun DebugScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("2. Commercial Kits Playground", style = MaterialTheme.typography.titleMedium)
+                    Text("2. 八大商业化 Kit 联调实验室", style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CoreLog
-                    Text("CoreLog:", style = MaterialTheme.typography.labelMedium)
+                    Text("日志组件 (CoreLog):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
-                            CoreLog.d(LogTags.APP, "Debug log dispatched")
-                            logToConsole("[CoreLog][D] Debug log dispatched")
-                        }) { Text("Log D") }
+                            CoreLog.d(LogTags.APP, "Debug 调试日志已分发")
+                            logToConsole("[CoreLog][D] Debug 调试日志已分发")
+                        }) { Text("调试日志 (D)") }
                         ElevatedButton(onClick = {
-                            CoreLog.i(LogTags.APP, "Info log dispatched")
-                            logToConsole("[CoreLog][I] Info log dispatched")
-                        }) { Text("Log I") }
+                            CoreLog.i(LogTags.APP, "Info 普通日志已分发")
+                            logToConsole("[CoreLog][I] Info 普通日志已分发")
+                        }) { Text("普通日志 (I)") }
                         ElevatedButton(onClick = {
-                            CoreLog.w(LogTags.APP, "Warn log dispatched")
-                            logToConsole("[CoreLog][W] Warn log dispatched")
-                        }) { Text("Log W") }
+                            CoreLog.w(LogTags.APP, "Warn 警告日志已分发")
+                            logToConsole("[CoreLog][W] Warn 警告日志已分发")
+                        }) { Text("警告日志 (W)") }
                         ElevatedButton(onClick = {
-                            CoreLog.e(LogTags.APP, "Error log dispatched")
-                            logToConsole("[CoreLog][E] Error log dispatched")
-                        }) { Text("Log E") }
+                            CoreLog.e(LogTags.APP, "Error 错误日志已分发")
+                            logToConsole("[CoreLog][E] Error 错误日志已分发")
+                        }) { Text("错误日志 (E)") }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CoreCrashReport
-                    Text("CoreCrashReport:", style = MaterialTheme.typography.labelMedium)
+                    Text("崩溃分析组件 (CoreCrashReport):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
                             CoreCrashReport.setUserId("user_debug_001")
                             CoreCrashReport.setCustomKey(CrashReportKeys.FLAVOR, "debug_dev")
-                            logToConsole("[CrashReport] Set userId=user_debug_001, key=debug_dev")
-                        }) { Text("Set User & Key") }
+                            logToConsole("[CrashReport] 已设置 userId=user_debug_001, key=debug_dev")
+                        }) { Text("设置用户与标签") }
                         ElevatedButton(onClick = {
-                            CoreCrashReport.recordException(RuntimeException("Non-fatal debug crash test"))
-                            logToConsole("[CrashReport] Non-fatal exception recorded")
-                        }) { Text("Record Exception") }
+                            CoreCrashReport.recordException(RuntimeException("调试模拟非致命异常"))
+                            logToConsole("[CrashReport] 非致命异常已成功记录")
+                        }) { Text("上报非致命异常") }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CoreAnalytics & CoreMmp
-                    Text("CoreAnalytics & CoreMmp:", style = MaterialTheme.typography.labelMedium)
+                    Text("数据埋点与归因 (CoreAnalytics & CoreMmp):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
                             CoreAnalytics.logEvent(
                                 AnalyticsEvents.Common.BUTTON_CLICK,
                                 mapOf(AnalyticsParams.ITEM_ID to "debug_btn"),
                             )
-                            logToConsole("[Analytics] Log event: button_click (item_id=debug_btn)")
-                        }) { Text("Log Event") }
+                            logToConsole("[Analytics] 上报埋点事件: button_click (item_id=debug_btn)")
+                        }) { Text("上报埋点事件") }
                         ElevatedButton(onClick = {
                             CoreMmp.setCustomerUserId("mmp_user_99")
                             CoreMmp.trackEvent(MmpEvents.PURCHASE, mapOf(MmpParams.SKU to "subs_pro"))
-                            logToConsole("[Mmp] Track event: purchase (sku=subs_pro)")
-                        }) { Text("MMP Track") }
+                            logToConsole("[Mmp] 上报归因事件: purchase (sku=subs_pro)")
+                        }) { Text("上报 MMP 归因") }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CoreAbTesting
-                    Text("CoreAbTesting:", style = MaterialTheme.typography.labelMedium)
+                    Text("A/B 实验与远程配置 (CoreAbTesting):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
-                            val welcome = CoreAbTesting.getString(AbTestingKeys.WELCOME_MESSAGE, "Default Welcome")
-                            logToConsole("[AbTesting] Key '${AbTestingKeys.WELCOME_MESSAGE}' = $welcome")
-                        }) { Text("Read Welcome Key") }
+                            val welcome = CoreAbTesting.getString(AbTestingKeys.WELCOME_MESSAGE, "欢迎体验 KMP 现代化架构！")
+                            logToConsole("[AbTesting] 实验键 '${AbTestingKeys.WELCOME_MESSAGE}' = $welcome")
+                        }) { Text("读取 A/B 配置") }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CoreAds
-                    Text("CoreAds:", style = MaterialTheme.typography.labelMedium)
+                    Text("商业化广告组件 (CoreAds):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
                             CoreAds.loadAd(AdsKeys.Trigger.REWARD_VIDEO, AdsKeys.AdMobTest.REWARDED)
-                            logToConsole("[Ads] loadAd requested: trigger=${AdsKeys.Trigger.REWARD_VIDEO}")
-                        }) { Text("Load Ad") }
+                            logToConsole("[Ads] 发起广告加载: trigger=${AdsKeys.Trigger.REWARD_VIDEO}")
+                        }) { Text("请求激励广告") }
                         ElevatedButton(onClick = {
                             val ready = CoreAds.isReady(AdsKeys.Trigger.REWARD_VIDEO)
-                            logToConsole("[Ads] isReady: $ready")
-                        }) { Text("Check Ready") }
+                            logToConsole("[Ads] 广告是否就绪: $ready")
+                        }) { Text("检查广告就绪") }
                         ElevatedButton(onClick = {
                             CoreAds.showAd(AdsKeys.Trigger.REWARD_VIDEO)
-                            logToConsole("[Ads] showAd requested")
-                        }) { Text("Show Ad") }
+                            logToConsole("[Ads] 发起广告展示")
+                        }) { Text("展示激励广告") }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // CorePay & CorePush
-                    Text("CorePay & CorePush:", style = MaterialTheme.typography.labelMedium)
+                    Text("应用内购与推送 (CorePay & CorePush):", style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ElevatedButton(onClick = {
                             val sub = CorePay.isSubscribed(PayProducts.SUBS_PRO)
-                            logToConsole("[Pay] isSubscribed(${PayProducts.SUBS_PRO}): $sub")
-                        }) { Text("Check Sub") }
+                            logToConsole("[Pay] 订阅状态(${PayProducts.SUBS_PRO}): $sub")
+                        }) { Text("查询订阅状态") }
                         ElevatedButton(onClick = {
-                            logToConsole("[Pay] Purchase initiating for ${PayProducts.SUBS_PRO}...")
+                            logToConsole("[Pay] 发起购买 ${PayProducts.SUBS_PRO}...")
                             CorePay.purchase(PayProducts.SUBS_PRO) { success, error ->
-                                logToConsole("[Pay] Purchase result: success=$success, error=$error")
+                                logToConsole("[Pay] 购买结果: 成功=$success, 错误=$error")
                             }
-                        }) { Text("Buy Sub Pro") }
+                        }) { Text("发起订阅购买") }
                         ElevatedButton(onClick = {
                             CorePush.registerPush()
                             CorePush.setPushToken("mock_fcm_token_12345")
-                            logToConsole("[Push] registerPush called, token set to mock_fcm_token_12345")
-                        }) { Text("Push Register") }
+                            logToConsole("[Push] 已调用 registerPush，Token 设置为 mock_fcm_token_12345")
+                        }) { Text("注册远程推送") }
                     }
                 }
             }
@@ -330,7 +337,7 @@ fun DebugScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    Text("3. Fake Network & Storage Sandbox", style = MaterialTheme.typography.titleMedium)
+                    Text("3. 弱网模拟与本地存储沙盒", style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Fake 网络故障开关
@@ -339,78 +346,78 @@ fun DebugScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Simulate Network Failure (Fake):", style = MaterialTheme.typography.bodyMedium)
+                        Text("模拟弱网/网络异常 (Fake):", style = MaterialTheme.typography.bodyMedium)
                         Switch(
                             checked = fakeErrorEnabled,
                             onCheckedChange = { checked ->
                                 fakeErrorEnabled = checked
                                 (networkDataSource as? FakeNetworkDataSource)?.shouldReturnError = checked
-                                logToConsole("[FakeNetwork] shouldReturnError set to: $checked")
+                                logToConsole("[FakeNetwork] 弱网开关设置为: $checked")
                             },
                         )
                     }
 
                     ElevatedButton(onClick = {
                         scope.launch {
-                            logToConsole("[Network] Fetching dummy data...")
+                            logToConsole("[Network] 正在发起模拟数据请求...")
                             when (val result = networkDataSource.fetchDummyData()) {
                                 is NetworkResult.Success -> {
-                                    logToConsole("[Network][Success] Received ${result.data.size} items: ${result.data.map { it.title }}")
+                                    logToConsole("[Network][成功] 收到 ${result.data.size} 条数据: ${result.data.map { it.title }}")
                                 }
 
                                 is NetworkResult.Error -> {
-                                    logToConsole("[Network][Error] Msg=${result.message}")
+                                    logToConsole("[Network][失败] 错误信息=${result.message}")
                                 }
 
                                 is NetworkResult.Loading -> {
-                                    logToConsole("[Network][Loading] Request in progress...")
+                                    logToConsole("[Network][加载中] 数据请求处理中...")
                                 }
                             }
                         }
                     }) {
-                        Text("Execute fetchDummyData()")
+                        Text("执行模拟数据请求 (fetchDummyData)")
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     // DataStore 沙盒
-                    Text("DataStore Preferences:", style = MaterialTheme.typography.labelMedium)
-                    Text("• Current debug_sample_key: ${storedValue ?: "(null)"}", style = MaterialTheme.typography.bodySmall)
+                    Text("DataStore 键值偏好存储:", style = MaterialTheme.typography.labelMedium)
+                    Text("• 当前 debug_sample_key: ${storedValue ?: "(空)"}", style = MaterialTheme.typography.bodySmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledTonalButton(onClick = {
                             scope.launch {
                                 val timestamp = "ts_${kotlin.random.Random.nextInt(1000, 9999)}"
                                 storage.putString("debug_sample_key", timestamp)
-                                logToConsole("[DataStore] Put debug_sample_key = $timestamp")
+                                logToConsole("[DataStore] 写入 debug_sample_key = $timestamp")
                             }
-                        }) { Text("Write Timestamp") }
+                        }) { Text("写入时间戳") }
                         FilledTonalButton(onClick = {
                             scope.launch {
                                 storage.remove("debug_sample_key")
-                                logToConsole("[DataStore] Key debug_sample_key removed")
+                                logToConsole("[DataStore] 已移除 debug_sample_key")
                             }
-                        }) { Text("Clear Key") }
+                        }) { Text("清除 Key") }
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                     // Room 数据库沙盒
-                    Text("Room KMP Database:", style = MaterialTheme.typography.labelMedium)
-                    Text("• Current dummy_table row count: ${dummyList.size}", style = MaterialTheme.typography.bodySmall)
+                    Text("Room KMP 本地数据库:", style = MaterialTheme.typography.labelMedium)
+                    Text("• 当前 dummy_table 记录条数: ${dummyList.size}", style = MaterialTheme.typography.bodySmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledTonalButton(onClick = {
                             scope.launch {
                                 val id = "id_${dummyList.size + 1}"
-                                dummyDao.insertDummies(listOf(DummyEntity(id, "Item #$id", "Inserted via Debug Console")))
-                                logToConsole("[Room] Inserted DummyEntity with id: $id")
+                                dummyDao.insertDummies(listOf(DummyEntity(id, "模拟数据 #$id", "通过调试控制台插入")))
+                                logToConsole("[Room] 成功插入 DummyEntity: id=$id")
                             }
-                        }) { Text("Insert DummyEntity") }
+                        }) { Text("插入一条数据") }
                         FilledTonalButton(onClick = {
                             scope.launch {
                                 dummyDao.clearAll()
-                                logToConsole("[Room] dummy_table cleared")
+                                logToConsole("[Room] 已清空 dummy_table 数据表")
                             }
-                        }) { Text("Clear Room Table") }
+                        }) { Text("清空数据库表") }
                     }
                 }
             }

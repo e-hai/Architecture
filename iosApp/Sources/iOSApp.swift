@@ -18,20 +18,31 @@ import Shared
 @main
 public struct iOSApp: App {
     public init() {
-        // 1. 初始化未实现跨平台的 iOS 原生 Kit (8 大 Swift SPM Bridge)
-        NativeKitBootstrap.initKits()
-        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
         #if DEBUG
         let isDebug = true
         #else
         let isDebug = false
         #endif
+
+        let info = Bundle.main.infoDictionary
+        let admobAppId = info?["GADApplicationIdentifier"] as? String ?? "ca-app-pub-3940256099942544~1458002511"
+        let baseUrl = info?["BASE_URL"] as? String ?? (isDebug ? "https://dev-api.example.com" : "https://api.example.com")
+        let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? "dummy_appsflyer_dev_key"
+
+        // 1. 初始化未实现跨平台的 iOS 原生 Kit (8 大 Swift SPM Bridge)
+        NativeKitBootstrap.initKits(
+            admobAppId: admobAppId,
+            appsFlyerKey: appsFlyerKey,
+            debug: isDebug
+        )
+
+        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
         let config = AppConfig(
             env: isDebug ? .dev : .prod,
             isDebug: isDebug,
-            baseUrl: isDebug ? "https://dev-api.example.com" : "https://api.example.com",
-            versionName: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
-            versionCode: Int32(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1") ?? 1
+            baseUrl: baseUrl,
+            versionName: info?["CFBundleShortVersionString"] as? String ?? "1.0.0",
+            versionCode: Int32(info?["CFBundleVersion"] as? String ?? "1") ?? 1
         )
         AppBootstrap.shared.doInitKoin(appConfig: config)
     }

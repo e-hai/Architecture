@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:import-ordering")
+
 package xxx.yyy.zzz.shared.di
 
 import org.koin.core.context.startKoin
@@ -9,6 +11,9 @@ import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.network.coreNetworkModule
+// [FEATURE_IMPORTS_START]
+import xxx.yyy.zzz.feature.home.impl.homeModule
+// [FEATURE_IMPORTS_END]
 
 /**
  * 跨平台 KMP 核心库引导器（AppBootstrap）。
@@ -37,6 +42,9 @@ object AppBootstrap {
                     coreNetworkModule,
                     coreDatabaseModule,
                     coreDatastoreModule,
+                    // [FEATURE_KOIN_MODULES_START]
+                    homeModule,
+                    // [FEATURE_KOIN_MODULES_END]
                 )
             }
             CoreLog.i(LogTags.APP, "KMP Koin DI container initialized for env: ${appConfig.env}, debug: ${appConfig.isDebug}.")

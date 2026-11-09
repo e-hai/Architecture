@@ -61,3 +61,9 @@ include(":core:mmp")
 include(":core:ads")
 include(":core:pay")
 include(":core:push")
+
+// Features
+// [FEATURE_MODULES_START]
+include(":features:home:api")
+include(":features:home:impl")
+// [FEATURE_MODULES_END]

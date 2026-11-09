@@ -1,0 +1,53 @@
+# ===================================================================
+# Android 正式环境唯一配置文件模板 (Prod Environment)
+# 使用方式：日常开发无需理会；正式发版前复制本文件为 config/prod.properties 并填入真实生产凭证
+# 若本地未创建 config/prod.properties，Gradle 将自动回退读取本模板兜底编译
+# ===================================================================
+
+# -------------------------------------------------------------------
+# 1. 应用身份与版本信息 (Application Identity & Versions)
+# -------------------------------------------------------------------
+APP_ID=xxx.yyy.zzz
+APP_NAME=Architecture
+VERSION_NAME=1.0.0
+VERSION_CODE=1
+
+# -------------------------------------------------------------------
+# 2. 正式签名证书配置 (Android Prod Keystore - 严禁提交代码仓库)
+# 可在此填写本地绝对/相对路径，或在 CI/CD 中通过环境变量注入
+# -------------------------------------------------------------------
+STORE_FILE=
+STORE_PASSWORD=
+KEY_ALIAS=
+KEY_PASSWORD=
+
+# -------------------------------------------------------------------
+# 3. 基础网络与 API 环境 (Network & Production Gateway)
+# -------------------------------------------------------------------
+BASE_URL=https://api.example.com
+NETWORK_TIMEOUT_SECONDS=15
+ENABLE_HTTP_LOG=false
+
+# -------------------------------------------------------------------
+# 4. Google AdMob 正式广告 ID (上线前在 AdMob 控制台创建并替换)
+# -------------------------------------------------------------------
+ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713
+ADMOB_BANNER_ID=
+ADMOB_INTERSTITIAL_ID=
+ADMOB_REWARDED_ID=
+ADMOB_APP_OPEN_ID=
+
+# -------------------------------------------------------------------
+# 5. 八大商业化 Kit 正式凭证 (Commercial Kits Production Credentials)
+# -------------------------------------------------------------------
+# CoreMmp (AppsFlyer 生产 Token)
+APPSFLYER_KEY=dummy_appsflyer_prod_key
+
+# CoreAnalytics (埋点调试模式)
+ANALYTICS_DEBUG_MODE=false
+
+# CoreAbTesting (A/B 测试远程配置最小拉取间隔，线上推荐 3600 秒)
+REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS=3600
+
+# CorePush (FCM Sender ID 正式值)
+FCM_SENDER_ID=

@@ -1,8 +1,12 @@
 package xxx.yyy.zzz.android.bridge
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Bundle
+import android.view.ViewGroup
 import com.kit.abtesting.AbTestingClient
 import com.kit.abtesting.AbTestingConfig
 import com.kit.abtesting.firebase.FirebaseAbTestingProvider
@@ -63,10 +67,14 @@ object NativeKitBootstrap {
      *
      * @param application Android Application 实例
      * @param debug 是否开启调试模式
+     * @param admobAppId AdMob 应用 ID (来自 BuildConfig.ADMOB_APP_ID)
+     * @param appsFlyerKey AppsFlyer Token (来自 BuildConfig.APPSFLYER_KEY)
      */
     fun initKits(
         application: Application,
         debug: Boolean = true,
+        admobAppId: String = "",
+        appsFlyerKey: String = "",
     ) {
         // 1. CoreLog (日志)
         CoreLog.install(AndroidLogDelegate(application))
@@ -86,11 +94,11 @@ object NativeKitBootstrap {
 
         // 5. CoreMmp (归因统计)
         CoreMmp.install(AndroidMmpDelegate(application, debug))
-        CoreMmp.doInit(appToken = "dummy_appsflyer_key")
+        CoreMmp.doInit(appToken = appsFlyerKey.ifBlank { "dummy_appsflyer_key" })
 
         // 6. CoreAds (广告聚合)
         CoreAds.install(AndroidAdsDelegate(application))
-        CoreAds.doInit(apiKey = "ca-app-pub-3940256099942544~3347511713")
+        CoreAds.doInit(apiKey = admobAppId.ifBlank { "ca-app-pub-3940256099942544~3347511713" })
 
         // 7. CorePay (支付结算)
         CorePay.install(AndroidPayDelegate(application))
@@ -347,6 +355,40 @@ private class AndroidAdsDelegate(
     private val application: Application,
 ) : AdsDelegate {
     private val providerType = AdsProviderType.ADMOB
+    private var currentActivity: Activity? = null
+    private val loadedAds = java.util.concurrent.ConcurrentHashMap<String, com.kit.ads.AdsEntity>()
+
+    init {
+        application.registerActivityLifecycleCallbacks(
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(
+                    activity: Activity,
+                    savedInstanceState: Bundle?,
+                ) {}
+
+                override fun onActivityStarted(activity: Activity) {}
+
+                override fun onActivityResumed(activity: Activity) {
+                    currentActivity = activity
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+                    if (currentActivity === activity) currentActivity = null
+                }
+
+                override fun onActivityStopped(activity: Activity) {}
+
+                override fun onActivitySaveInstanceState(
+                    activity: Activity,
+                    outState: Bundle,
+                ) {}
+
+                override fun onActivityDestroyed(activity: Activity) {
+                    if (currentActivity === activity) currentActivity = null
+                }
+            },
+        )
+    }
 
     override fun doInit(apiKey: String) {
         if (apiKey.isBlank()) return
@@ -364,22 +406,86 @@ private class AndroidAdsDelegate(
         triggerId: String,
         adUnitId: String,
     ) {
-        AdsManager.preloadAd(
-            application,
+        val request =
             AdsRequest(
                 triggerId = triggerId,
                 adUnitId = adUnitId,
-                adType = AdsType.INTERSTITIAL,
+                adType = AdsType.REWARDED,
                 providerType = providerType,
                 preloadTtlMs = null,
-            ),
+            )
+        AdsManager.loadAd(
+            application,
+            request,
+            object : com.kit.ads.AdsListener {
+                override fun onAdLoaded(entity: com.kit.ads.AdsEntity) {
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 广告加载成功: $triggerId")
+                    loadedAds[triggerId] = entity
+                }
+
+                override fun onAdFailedToLoad(error: String) {
+                    CoreLog.w(LogTags.APP, "[Ads-Android] 广告加载失败: $triggerId, error=$error")
+                }
+
+                override fun onAdShown() {
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 广告已展示: $triggerId")
+                }
+
+                override fun onAdClicked() {
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 广告被点击: $triggerId")
+                }
+
+                override fun onAdPaidEvent() {}
+
+                override fun onAdUserEarnedReward() {
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 用户获得奖励: $triggerId")
+                }
+
+                override fun onAdClosed() {
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 广告已关闭: $triggerId")
+                    loadedAds.remove(triggerId)
+                }
+            },
         )
     }
 
-    override fun isReady(triggerId: String): Boolean = true
+    override fun isReady(triggerId: String): Boolean = loadedAds.containsKey(triggerId)
 
     override fun showAd(triggerId: String) {
         CoreLog.d(LogTags.APP, "[Ads-Android] showAd: $triggerId")
+        val activity = currentActivity
+        val entity = loadedAds.remove(triggerId)
+        if (activity != null && entity != null) {
+            try {
+                val container =
+                    activity.findViewById<ViewGroup>(android.R.id.content)
+                        ?: activity.window.decorView as ViewGroup
+                entity.show(activity, container)
+            } catch (t: Throwable) {
+                CoreLog.w(LogTags.APP, "[Ads-Android] showAd failed: ${t.message}")
+                showFallbackAdDialog(activity, triggerId)
+            }
+        } else if (activity != null) {
+            showFallbackAdDialog(activity, triggerId)
+        } else {
+            CoreLog.w(LogTags.APP, "[Ads-Android] 当前没有前台 Activity，无法展示广告")
+        }
+    }
+
+    private fun showFallbackAdDialog(
+        activity: Activity,
+        triggerId: String,
+    ) {
+        activity.runOnUiThread {
+            AlertDialog
+                .Builder(activity)
+                .setTitle("激励视频广告 (Android 模拟)")
+                .setMessage("触发点: $triggerId\n已模拟完整播放 15 秒广告。\n奖励已成功发放！")
+                .setPositiveButton("领取奖励") { dialog, _ ->
+                    dialog.dismiss()
+                    CoreLog.i(LogTags.APP, "[Ads-Android] 模拟广告奖励发放完成: $triggerId")
+                }.show()
+        }
     }
 }
 

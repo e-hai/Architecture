@@ -24,6 +24,8 @@ xcuserdata/
 
 # Secrets & Local Configs
 local.properties
+keystore.properties
+config/prod.properties
 Secrets.swift
 *.p8
 *.mobileprovision

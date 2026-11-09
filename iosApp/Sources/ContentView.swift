@@ -33,9 +33,9 @@ public struct ContentView: View {
             .ignoresSafeArea()
         #else
         VStack(spacing: 16) {
-            Text("Architecture KMP - iOS Host")
+            Text("KMP 现代化架构 - iOS 宿主工程")
                 .font(.headline)
-            Text("Open in Xcode to run with Shared.framework")
+            Text("请在 Xcode 中打开工程以运行完整包含 Shared.framework 的应用")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

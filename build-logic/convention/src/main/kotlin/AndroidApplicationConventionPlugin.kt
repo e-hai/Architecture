@@ -33,7 +33,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 productFlavors {
                     create("dev") {
                         dimension = "environment"
-                        applicationIdSuffix = ".dev"
                     }
                     create("prod") {
                         dimension = "environment"
