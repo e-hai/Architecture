@@ -26,6 +26,8 @@ kotlin {
             export(project(":core:ads"))
             export(project(":core:pay"))
             export(project(":core:push"))
+            export(project(":core:video"))
+            export(project(":core:pag"))
         }
     }
 
@@ -45,6 +47,8 @@ kotlin {
             api(project(":core:ads"))
             api(project(":core:pay"))
             api(project(":core:push"))
+            api(project(":core:video"))
+            api(project(":core:pag"))
 
             // [FEATURE_DEPENDENCIES_START]
             implementation(project(":features:home:api"))

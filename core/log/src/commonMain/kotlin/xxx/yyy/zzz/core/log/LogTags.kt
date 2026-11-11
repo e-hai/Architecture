@@ -13,4 +13,8 @@ object LogTags {
     const val PUSH = "Push"
     const val MMP = "Mmp"
     const val ANALYTICS = "Analytics"
+    const val CRASH = "Crash"
+    const val AB_TESTING = "AbTesting"
+    const val VIDEO = "Video"
+    const val PAG = "Pag"
 }
