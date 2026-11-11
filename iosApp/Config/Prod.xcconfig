@@ -27,8 +27,9 @@ ENABLE_HTTP_LOG = NO
 
 // -------------------------------------------------------------------
 // 4. Google AdMob 正式广告 ID (上线前在 AdMob iOS 控制台创建并替换)
+// 严禁在正式环境中填入测试 ID (ca-app-pub-3940256099942544~...)
 // -------------------------------------------------------------------
-ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+ADMOB_APP_ID = 
 ADMOB_BANNER_ID = 
 ADMOB_INTERSTITIAL_ID = 
 ADMOB_REWARDED_ID = 

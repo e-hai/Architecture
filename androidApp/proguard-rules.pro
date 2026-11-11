@@ -38,3 +38,11 @@
 -dontwarn com.kit.**
 -keep class com.github.e_hai.** { *; }
 -dontwarn com.github.e_hai.**
+
+# 8. Media3 & ExoPlayer (VideoKit)
+-keep class androidx.media3.** { *; }
+
+# 9. libpag & PagKit
+-keep class org.libpag.** { *; }
+-keep class io.github.pagkit.** { *; }
+-keep class androidx.exifinterface.** { *; }

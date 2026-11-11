@@ -7,19 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0468C9FE020D82C3CBED4C1F /* VideoKit in Frameworks */ = {isa = PBXBuildFile; productRef = 517AA40306BDBB62C5AE332C /* VideoKit */; };
 		0FD8694A1DC2F51686D81E32 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE37482C3835DBB11C07617 /* iOSApp.swift */; };
 		1C81D6F669B7BB6D2FFCCEB3 /* LogKit in Frameworks */ = {isa = PBXBuildFile; productRef = 05A2800FDFC10A25706378C9 /* LogKit */; };
 		22EAE4D97482DC72463673EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40E380030A38B8C1BFADAB8 /* ContentView.swift */; };
 		24323778ABA0C668C758086B /* AdsKit in Frameworks */ = {isa = PBXBuildFile; productRef = 064C9A570893EDA25897A902 /* AdsKit */; };
 		379D4C6DBBA934A8EF44CDDE /* AbTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 36FCDD465E47D25E6604F768 /* AbTesting */; };
 		445C052442747365B7CB2124 /* CrashReportKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB0D23ABA705888A0EB57B4 /* CrashReportKit */; };
+		4B8B669929F3610233B90E5C /* libpag.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 571F8D7697141F9BAC105431 /* libpag.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4E77AFD5C2B00E927573D493 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BCACD5445C37FEB9733A013 /* Shared.framework */; };
 		56A46FB5D95B5B7AB587F7E2 /* PayKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0E52E19D4F7B7CB0FCA803A7 /* PayKit */; };
+		5A44C890E4F97A84B5AFB7F6 /* libpag.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 571F8D7697141F9BAC105431 /* libpag.xcframework */; };
 		8890FEBAFB0C17EFCDA552DD /* NativeKitBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */; };
 		904B143AD85747788BDF9954 /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0BCACD5445C37FEB9733A013 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A825AC5F0531A8569219D47A /* MmpCore in Frameworks */ = {isa = PBXBuildFile; productRef = DAD0B032E490846231F0FAF9 /* MmpCore */; };
 		B17BEB737012F375F69763F2 /* PushKit in Frameworks */ = {isa = PBXBuildFile; productRef = EABB6F6F0441181A9F08E9D8 /* PushKit */; };
 		B7C4F6137AC8345E71E92063 /* Analytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA0531400E56665F58DE0E /* Analytics */; };
+		FFA24B824E291ECFF813801E /* like.pag in Resources */ = {isa = PBXBuildFile; fileRef = C597F97867B3D69522EBE810 /* like.pag */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +33,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				4B8B669929F3610233B90E5C /* libpag.xcframework in Embed Frameworks */,
 				904B143AD85747788BDF9954 /* Shared.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -38,11 +43,13 @@
 
 /* Begin PBXFileReference section */
 		0BCACD5445C37FEB9733A013 /* Shared.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Shared.framework; path = ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework; sourceTree = "<group>"; };
+		571F8D7697141F9BAC105431 /* libpag.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libpag.xcframework; path = Frameworks/libpag.xcframework; sourceTree = "<group>"; };
 		805100242D65472522739FE9 /* Prod.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Prod.xcconfig; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE37482C3835DBB11C07617 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		B5A206D6BE9867A6B032B6B7 /* NativeKitBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeKitBootstrap.swift; sourceTree = "<group>"; };
 		C59114F647E69202552CE362 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C597F97867B3D69522EBE810 /* like.pag */ = {isa = PBXFileReference; path = like.pag; sourceTree = "<group>"; };
 		DCEB00BD559BA0FF2B8C23EB /* Dev.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Dev.xcconfig; sourceTree = "<group>"; };
 		E40E380030A38B8C1BFADAB8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,6 +67,8 @@
 				24323778ABA0C668C758086B /* AdsKit in Frameworks */,
 				56A46FB5D95B5B7AB587F7E2 /* PayKit in Frameworks */,
 				B17BEB737012F375F69763F2 /* PushKit in Frameworks */,
+				0468C9FE020D82C3CBED4C1F /* VideoKit in Frameworks */,
+				5A44C890E4F97A84B5AFB7F6 /* libpag.xcframework in Frameworks */,
 				4E77AFD5C2B00E927573D493 /* Shared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,6 +79,7 @@
 		3666012298E772D226418813 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				571F8D7697141F9BAC105431 /* libpag.xcframework */,
 				0BCACD5445C37FEB9733A013 /* Shared.framework */,
 			);
 			name = Frameworks;
@@ -107,6 +117,7 @@
 				E40E380030A38B8C1BFADAB8 /* ContentView.swift */,
 				C59114F647E69202552CE362 /* Info.plist */,
 				8AE37482C3835DBB11C07617 /* iOSApp.swift */,
+				C597F97867B3D69522EBE810 /* like.pag */,
 				AA88BF38A774B8DCBBD18B1D /* Bridge */,
 			);
 			path = Sources;
@@ -130,6 +141,7 @@
 			buildPhases = (
 				0A2622970D477E5A34EAC843 /* Compile KMP Framework */,
 				297B59D9CE634556D6007C40 /* Sources */,
+				1623B02D10928C8101C1F806 /* Resources */,
 				EF8A6E9BFD470986D9D5C9B5 /* Frameworks */,
 				DB76241340C08196BD9C492C /* Embed Frameworks */,
 			);
@@ -147,6 +159,7 @@
 				064C9A570893EDA25897A902 /* AdsKit */,
 				0E52E19D4F7B7CB0FCA803A7 /* PayKit */,
 				EABB6F6F0441181A9F08E9D8 /* PushKit */,
+				517AA40306BDBB62C5AE332C /* VideoKit */,
 			);
 			productName = iosApp;
 			productReference = 86038AE1032E284E79B32AD6 /* iosApp.app */;
@@ -185,6 +198,7 @@
 				A94424340291A3AFF4C69320 /* XCRemoteSwiftPackageReference "MmpKit-iOS" */,
 				2244C4C7DBE4E3B628757671 /* XCRemoteSwiftPackageReference "PayKit-iOS" */,
 				BF9362A3EFE8879C4CC744AF /* XCRemoteSwiftPackageReference "PushKit-iOS" */,
+				9396D27AFBAF15737C0B3E47 /* XCRemoteSwiftPackageReference "VideoKit-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 94C98B8B3A2BFC1966447269 /* Products */;
@@ -195,6 +209,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1623B02D10928C8101C1F806 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFA24B824E291ECFF813801E /* like.pag in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		0A2622970D477E5A34EAC843 /* Compile KMP Framework */ = {
@@ -361,9 +386,11 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SRCROOT)/Frameworks",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework",
 					"\"../shared/build/bin/iosSimulatorArm64/debugFramework\"",
+					"\"Frameworks\"",
 				);
 				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Architecture (Dev)";
@@ -371,6 +398,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz.dev;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -387,9 +415,11 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SRCROOT)/Frameworks",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework",
 					"\"../shared/build/bin/iosSimulatorArm64/debugFramework\"",
+					"\"Frameworks\"",
 				);
 				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Architecture;
@@ -397,6 +427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = xxx.yyy.zzz;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -459,6 +490,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		9396D27AFBAF15737C0B3E47 /* XCRemoteSwiftPackageReference "VideoKit-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/e-hai/VideoKit-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		9A1527B098A164659A672BD4 /* XCRemoteSwiftPackageReference "AbTestingKit-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/e-hai/AbTestingKit-iOS.git";
@@ -513,6 +552,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9A1527B098A164659A672BD4 /* XCRemoteSwiftPackageReference "AbTestingKit-iOS" */;
 			productName = AbTesting;
+		};
+		517AA40306BDBB62C5AE332C /* VideoKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9396D27AFBAF15737C0B3E47 /* XCRemoteSwiftPackageReference "VideoKit-iOS" */;
+			productName = VideoKit;
 		};
 		8AB0D23ABA705888A0EB57B4 /* CrashReportKit */ = {
 			isa = XCSwiftPackageProductDependency;

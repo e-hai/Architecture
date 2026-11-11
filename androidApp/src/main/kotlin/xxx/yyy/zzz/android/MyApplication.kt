@@ -23,6 +23,7 @@ class MyApplication : Application() {
             application = this,
             debug = isDebug,
             admobAppId = BuildConfig.ADMOB_APP_ID,
+            admobRewardedId = BuildConfig.ADMOB_REWARDED_ID,
             appsFlyerKey = BuildConfig.APPSFLYER_KEY,
         )
 

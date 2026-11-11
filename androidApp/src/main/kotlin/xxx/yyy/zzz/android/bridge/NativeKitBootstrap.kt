@@ -31,6 +31,9 @@ import com.kit.pay.models.PayKitConfiguration
 import com.kit.push.PushKitManager
 import com.kit.push.channel.NotificationChannelConfig
 import com.kit.push.provider.fcm.FcmPushProvider
+import com.kit.video.cache.VideoCacheManager
+import com.kit.video.vod.VodProgressStore
+import io.github.pagkit.PagKitAndroid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,12 +52,15 @@ import xxx.yyy.zzz.core.log.LogDelegate
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.mmp.CoreMmp
 import xxx.yyy.zzz.core.mmp.MmpDelegate
+import xxx.yyy.zzz.core.pag.CorePag
 import xxx.yyy.zzz.core.pay.CorePay
 import xxx.yyy.zzz.core.pay.PayDelegate
 import xxx.yyy.zzz.core.pay.PayProducts
 import xxx.yyy.zzz.core.push.CorePush
 import xxx.yyy.zzz.core.push.PushChannels
 import xxx.yyy.zzz.core.push.PushDelegate
+import xxx.yyy.zzz.core.video.CoreVideo
+import xxx.yyy.zzz.core.video.VideoDelegate
 
 /**
  * Android 原生商业化 Kit 引导器（NativeKitBootstrap）。
@@ -68,12 +74,14 @@ object NativeKitBootstrap {
      * @param application Android Application 实例
      * @param debug 是否开启调试模式
      * @param admobAppId AdMob 应用 ID (来自 BuildConfig.ADMOB_APP_ID)
+     * @param admobRewardedId AdMob 激励视频 ID (来自 BuildConfig.ADMOB_REWARDED_ID)
      * @param appsFlyerKey AppsFlyer Token (来自 BuildConfig.APPSFLYER_KEY)
      */
     fun initKits(
         application: Application,
         debug: Boolean = true,
         admobAppId: String = "",
+        admobRewardedId: String = "",
         appsFlyerKey: String = "",
     ) {
         // 1. CoreLog (日志)
@@ -94,11 +102,11 @@ object NativeKitBootstrap {
 
         // 5. CoreMmp (归因统计)
         CoreMmp.install(AndroidMmpDelegate(application, debug))
-        CoreMmp.doInit(appToken = appsFlyerKey.ifBlank { "dummy_appsflyer_key" })
+        CoreMmp.doInit(appToken = appsFlyerKey)
 
         // 6. CoreAds (广告聚合)
-        CoreAds.install(AndroidAdsDelegate(application))
-        CoreAds.doInit(apiKey = admobAppId.ifBlank { "ca-app-pub-3940256099942544~3347511713" })
+        CoreAds.install(AndroidAdsDelegate(application, defaultRewardedUnitId = admobRewardedId))
+        CoreAds.doInit(apiKey = admobAppId)
 
         // 7. CorePay (支付结算)
         CorePay.install(AndroidPayDelegate(application))
@@ -107,6 +115,14 @@ object NativeKitBootstrap {
         // 8. CorePush (推送通知)
         CorePush.install(AndroidPushDelegate(application))
         CorePush.doInit(registerFcm = false)
+
+        // 9. CoreVideo (视频播放与缓存)
+        CoreVideo.install(AndroidVideoDelegate(application))
+        CoreVideo.doInit()
+
+        // 10. CorePag (PAG 动效引擎)
+        PagKitAndroid.init(application)
+        CorePag.doInit()
 
         CoreLog.i(LogTags.APP, "Android native kits initialized successfully.")
     }
@@ -122,6 +138,40 @@ object NativeKitBootstrap {
 private class AndroidLogDelegate(
     private val application: Application,
 ) : LogDelegate {
+    private var currentActivity: Activity? = null
+
+    init {
+        application.registerActivityLifecycleCallbacks(
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(
+                    activity: Activity,
+                    savedInstanceState: Bundle?,
+                ) {}
+
+                override fun onActivityStarted(activity: Activity) {}
+
+                override fun onActivityResumed(activity: Activity) {
+                    currentActivity = activity
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+                    if (currentActivity === activity) currentActivity = null
+                }
+
+                override fun onActivityStopped(activity: Activity) {}
+
+                override fun onActivitySaveInstanceState(
+                    activity: Activity,
+                    outState: Bundle,
+                ) {}
+
+                override fun onActivityDestroyed(activity: Activity) {
+                    if (currentActivity === activity) currentActivity = null
+                }
+            },
+        )
+    }
+
     override fun doInitAllLog() {
         LogKit.initAllLog(application)
     }
@@ -129,6 +179,15 @@ private class AndroidLogDelegate(
     override fun doInitOnlyConsoleLog() {
         LogKit.initOnlyAndroidLog()
     }
+
+    override fun doInitOnlyDiskLog() {
+        LogKit.initOnlyDiskLog()
+    }
+
+    override fun v(
+        tag: String,
+        message: String,
+    ) = LogKit.v(tag, message)
 
     override fun d(
         tag: String,
@@ -155,6 +214,33 @@ private class AndroidLogDelegate(
         } else {
             LogKit.e(tag, message)
         }
+    }
+
+    override fun wtf(
+        tag: String,
+        message: String,
+    ) = LogKit.wtf(tag, message)
+
+    override fun json(
+        tag: String,
+        json: String,
+    ) = LogKit.json(tag, json)
+
+    override fun xml(
+        tag: String,
+        xml: String,
+    ) = LogKit.xml(tag, xml)
+
+    override fun readLog(callback: (List<String>) -> Unit) {
+        LogKit.readLog { list ->
+            callback(list)
+        }
+    }
+
+    override fun showLogUi() {
+        currentActivity?.let { activity ->
+            LogKit.showLogUi(activity)
+        } ?: LogKit.w(LogTags.APP, "[LogKit-Android] 当前无可用的前台 Activity，无法唤起原生日志页面")
     }
 }
 
@@ -353,6 +439,7 @@ private class AndroidMmpDelegate(
  */
 private class AndroidAdsDelegate(
     private val application: Application,
+    private val defaultRewardedUnitId: String = "",
 ) : AdsDelegate {
     private val providerType = AdsProviderType.ADMOB
     private var currentActivity: Activity? = null
@@ -406,10 +493,11 @@ private class AndroidAdsDelegate(
         triggerId: String,
         adUnitId: String,
     ) {
+        val resolvedUnitId = adUnitId.ifBlank { defaultRewardedUnitId }
         val request =
             AdsRequest(
                 triggerId = triggerId,
-                adUnitId = adUnitId,
+                adUnitId = resolvedUnitId,
                 adType = AdsType.REWARDED,
                 providerType = providerType,
                 preloadTtlMs = null,
@@ -565,5 +653,62 @@ private class AndroidPushDelegate(
 
     override fun setPushToken(token: String) {
         CoreLog.d(LogTags.APP, "[Push-Android] FCM Token set: $token")
+    }
+}
+
+/**
+ * Android 视频播放与缓存委托实现。
+ * 严格下沉封装 VideoKit-Android 原生 SDK 调用（VideoCacheManager / VodProgressStore）。
+ */
+private class AndroidVideoDelegate(
+    private val context: Context,
+) : VideoDelegate {
+    override fun doInit() {
+        // 预初始化 VodProgressStore 单例
+        VodProgressStore.init(context)
+        CoreLog.i(LogTags.VIDEO, "Android VideoKit (VodProgressStore) initialized.")
+    }
+
+    override fun preload(
+        url: String,
+        bytes: Long,
+    ) {
+        VideoCacheManager.preload(context, url, bytes)
+    }
+
+    override fun preloadBidirectional(
+        prevUrl: String?,
+        nextUrl: String?,
+        bytes: Long,
+    ) {
+        VideoCacheManager.preloadBidirectional(context, prevUrl, nextUrl, bytes)
+    }
+
+    override fun getCachedBytes(url: String): Long = VideoCacheManager.getCachedBytes(context, url)
+
+    override fun isCached(
+        url: String,
+        minBytes: Long,
+    ): Boolean = VideoCacheManager.isCached(context, url, minBytes)
+
+    override fun clearCache() {
+        VideoCacheManager.clearCache(context)
+        CoreLog.i(LogTags.VIDEO, "Android VideoKit cache cleared.")
+    }
+
+    override fun saveProgress(
+        videoId: String,
+        positionMs: Long,
+        durationMs: Long,
+    ) {
+        val duration = if (durationMs > 0) durationMs else (positionMs * 2).coerceAtLeast(10000L)
+        VodProgressStore.saveProgress(videoId, positionMs, duration)
+    }
+
+    override fun getProgress(videoId: String): Long = VodProgressStore.getProgress(videoId)
+
+    override fun clearProgress(videoId: String) {
+        VodProgressStore.clearProgress(videoId)
+        CoreLog.i(LogTags.VIDEO, "Android VodProgressStore cleared for: $videoId.")
     }
 }

@@ -8,6 +8,7 @@ import MmpCore
 import AdsKit
 import PayKit
 import PushKit
+import VideoKit
 
 #if canImport(Shared)
 import Shared
@@ -51,14 +52,12 @@ public final class NativeKitBootstrap: Sendable {
         CoreAbTesting.shared.doInit()
 
         // 5. CoreMmp (归因统计)
-        let mmpToken = appsFlyerKey.isEmpty ? "dummy_appsflyer_dev_key" : appsFlyerKey
         CoreMmp.shared.install(delegate: IosMmpDelegate())
-        CoreMmp.shared.doInit(appToken: mmpToken)
+        CoreMmp.shared.doInit(appToken: appsFlyerKey)
 
         // 6. CoreAds (广告聚合)
-        let resolvedAdmobId = admobAppId.isEmpty ? "ca-app-pub-3940256099942544~1458002511" : admobAppId
         CoreAds.shared.install(delegate: IosAdsDelegate())
-        CoreAds.shared.doInit(apiKey: resolvedAdmobId)
+        CoreAds.shared.doInit(apiKey: admobAppId)
 
         // 7. CorePay (支付结算)
         CorePay.shared.install(delegate: IosPayDelegate())
@@ -68,7 +67,14 @@ public final class NativeKitBootstrap: Sendable {
         CorePush.shared.install(delegate: IosPushDelegate())
         CorePush.shared.doInit(registerFcm: false)
 
-        print("[KMP-iOS] 8 native Kit delegates successfully installed and initialized.")
+        // 9. CoreVideo (视频播放与缓存)
+        CoreVideo.shared.install(delegate: IosVideoDelegate())
+        CoreVideo.shared.doInit()
+
+        // 10. CorePag (PAG 动效渲染)
+        CorePag.shared.doInit()
+
+        print("[KMP-iOS] Native Kit delegates successfully installed and initialized.")
         #else
         // CLI 测试环境兜底（当未链接 Shared.framework 时）
         LogKit.initAllLog()
@@ -84,6 +90,7 @@ public final class NativeKitBootstrap: Sendable {
         if Bundle.main.bundleIdentifier != nil {
             PushKitManager.shared.setup()
         }
+        _ = VideoCacheManager.shared
         #endif
     }
 }
@@ -101,6 +108,14 @@ private final class IosLogDelegate: NSObject, LogDelegate {
 
     func doInitOnlyConsoleLog() {
         LogKit.initOnlyConsoleLog()
+    }
+
+    func doInitOnlyDiskLog() {
+        LogKit.initOnlyDiskLog()
+    }
+
+    func v(tag: String, message: String) {
+        LogKit.v(tag, message)
     }
 
     func d(tag: String, message: String) {
@@ -121,6 +136,49 @@ private final class IosLogDelegate: NSObject, LogDelegate {
         } else {
             LogKit.e(tag, message)
         }
+    }
+
+    func wtf(tag: String, message: String) {
+        LogKit.wtf(tag, message)
+    }
+
+    func json(tag: String, json: String) {
+        LogKit.json(tag, json)
+    }
+
+    func xml(tag: String, xml: String) {
+        LogKit.xml(tag, xml)
+    }
+
+    func readLog(callback: @escaping ([String]) -> Void) {
+        LogKit.readLog { lines in
+            callback(lines)
+        }
+    }
+
+    func showLogUi() {
+        DispatchQueue.main.async {
+            guard let topVC = self.getTopViewController() else {
+                LogKit.w("App", "No active UIViewController found to present LogKit UI")
+                return
+            }
+            LogKit.showLogUI(from: topVC)
+        }
+    }
+
+    @MainActor
+    private func getTopViewController() -> UIViewController? {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) ?? windowScene.windows.first,
+              var topController = window.rootViewController else {
+            return nil
+        }
+        while let presented = topController.presentedViewController {
+            topController = presented
+        }
+        return topController
     }
 }
 
@@ -259,8 +317,8 @@ private final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable {
     func loadAd(triggerId: String, adUnitId: String) {
         Task { @MainActor in
             print("[Ads-iOS] loadAd: triggerId=\(triggerId), adUnitId=\(adUnitId)")
-            let configuredRewarded = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String ?? "ca-app-pub-3940256099942544/1712485313"
-            let unitId = (adUnitId.isEmpty || adUnitId.contains("5224354917")) ? configuredRewarded : adUnitId
+            let configuredRewarded = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String ?? ""
+            let unitId = adUnitId.isEmpty ? configuredRewarded : adUnitId
             let request = AdsRequest(
                 triggerId: triggerId,
                 adUnitId: unitId,
@@ -408,6 +466,52 @@ private final class IosPushDelegate: NSObject, PushDelegate {
 
     func setPushToken(token: String) {
         print("[IosPushDelegate] setPushToken: \(token)")
+    }
+}
+
+/**
+ * iOS 视频播放与缓存委托实现。
+ * 严格下沉封装 VideoKit-iOS 原生 SDK 调用（VideoCacheManager / VodProgressStore）。
+ */
+private final class IosVideoDelegate: NSObject, VideoDelegate {
+    func doInit() {
+        _ = VideoCacheManager.shared
+        print("[IosVideoDelegate] VideoCacheManager initialized.")
+    }
+
+    func preload(url: String, bytes: Int64) {
+        VideoCacheManager.shared.preload(urlString: url, bytes: bytes)
+    }
+
+    func preloadBidirectional(prevUrl: String?, nextUrl: String?, bytes: Int64) {
+        VideoCacheManager.shared.preloadBidirectional(prevUrl: prevUrl, nextUrl: nextUrl, bytes: bytes)
+    }
+
+    func getCachedBytes(url: String) -> Int64 {
+        return VideoCacheManager.shared.getCachedBytes(for: url)
+    }
+
+    func isCached(url: String, minBytes: Int64) -> Bool {
+        return VideoCacheManager.shared.isCached(for: url, minBytes: minBytes)
+    }
+
+    func clearCache() {
+        VideoCacheManager.shared.clearAllCache()
+        print("[IosVideoDelegate] VideoCacheManager cache cleared.")
+    }
+
+    func saveProgress(videoId: String, positionMs: Int64, durationMs: Int64) {
+        VodProgressStore.shared.saveProgress(for: videoId, positionSec: Double(positionMs) / 1000.0)
+    }
+
+    func getProgress(videoId: String) -> Int64 {
+        let seconds = VodProgressStore.shared.getProgress(for: videoId)
+        return Int64(seconds * 1000.0)
+    }
+
+    func clearProgress(videoId: String) {
+        VodProgressStore.shared.clearProgress(for: videoId)
+        print("[IosVideoDelegate] VodProgressStore cleared for: \(videoId)")
     }
 }
 #endif

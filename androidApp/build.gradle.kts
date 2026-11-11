@@ -17,7 +17,6 @@ class EnvConfig(
     ): String =
         props.getProperty(key)?.takeIf { it.isNotBlank() }
             ?: System.getenv("${envPrefix}_$key")?.takeIf { it.isNotBlank() }
-            ?: System.getenv(key)?.takeIf { it.isNotBlank() }
             ?: default
 }
 
@@ -102,7 +101,20 @@ android {
                 keyAlias = prodEnv.get("KEY_ALIAS")
                 keyPassword = prodEnv.get("KEY_PASSWORD")
             } else {
-                initWith(getByName("test"))
+                // 严禁回退给 test 签名！当执行正式 Release 打包任务时，强制阻断报错
+                gradle.taskGraph.whenReady {
+                    val isBuildingProdRelease =
+                        allTasks.any {
+                            it.name.contains("Prod", ignoreCase = true) &&
+                                it.name.contains("Release", ignoreCase = true)
+                        }
+                    if (isBuildingProdRelease) {
+                        throw GradleException(
+                            "【安全隔离拦截】检测到正在打包正式 Release 应用，但未配置有效正式证书 (STORE_FILE)！" +
+                                "严禁混用测试证书打包正式应用，请在 config/prod.properties 中配置正确的正式签名参数后再打包。",
+                        )
+                    }
+                }
             }
         }
     }
@@ -136,6 +148,10 @@ android {
 }
 
 dependencies {
+    constraints {
+        implementation("androidx.work:work-runtime:2.8.1")
+        implementation("androidx.work:work-runtime-ktx:2.8.1")
+    }
     implementation(project(":shared"))
     implementation(project(":core:log"))
     implementation(project(":core:crashreport"))
@@ -145,6 +161,8 @@ dependencies {
     implementation(project(":core:ads"))
     implementation(project(":core:pay"))
     implementation(project(":core:push"))
+    implementation(project(":core:video"))
+    implementation(project(":core:pag"))
     implementation(libs.log.kit)
     implementation(libs.crashreport.kit)
     implementation(libs.analytics.kit.firebase)
@@ -153,6 +171,7 @@ dependencies {
     implementation(libs.ads.kit.admob)
     implementation(libs.pay.kit)
     implementation(libs.push.kit)
+    implementation(libs.video.kit)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }

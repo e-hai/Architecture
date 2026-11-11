@@ -25,9 +25,9 @@ public struct iOSApp: App {
         #endif
 
         let info = Bundle.main.infoDictionary
-        let admobAppId = info?["GADApplicationIdentifier"] as? String ?? "ca-app-pub-3940256099942544~1458002511"
-        let baseUrl = info?["BASE_URL"] as? String ?? (isDebug ? "https://dev-api.example.com" : "https://api.example.com")
-        let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? "dummy_appsflyer_dev_key"
+        let admobAppId = info?["GADApplicationIdentifier"] as? String ?? ""
+        let baseUrl = info?["BASE_URL"] as? String ?? ""
+        let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
 
         // 1. 初始化未实现跨平台的 iOS 原生 Kit (8 大 Swift SPM Bridge)
         NativeKitBootstrap.initKits(
