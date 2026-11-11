@@ -1,7 +1,7 @@
 # Kotlin Multiplatform (KMP) 跨平台架构基线
 
 > **基线定位**：对齐 JetBrains 2026 最新官方规范 **[A New Default Project Structure for Kotlin Multiplatform](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/)** 与 **Android Gradle Plugin (AGP) 9.0** 的工业级移动端跨平台架构脚手架。  
-> 采用 **Compose Multiplatform (CMP) + Koin + Room KMP + Ktor + 8 大商业化原生 Kit 透传门面**，实现双端 UI 与业务逻辑极致共享、底层原生能力零损耗穿透。
+> 采用 **Compose Multiplatform (CMP) + Koin + Room KMP + Ktor + 十大基础设施与商业化 Kit 双范式接入**，实现双端 UI 与业务逻辑极致共享、底层原生能力零损耗穿透。
 
 ---
 
@@ -10,7 +10,7 @@
 2. [🏛️ 架构全景图与每一层的作用](#2-架构全景图与每一层的作用)
 3. [🔗 层间调用关系与架构铁律](#3-层间调用关系与架构铁律)
 4. [🧭 新代码应该放在哪里？（开发速查表）](#4-新代码应该放在哪里开发速查表)
-5. [🔌 八大商业化 Kit 跨平台接入架构](#5-八大商业化-kit-跨平台接入架构)
+5. [🔌 十大 Kit 跨平台接入架构（双范式）](#5-十大-kit-跨平台接入架构双范式)
 6. [🧠 KMP 双端 API 调用边界与互操作原理](#6-kmp-双端-api-调用边界与互操作原理)
 
 ---
@@ -178,10 +178,13 @@ Architecture/
 │   ├── mmp/                                     # CoreMmp 门面 + Events / Params
 │   ├── ads/                                     # CoreAds 门面 + AdsKeys
 │   ├── pay/                                     # CorePay 门面 + PayProducts
-│   └── push/                                    # CorePush 门面 + PushChannels
+│   ├── push/                                    # CorePush 门面 + PushChannels
+│   ├── video/                                   # CoreVideo 门面 + 播放控制器 (直连 e-hai/VideoKit)
+│   └── pag/                                     # CorePag 门面 + PagView CMP 动效 (直连 e-hai/PagKit)
 ├── build-logic/                                 # Gradle Convention 约定插件
 ├── docs/                                        # 项目工程文档库
-│   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0007 - 记录 Why)
+│   ├── ARCHITECTURE.md                          # 架构设计与技术全景指南
+│   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0009 - 记录 Why)
 │   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0001 - 记录 How)
 ├── init_project.sh                              # 一键极简项目初始化脚本
 ├── create_feature.sh                            # 一键业务特性创建与自动挂载脚本
@@ -271,10 +274,11 @@ sequenceDiagram
     participant CoreKits as Core* 门面契约 (纯 KMP 层)
     participant KmpBootstrap as AppBootstrap (纯 KMP 层)
 
-    Note over OS,HostBootstrap: 【Phase 1：原生 Kit 宿主层初始化】
+    Note over OS,HostBootstrap: 【Phase 1：原生基础设施初始化】
     OS->>HostBootstrap: initKits(appContext / windowScene)
     HostBootstrap->>CoreKits: Core*.install(Android*Delegate / Ios*Delegate)
     HostBootstrap->>CoreKits: Core*.doInit*(...) (初始化原生 SDK)
+    HostBootstrap->>HostBootstrap: PagKit 底层运行时初始化 (Android so 提取 / iOS xcframework)
 
     Note over OS,KmpBootstrap: 【Phase 2：纯 KMP 跨端层初始化】
     OS->>KmpBootstrap: doInitKoin(appConfig) { androidContext(...) }
@@ -312,40 +316,41 @@ sequenceDiagram
 
 ---
 
-## 5. 八大商业化 Kit 跨平台接入架构
+## 5. 十大 Kit 跨平台接入架构（双范式）
 
-针对移动端 8 大底层原生库（Android 为 JitPack AAR，iOS 为 GitHub SPM），采用 **1:1 全原生透传门面** 机制：
+针对移动端 10 大自研基础设施与商业化 SDK，工程全面下线 JitPack，统一迁移至 **GitHub Packages**，并按依赖底层形态分为两大标准化范式：
 
 ```mermaid
-flowchart LR
-    subgraph Common["commonMain (纯 KMP 契约与业务代码)"]
-        Biz["业务 Feature / UI"]
-        Facade["Core* 静态门面<br/>(CoreAnalytics / CoreAds / CorePay...)"]
-        Delegate["*Delegate 委托契约<br/>(纯 commonMain 接口)"]
-        Biz --> Facade
-        Facade --> Delegate
+flowchart TD
+    subgraph PatternA["范式 A：1:1 原生委托透传 (9 大 Kit)"]
+        direction LR
+        BizA["业务 Feature"] --> FacadeA["Core* 门面<br/>(CoreAnalytics/Ads/Video...)"]
+        FacadeA --> DelegateA["*Delegate 契约<br/>(纯 commonMain)"]
+        DelegateA -.->|注入| AndA["Android*Delegate<br/>(androidApp)"]
+        DelegateA -.->|注入| IosA["Ios*Delegate<br/>(iosApp)"]
+        AndA --> AarPkg["GitHub Packages AAR"]
+        IosA --> SpmPkg["GitHub 原生 SPM"]
     end
 
-    subgraph Android["androidApp 宿主 (Kotlin)"]
-        AndDelegate["Android*Delegate<br/>(私有实现类)"]
-        AndroidSDK["JitPack 原生 AAR<br/>com.github.e-hai.*"]
-        AndDelegate --> AndroidSDK
+    subgraph PatternB["范式 B：KMP 原生库直连 (PagKit)"]
+        direction LR
+        BizB["业务 Feature"] --> CMPUI["PagView / rememberPagState<br/>(:core:pag)"]
+        CMPUI --> PagLib["io.github.e-hai:pagkit<br/>(KMP + CMP 二进制)"]
+        HostInit["NativeKitBootstrap<br/>(PagKitAndroid.init / xcframework)"] -.->|平台运行时| PagLib
     end
-
-    subgraph iOS["iosApp 宿主 (Swift 6)"]
-        IosDelegate["Ios*Delegate<br/>(私有实现类)"]
-        IosSPM["GitHub 原生 SPM<br/>e-hai/*-iOS"]
-        IosDelegate --> IosSPM
-    end
-
-    Delegate -.->|装配注入| AndDelegate
-    Delegate -.->|装配注入| IosDelegate
 ```
 
-- **统一 `Core*` 门面命名**：门面统一使用 `Core*` 前缀（`CoreLog`、`CoreCrashReport`、`CoreAnalytics`、`CoreAbTesting`、`CoreMmp`、`CoreAds`、`CorePay`、`CorePush`），Android 端彻底告别 `as` 别名，iOS 端彻底告别 `Shared.` 前缀消歧；
+### 5.1 范式 A：1:1 原生委托透传（9 大 Kit）
+涵盖 `log`, `crashreport`, `analytics`, `abtesting`, `mmp`, `ads`, `pay`, `push`, `video`：
+- **统一 `Core*` 门面命名**：门面统一使用 `Core*` 前缀（`CoreLog`、`CoreCrashReport`、`CoreAnalytics`、`CoreAbTesting`、`CoreMmp`、`CoreAds`、`CorePay`、`CorePush`、`CoreVideo`），Android 端彻底告别 `as` 别名，iOS 端彻底告别 `Shared.` 前缀消歧；
 - **原生 SDK 物理隔离**：全工程唯一调用原生 AAR / SPM API 的地方严格限制在双端宿主私有的 `*Delegate` 内部；
 - **双端代码 100% 对称**：初始化方法统一使用 `doInit*` 命名（如 `doInitAllLog()`），规避 Kotlin/Native 导出 Objective-C 时的隐式改名；
 - **单测与 Compose Preview 零崩溃**：门面内部预置 `Default*Delegate` 兜底实现，单测与 IDE 预览永远不会因“原生 SDK 未初始化”抛出异常。
+
+### 5.2 范式 B：KMP 原生库直连门面包装（PagKit）
+涵盖 `pag`：
+- **`:core:pag` 统一封装**：直接在 `commonMain` 中依赖 `io.github.e-hai:pagkit`，向业务层暴露 `CorePag` 门面及 `PagView` 声明式组件；
+- **宿主零 Delegate 负担**：宿主无需编写任何视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层 `.so` / 动态库加载。
 
 ---
 
@@ -361,7 +366,7 @@ flowchart LR
    - **需要特殊处理，且难度差异巨大**：
      - **自定义 Objective-C / C**：需要编写 `.def` 文件并在 Gradle 中配置 `cinterop`（或通过 CocoaPods 插件），让编译器把 `.h` 头文件翻译成 Kotlin 存根后才能调用。
      - **自定义 Swift（或纯 Swift SPM 库）**：`iosMain` **完全无法直接调用**。若强行用 `expect/actual`，必须把 Swift 代码加上 `@objc` 并阉割掉所有纯 Swift 特性（Struct/泛型/枚举关联值），先用 Xcode 打成带 `*-Swift.h` 的 XCFramework 再配 Gradle `cinterop`；**正因这条路极度繁琐脆弱，凡涉及纯 Swift（官方或自定义），本质上都倒逼架构放弃 `expect/actual`，改用 `interface` + 运行期依赖注入（在 Swift 宿主中实现接口并注入回 KMP）**。
-5. **为什么 8 大商业化 Kit 的原生依赖放在两端 App 宿主（`androidApp` / `iosApp`），而不是像 Room / Ktor 一样放在 `core:*` 中引用？**
-   - **根本物理限制（纯 Swift SPM 阻断）**：`Room`、`Ktor`、`DataStore` 本身是官方已编译好 iOS `.klib` 的跨平台 KMP 库，因此可在 `core:*` 的 `commonMain` 直接依赖；而 8 大商业化 Kit 在 iOS 端是 **纯 Swift 6 SPM 库（`e-hai/*-iOS`，含 `StoreKit 2`、Swift `struct`/`enum`、`async/await`）**，Kotlin/Native 的 `iosMain` 物理上无法直接依赖纯 Swift SPM 或调用纯 Swift API。若仅将 Android AAR 下沉至 `core:*` 的 `androidMain` 而将 iOS SPM 留在 `iosApp`，则会导致双端架构严重不对称。
-   - **宿主生命周期与上下文隔离**：`AdsKit`（广告展示）、`PayKit`（应用内购）等 SDK 强依赖前台 `Activity` / `UIViewController` 实例，放在最外层 App 宿主桥接最自然，避免平台专属 UI 上下文污染底层 `core:*`。
-   - **重型依赖隔离与单测/Preview 零崩溃**：将 Firebase、AppsFlyer、AppLovin MAX、Play Billing 等庞大原生 SDK 隔离在顶层 App 壳工程，使得 `core:*` 与 `features:*` 保持 100% 纯 `commonMain` 轻量契约（自带 `Default*Delegate` 兜底与 `Fake*Delegate`），不仅大幅提升增量编译速度，且在运行单测或渲染 Compose `@Preview` 时永远不会因“原生 SDK 未初始化”而崩溃。
+5. **为什么 9 大原生 Kit 采用宿主 Delegate 桥接，而 PagKit 能在 `core:pag` 中直接依赖？**
+   - **纯 Swift SPM 阻断 vs KMP 预编译产物**：9 大原生 Kit 在 iOS 端是 **纯 Swift 6 SPM 库（`e-hai/*-iOS`，含 `StoreKit 2`、Swift `struct`/`enum`、`async/await`）**，Kotlin/Native 的 `iosMain` 物理上无法直接依赖纯 Swift SPM；而 `PagKit` 本身已编译为包含 iOS `.klib` 的标准 KMP 依赖，支持在 `commonMain` 直接消费；
+   - **宿主生命周期与上下文隔离**：`AdsKit`（广告展示）、`PayKit`（应用内购）、`VideoKit` 等 SDK 强依赖前台 `Activity` / `UIViewController` 实例，放在最外层 App 宿主桥接最自然，避免平台专属 UI 上下文污染底层 `core:*`；
+   - **重型依赖隔离与单测/Preview 零崩溃**：将 Firebase、AppsFlyer、AppLovin MAX、Play Billing 等庞大原生 SDK 隔离在顶层 App 壳工程，使得 `core:*` 与 `features:*` 保持 100% 纯 `commonMain` 轻量契约（自带 `Default*Delegate` 兜底与 `Fake*Delegate`），增量编译速度极快，单测与 IDE 预览永远不会崩溃。
