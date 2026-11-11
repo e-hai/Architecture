@@ -20,7 +20,32 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
+
+        val gprUser = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR") ?: "e-hai"
+        val gprKey = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN") ?: ""
+
+        // e-hai 官方 SDK 仓库群 (GitHub Packages)
+        listOf(
+            "PagKit",
+            "LogKit-Android",
+            "CrashReportKit-Android",
+            "AnalyticsKit-Android",
+            "AbTestingKit-Android",
+            "MmpKit-Android",
+            "AdsKit-Android",
+            "PayKit-Android",
+            "PushKit-Android",
+            "VideoKit-Android",
+        ).forEach { repoName ->
+            maven {
+                name = "GitHubPackages-$repoName"
+                url = uri("https://maven.pkg.github.com/e-hai/$repoName")
+                credentials {
+                    username = gprUser
+                    password = gprKey
+                }
+            }
+        }
 
         // AdsKit / AdMob mediation
         maven { url = uri("https://imobile.github.io/adnw-sdk-android") }
@@ -52,7 +77,7 @@ include(":core:datastore")
 include(":core:navigation")
 include(":core:ui")
 
-// Core 8 Commercial Kits (1:1 Native Passthrough)
+// Core Commercial Kits (1:1 Native Passthrough)
 include(":core:log")
 include(":core:crashreport")
 include(":core:analytics")
@@ -61,6 +86,8 @@ include(":core:mmp")
 include(":core:ads")
 include(":core:pay")
 include(":core:push")
+include(":core:video")
+include(":core:pag")
 
 // Features
 // [FEATURE_MODULES_START]

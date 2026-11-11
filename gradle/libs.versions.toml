@@ -35,15 +35,17 @@ androidxLifecycle = "2.9.0"
 androidxActivity = "1.10.1"
 androidxCore = "1.15.0"
 
-# e-hai Kits (Android JitPack)
-analyticsKit = "v1.0.0"
-abTestingKit = "v1.0.0"
-crashReportKit = "v1.0.0"
-mmpKit = "v1.0.0"
-adsKit = "v1.0.1"
-payKit = "v1.0.0"
-pushKit = "v1.0.0"
-logKit = "v1.0.0"
+# e-hai Kits (Android GitHub Packages)
+analyticsKit = "1.0.1"
+abTestingKit = "1.0.1"
+crashReportKit = "1.0.1"
+mmpKit = "1.0.0"
+adsKit = "1.0.1"
+payKit = "1.0.1"
+pushKit = "1.0.1"
+logKit = "1.0.1"
+videoKit = "1.0.1"
+pagKit = "0.1.4"
 
 # Image Loading (Coil 3 KMP)
 coil = "3.1.0"
@@ -89,15 +91,17 @@ androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 
-# e-hai Kits (Android JitPack AARs)
-analytics-kit-firebase = { group = "com.github.e-hai.AnalyticsKit", name = "analytics-firebase", version.ref = "analyticsKit" }
-abtesting-kit-firebase = { group = "com.github.e-hai.AbTestingKit", name = "abtesting-firebase", version.ref = "abTestingKit" }
-crashreport-kit = { group = "com.github.e-hai", name = "CrashReportKit", version.ref = "crashReportKit" }
-mmp-kit-appsflyer = { group = "com.github.e-hai.MmpKit", name = "mmp-appsflyer", version.ref = "mmpKit" }
-ads-kit-admob = { group = "com.github.e-hai.AdsKit", name = "AdsKit-admob", version.ref = "adsKit" }
-pay-kit = { group = "com.github.e-hai", name = "PayKit", version.ref = "payKit" }
-push-kit = { group = "com.github.e-hai", name = "PushKit", version.ref = "pushKit" }
-log-kit = { group = "com.github.e-hai.LogKit", name = "log", version.ref = "logKit" }
+# e-hai Kits (Android GitHub Packages AARs)
+analytics-kit-firebase = { group = "com.github.e-hai.AnalyticsKit-Android", name = "analytics-firebase", version.ref = "analyticsKit" }
+abtesting-kit-firebase = { group = "com.kit.abtesting", name = "abtesting-firebase", version.ref = "abTestingKit" }
+crashreport-kit = { group = "com.github.e-hai", name = "crashreport", version.ref = "crashReportKit" }
+mmp-kit-appsflyer = { group = "com.github.e-hai", name = "mmp-appsflyer", version.ref = "mmpKit" }
+ads-kit-admob = { group = "com.github.e-hai.AdsKit-Android", name = "adskit-admob", version.ref = "adsKit" }
+pay-kit = { group = "com.github.e-hai", name = "paykit", version.ref = "payKit" }
+push-kit = { group = "com.github.e-hai", name = "pushkit", version.ref = "pushKit" }
+log-kit = { group = "com.github.e-hai", name = "logkit", version.ref = "logKit" }
+video-kit = { group = "com.github.e-hai", name = "video", version.ref = "videoKit" }
+pag-kit = { group = "io.github.e-hai", name = "pagkit", version.ref = "pagKit" }
 
 # Coil 3 Image Loading (KMP)
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }

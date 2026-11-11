@@ -36,3 +36,7 @@ Secrets.swift
 
 # Kotlin Multiplatform
 .kotlin/
+
+# Native Binaries & Frameworks (downloaded via script / SPM / PagKit)
+iosApp/Frameworks/
+iosApp/Sources/like.pag
