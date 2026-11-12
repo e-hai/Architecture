@@ -26,16 +26,38 @@ dependencyResolutionManagement {
 
         // e-hai 官方 SDK 仓库群 (GitHub Packages)
         listOf(
+            // [KIT_REPOS_START]
+            // [KIT:pag:START]
             "PagKit",
+            // [KIT:pag:END]
+            // [KIT:log:START]
             "LogKit-Android",
+            // [KIT:log:END]
+            // [KIT:crashreport:START]
             "CrashReportKit-Android",
+            // [KIT:crashreport:END]
+            // [KIT:analytics:START]
             "AnalyticsKit-Android",
+            // [KIT:analytics:END]
+            // [KIT:abtesting:START]
             "AbTestingKit-Android",
+            // [KIT:abtesting:END]
+            // [KIT:mmp:START]
             "MmpKit-Android",
+            // [KIT:mmp:END]
+            // [KIT:ads:START]
             "AdsKit-Android",
+            // [KIT:ads:END]
+            // [KIT:pay:START]
             "PayKit-Android",
+            // [KIT:pay:END]
+            // [KIT:push:START]
             "PushKit-Android",
+            // [KIT:push:END]
+            // [KIT:video:START]
             "VideoKit-Android",
+            // [KIT:video:END]
+            // [KIT_REPOS_END]
         ).forEach { repoName ->
             maven {
                 name = "GitHubPackages-$repoName"
@@ -77,20 +99,48 @@ include(":core:datastore")
 include(":core:navigation")
 include(":core:ui")
 
-// Core Commercial Kits (1:1 Native Passthrough)
+// Core Infrastructure & Commercial Kits
+// [KIT_MODULES_START]
+// [KIT:log:START]
 include(":core:log")
+// [KIT:log:END]
+// [KIT:crashreport:START]
 include(":core:crashreport")
+// [KIT:crashreport:END]
+// [KIT:analytics:START]
 include(":core:analytics")
+// [KIT:analytics:END]
+// [KIT:abtesting:START]
 include(":core:abtesting")
+// [KIT:abtesting:END]
+// [KIT:mmp:START]
 include(":core:mmp")
+// [KIT:mmp:END]
+// [KIT:ads:START]
 include(":core:ads")
+// [KIT:ads:END]
+// [KIT:pay:START]
 include(":core:pay")
+// [KIT:pay:END]
+// [KIT:push:START]
 include(":core:push")
+// [KIT:push:END]
+// [KIT:video:START]
 include(":core:video")
+// [KIT:video:END]
+// [KIT:pag:START]
 include(":core:pag")
+// [KIT:pag:END]
+// [KIT_MODULES_END]
 
 // Features
 // [FEATURE_MODULES_START]
+// [FEATURE:home:START]
 include(":features:home:api")
 include(":features:home:impl")
+// [FEATURE:home:END]
+// [FEATURE:debug:START]
+include(":features:debug:api")
+include(":features:debug:impl")
+// [FEATURE:debug:END]
 // [FEATURE_MODULES_END]

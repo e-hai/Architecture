@@ -18,7 +18,7 @@ class MyApplication : Application() {
         val isDevFlavor = BuildConfig.FLAVOR == "dev"
         val env = if (isDevFlavor) AppEnvironment.DEV else AppEnvironment.PROD
 
-        // 1. 初始化未实现跨平台的 Android 原生 Kit (8 大 AAR)
+        // 1. 初始化十大基础设施与商业化 Kit (9 大 AAR 委托 + PagKit 原生运行环境)
         NativeKitBootstrap.initKits(
             application = this,
             debug = isDebug,

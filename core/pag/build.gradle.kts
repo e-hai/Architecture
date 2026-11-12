@@ -7,7 +7,17 @@ android {
     namespace = "xxx.yyy.zzz.core.pag"
 }
 
-val xcframeworkPath = rootProject.file("iosApp/Frameworks/libpag.xcframework")
+val libpagCacheDir = rootProject.file(".gradle/libpag-ios/4.5.102")
+val xcframeworkPath = libpagCacheDir.resolve("libpag.xcframework")
+val ensureScript = rootProject.file("scripts/ensure_libpag_xcframework.sh")
+
+val ensureLibpagXcframework =
+    tasks.register<Exec>("ensureLibpagXcframework") {
+        group = "build setup"
+        description = "确保 Kotlin/Native 链接所需的 libpag.xcframework 已下载并校验 SHA256"
+        commandLine("bash", ensureScript.absolutePath, libpagCacheDir.absolutePath)
+        outputs.dir(xcframeworkPath)
+    }
 
 kotlin {
     compilerOptions {
@@ -21,8 +31,11 @@ kotlin {
             } else {
                 "ios-arm64"
             }
-        val frameworkDir = File(xcframeworkPath, sliceDir)
+        val frameworkDir = xcframeworkPath.resolve(sliceDir)
         binaries.all {
+            linkTaskProvider.configure {
+                dependsOn(ensureLibpagXcframework)
+            }
             linkerOpts(
                 "-F${frameworkDir.absolutePath}",
                 "-framework",

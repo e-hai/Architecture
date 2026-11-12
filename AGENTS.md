@@ -47,16 +47,16 @@
 #### 范式 A：1:1 原生委托透传（适用于 9 大纯原生 SDK：`log`, `crashreport`, `analytics`, `abtesting`, `mmp`, `ads`, `pay`, `push`, `video`）
 - **100% 纯 `commonMain` 契约**：这 9 个模块**禁止包含任何 `androidMain` 与 `iosMain` 目录**。仅对外暴露 `Core*` 静态门面、`*Delegate` 接口契约、`Default*Delegate` 兜底实现与业务常量；
 - **统一 `Core*` 门面命名**：门面统一规范为 `CoreLog`、`CoreCrashReport`、`CoreAnalytics`、`CoreAbTesting`、`CoreMmp`、`CoreAds`、`CorePay`、`CorePush`、`CoreVideo`，彻底杜绝与底层原生类名冲突；
-- **双端宿主 1:1 对称委托**：
-  - Android 宿主（`androidApp/.../NativeKitBootstrap.kt`）：统一声明 9 个 `private class Android*Delegate : *Delegate`；
-  - iOS 宿主（`iosApp/.../NativeKitBootstrap.swift`）：统一声明 9 个 `private final class Ios*Delegate : NSObject, *Delegate`；
+- **双端宿主 1:1 对称委托（按文件独立隔离）**：
+  - Android 宿主（`androidApp/.../bridge/delegates/Android*Delegate.kt`）：独立声明 9 个 `internal class Android*Delegate : *Delegate`，由 `NativeKitBootstrap.kt` 统一装配；
+  - iOS 宿主（`iosApp/Sources/Bridge/Delegates/Ios*Delegate.swift`）：独立声明 9 个 `internal final class Ios*Delegate : NSObject, *Delegate`，由 `NativeKitBootstrap.swift` 统一装配；
 - **原生 SDK API 绝对下沉隔离**：全工程中唯一允许 `import` 和调用原生 AAR / SPM API 的地方，严格限制在各自宿主的私有 Delegate 内部；
 - **跨端初始化方法统一 `doInit*` 命名**：显式使用 `doInit(...)` / `doInitAllLog()`，规避 Kotlin/Native 导出 Objective-C 头文件时的隐式改名，确保双端调用代码 100% 对齐；
 - **契约驱动测试 (Fake over Mock)**：全面禁止在项目中引入动态运行时 Mock 框架，单测通过 `Core*.install(Fake*Delegate())` 注入手写强类型 Fake 实现。
 
 #### 范式 B：KMP 原生库直连门面包装（适用于已实现 KMP+CMP 标准化的库：`pag`）
-- **Core 模块直接包装**：`:core:pag` 直接在 `commonMain` 中依赖 `io.github.e-hai:pagkit`，统一暴露 `CorePag` 门面并 re-export 导出 CMP 动效组件（`PagView`, `rememberPagState`, `PagSource`）；
-- **宿主无需声明 Delegate**：宿主无需手写视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层原生运行时初始化（如 Android 的 `PagKitAndroid.init(appContext)`，iOS Xcode 静态/动态链接）。
+- **Core 模块直接包装**：`:core:pag` 直接在 `commonMain` 中依赖 `io.github.e-hai:pagkit`，统一暴露 `CorePag` 门面并在 `PagComponents.kt` re-export 导出 CMP 动效组件（`PagView`, `PagImageView`, `rememberPagState`, `PagSource`, `PagState`）；上层业务严禁跳过 `:core:pag` 直接 `import io.github.pagkit.*`；
+- **宿主无需声明 Delegate**：宿主无需手写视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层原生运行时初始化（Android 端 `PagKitAndroid.init(appContext)`；iOS 端 Xcode 通过 `iosApp/Vendor/LibPag` SPM `binaryTarget` 集成，KMP 链接通过 `scripts/ensure_libpag_xcframework.sh` 自动缓存）。
 
 ### 5. 依赖分发与仓库治理 (GitHub Packages Distribution)
 - **全面下线 JitPack**：所有 Kit 制品统一发布至 GitHub Packages (`https://maven.pkg.github.com/e-hai/<repoName>`)，双端依赖版本格式标准化，去除 `v` 前缀；

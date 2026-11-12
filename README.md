@@ -34,17 +34,24 @@
 ```
 > **提示**：通过 `--features` 参数可同时批量生成并自动挂载多个初始业务特性模块；`--app-id` 与 `--test-app-id` 自动写入双端工程配置。
 
-### 1.2 一键生成业务模块 (`create_feature.sh`)
+### 1.2 业务模块与 Kit 热插拔管理 (`create_feature.sh` / `remove_feature.sh` / `manage_kit.sh`)
 当需要为项目添加新的业务特性时，运行：
 ```bash
 ./create_feature.sh profile
 ```
-该脚本采用标准 `api` + `impl` 规范生成模块，并**全自动完成以下四点挂载（无需手动修改任何配置文件）**：
+该脚本采用标准 `api` + `impl` 规范生成模块，并**全自动完成以下挂载（无需手动修改任何配置文件）**：
 1. `settings.gradle.kts`：注册 `:features:profile:api` 与 `:features:profile:impl`；
 2. `shared/build.gradle.kts`：自动追加依赖项；
 3. `AppBootstrap.kt`：自动导入并注册 `profileModule` Koin 依赖注入；
 4. `AppNavGraph.kt`：自动导入 `ProfileNavKey` 与 `ProfileScreen` 并挂载路由分支；
 5. 自动执行 Spotless 代码规范格式化。
+
+需要卸载不需要的业务特性或 Kit 模块时，直接执行一键逆向裁剪脚本：
+```bash
+./remove_feature.sh profile          # 一键移除业务特性目录与全部路由/DI/Gradle 锚点
+./manage_kit.sh list                 # 检视十大 Kit 启用状态
+./manage_kit.sh remove video         # 一键双端全链路裁剪指定 Kit（含 Delegate 与 DebugSection）
+```
 
 ### 1.3 双端应用 ID 与测试/正式签名隔离规范
 
@@ -130,10 +137,10 @@ flowchart TD
 
 | 层次与模块 | 物理形态 | 核心职责与包含内容 | 严禁事项 (Don'ts) | 与传统 Android `:app` 对应关系 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`androidApp` / `iosApp`**<br/>（平台宿主薄壳层） | 独立 App 工程<br/>(`com.android.application` / Swift 6 Xcode) | 1. 声明操作系统入口（`Application`/`MainActivity`/`iOSApp.swift`）；<br/>2. 系统权限、签名、Flavor/Scheme 变体打包；<br/>3. 在 `NativeKitBootstrap` 内部实现 8 大私有 `*Delegate` 并桥接底层原生 SDK。 | ❌ 严禁在此编写具体业务 UI 页面；<br/>❌ 严禁直接被任何 KMP 模块反向依赖。 | 继承原 `:app` **10%** 的纯系统宿主容器与打包职责。 |
-| **`shared`**<br/>（跨端 App 组装层） | 纯 KMP 库<br/>(`myproject.kmp.library` + CMP) | 1. 承载 CMP 根视图 `App.kt`；<br/>2. 全局路由分发表 `AppNavGraph.kt`；<br/>3. 全局 Koin 依赖注入聚合中心 `AppBootstrap.kt`；<br/>4. 内置仅 Debug 模式可用的 `DebugScreen.kt`；<br/>5. 打包并导出 `Shared.framework` 供 iOS 消费。 | ❌ **严禁在此直接编写具体业务页面或业务数据仓库**（业务必须下沉至 `features:*`）。 | 继承原 `:app` **90%** 的跨端路由分发、DI 组装与根 UI 挂载职责。 |
+| **`androidApp` / `iosApp`**<br/>（平台宿主薄壳层） | 独立 App 工程<br/>(`com.android.application` / Swift 6 Xcode) | 1. 声明操作系统入口（`Application`/`MainActivity`/`iOSApp.swift`）；<br/>2. 系统权限、签名、Flavor/Scheme 变体打包；<br/>3. 在 `delegates/` / `Delegates/` 下按文件隔离实现 9 大 `*Delegate` 并由 `NativeKitBootstrap` 装配。 | ❌ 严禁在此编写具体业务 UI 页面；<br/>❌ 严禁直接被任何 KMP 模块反向依赖。 | 继承原 `:app` **10%** 的纯系统宿主容器与打包职责。 |
+| **`shared`**<br/>（跨端 App 组装层） | 纯 KMP 库<br/>(`myproject.kmp.library` + CMP) | 1. 承载 CMP 根视图 `App.kt`；<br/>2. 全局路由分发表 `AppNavGraph.kt`；<br/>3. 全局 Koin 依赖注入聚合中心 `AppBootstrap.kt`；<br/>4. 打包并导出 `Shared.framework` 供 iOS 消费。 | ❌ **严禁在此直接编写具体业务页面或业务数据仓库**（业务与调试面板均下沉至 `features:*`）。 | 继承原 `:app` **90%** 的跨端路由分发、DI 组装与根 UI 挂载职责。 |
 | **`features:*`**<br/>（跨端业务特性层） | 纯 KMP 库群<br/>(`api` + `impl` 成对出现) | 1. **`:api` 模块**：仅包含 `@Serializable` 的 `NavKey` 路由键及对外暴露的接口契约（供其他业务模块跳转使用）；<br/>2. **`:impl` 模块**：承载具体 CMP `Screen`、`ViewModel`、`UiState`、离线优先 `Repository` 与 `Koin Module`。 | ❌ 外部业务模块严禁直接依赖对方的 `:impl` 模块；<br/>❌ 严禁跨模块传递未沉淀的模型实体。 | 对应原生多模块架构中的 `:feature:*` 业务特性模块。 |
-| **`core:*`**<br/>（核心基础设施层） | 纯 KMP 库群<br/>（单向底层依赖） | 1. **6 大基础库**：通用模型（`model`）、网络（`network`）、数据库（`database`）、键值存储（`datastore`）、导航状态机（`navigation`）、基础 UI 与多语言（`ui`）；<br/>2. **8 大商业化门面**：纯 `commonMain` 契约（`Core*` 静态门面 + `*Delegate` 接口 + `Default*Delegate` 兜底）。 | ❌ 严禁反向依赖任何上层业务模块或 `shared` 模块；<br/>❌ 8 大商业化模块严禁包含 `androidMain` 与 `iosMain`（保持 100% 纯契约）。 | 对应原生多模块架构中的 `:core:*` 基础设施库。 |
+| **`core:*`**<br/>（核心基础设施层） | 纯 KMP 库群<br/>（单向底层依赖） | 1. **6 大基础库**：通用模型（`model`）、网络（`network`）、数据库（`database`）、键值存储（`datastore`）、导航状态机（`navigation`）、基础 UI 与多语言（`ui`）；<br/>2. **十大 Kit 模块**：9 大纯 `commonMain` 透传门面 + 1 个 KMP 直连库（`core:pag`）。 | ❌ 严禁反向依赖任何上层业务模块或 `shared` 模块；<br/>❌ 9 大透传模块严禁包含 `androidMain` 与 `iosMain`。 | 对应原生多模块架构中的 `:core:*` 基础设施库。 |
 
 ### 2.3 物理工程目录树
 
@@ -141,29 +148,31 @@ flowchart TD
 Architecture/
 ├── androidApp/                                  # [第一层：Android 宿主薄壳]
 │   ├── src/main/AndroidManifest.xml
-│   └── src/main/kotlin/xxx/yyy/zzz/
+│   └── src/main/kotlin/xxx/yyy/zzz/android/
 │       ├── MyApplication.kt                     # 冷启动两段式初始化入口
 │       ├── MainActivity.kt                      # 挂载 CMP App() 根视图
-│       └── NativeKitBootstrap.kt                # 声明 8 个私有 Android*Delegate
+│       └── bridge/
+│           ├── NativeKitBootstrap.kt            # 十大 Kit 统一引导装配器
+│           └── delegates/Android*Delegate.kt    # 9 个独立拆分的原生委托实现
 ├── iosApp/                                      # [第一层：iOS 宿主薄壳]
-│   ├── Package.swift                            # 引入 e-hai/*-iOS 原生 8 大 SPM 库
-│   └── iosApp/
+│   ├── Package.swift / project.yml              # 引入 e-hai/*-iOS 与 Vendor/LibPag SPM
+│   ├── Vendor/LibPag/Package.swift              # libpag.xcframework 官方 binaryTarget SPM 包装
+│   └── Sources/
 │       ├── iOSApp.swift                         # SwiftUI App 入口
-│       └── NativeKitBootstrap.swift             # 声明 8 个私有 Ios*Delegate
-├── shared/                                      # [第二层：跨端 App 组装中枢 / 伞模块]
+│       └── Bridge/
+│           ├── NativeKitBootstrap.swift         # 十大 Kit 统一引导装配器
+│           └── Delegates/Ios*Delegate.swift     # 9 个独立拆分的原生委托实现
+├── shared/                                      # [第二层：跨端 App 组装中枢 / 纯胶水伞模块]
 │   ├── build.gradle.kts                         # 聚合 features 与 core，导出 Shared.framework
 │   └── src/commonMain/kotlin/xxx/yyy/zzz/shared/
 │       ├── App.kt                               # Compose Multiplatform 根入口
 │       ├── di/AppBootstrap.kt                   # 全局 Koin 依赖注入组装中心
-│       ├── navigation/
-│       │   ├── AppNavGraph.kt                   # 全局跨平台路由表分发器
-│       │   └── DebugNavKey.kt                   # 调试台路由 Key
-│       └── debug/
-│           └── DebugScreen.kt                   # 内置开发者调试控制台 (仅 Debug 可见)
+│       └── navigation/AppNavGraph.kt            # 全局跨平台路由表分发器（含 defaultStartKey）
 ├── features/                                    # [第二层：跨平台独立业务特性群]
-│   └── home/                                    # 默认首页特性模块
-│       ├── api/                                 # 契约层：HomeNavKey.kt
-│       └── impl/                                # 实现层：HomeScreen / HomeViewModel / DI / 单测
+│   ├── home/                                    # 默认首页特性模块 (api + impl)
+│   └── debug/                                   # 可插拔开发者调试台模块 (api: DebugSection + impl)
+│       ├── api/                                 # DebugNavKey + DebugSection 扩展契约
+│       └── impl/sections/                       # 各个 Kit 独立的插件化调试区块 (按 Kit 单文件)
 ├── core/                                        # [第三层：核心基础设施与门面契约]
 │   ├── model/                                   # AppConfig 运行时环境 / 通用数据实体
 │   ├── network/                                 # Ktor HTTP Client 封装
@@ -188,6 +197,9 @@ Architecture/
 │   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0001 - 记录 How)
 ├── init_project.sh                              # 一键极简项目初始化脚本
 ├── create_feature.sh                            # 一键业务特性创建与自动挂载脚本
+├── remove_feature.sh                            # 一键业务特性安全移除脚本
+├── manage_kit.sh                                # 一键 Kit 状态检视与裁剪脚本
+├── scripts/ensure_libpag_xcframework.sh         # Kotlin/Native libpag 缓存保障脚本
 └── settings.gradle.kts                          # 全局模块声明
 ```
 

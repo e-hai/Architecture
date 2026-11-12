@@ -194,23 +194,24 @@ echo -e "${YELLOW}[4/5] 自动装配模块依赖与全局路由/DI...${NC}"
 # 1. 注册 settings.gradle.kts
 SETTINGS_FILE="settings.gradle.kts"
 if grep -q "// \[FEATURE_MODULES_END\]" "$SETTINGS_FILE"; then
-    awk -v text="include(\":features:${FEATURE_NAME}:api\")\ninclude(\":features:${FEATURE_NAME}:impl\")" '
+    awk -v text="// [FEATURE:${FEATURE_NAME}:START]\ninclude(\":features:${FEATURE_NAME}:api\")\ninclude(\":features:${FEATURE_NAME}:impl\")\n// [FEATURE:${FEATURE_NAME}:END]" '
         /\/\/ \[FEATURE_MODULES_END\]/ { print text }
         { print }
     ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 else
     cat <<EOF >> "$SETTINGS_FILE"
 
-// Feature: ${FEATURE_NAME}
+// [FEATURE:${FEATURE_NAME}:START]
 include(":features:${FEATURE_NAME}:api")
 include(":features:${FEATURE_NAME}:impl")
+// [FEATURE:${FEATURE_NAME}:END]
 EOF
 fi
 
 # 2. 注入 shared/build.gradle.kts 依赖
 SHARED_BUILD="shared/build.gradle.kts"
 if [ -f "$SHARED_BUILD" ] && grep -q "// \[FEATURE_DEPENDENCIES_END\]" "$SHARED_BUILD"; then
-    awk -v text="            implementation(project(\":features:${FEATURE_NAME}:api\"))\n            implementation(project(\":features:${FEATURE_NAME}:impl\"))" '
+    awk -v text="            // [FEATURE:${FEATURE_NAME}:START]\n            implementation(project(\":features:${FEATURE_NAME}:api\"))\n            implementation(project(\":features:${FEATURE_NAME}:impl\"))\n            // [FEATURE:${FEATURE_NAME}:END]" '
         /\/\/ \[FEATURE_DEPENDENCIES_END\]/ { print text }
         { print }
     ' "$SHARED_BUILD" > "$SHARED_BUILD.tmp" && mv "$SHARED_BUILD.tmp" "$SHARED_BUILD"
@@ -220,13 +221,13 @@ fi
 BOOTSTRAP_FILE=$(find shared/src/commonMain/kotlin -name "AppBootstrap.kt" | head -n 1)
 if [ -n "$BOOTSTRAP_FILE" ] && [ -f "$BOOTSTRAP_FILE" ]; then
     if grep -q "// \[FEATURE_IMPORTS_END\]" "$BOOTSTRAP_FILE"; then
-        awk -v text="import ${PKG_PREFIX}.feature.${FEATURE_NAME}.impl.${FEATURE_NAME}Module" '
+        awk -v text="// [FEATURE:${FEATURE_NAME}:START]\nimport ${PKG_PREFIX}.feature.${FEATURE_NAME}.impl.${FEATURE_NAME}Module\n// [FEATURE:${FEATURE_NAME}:END]" '
             /\/\/ \[FEATURE_IMPORTS_END\]/ { print text }
             { print }
         ' "$BOOTSTRAP_FILE" > "$BOOTSTRAP_FILE.tmp" && mv "$BOOTSTRAP_FILE.tmp" "$BOOTSTRAP_FILE"
     fi
     if grep -q "// \[FEATURE_KOIN_MODULES_END\]" "$BOOTSTRAP_FILE"; then
-        awk -v text="                    ${FEATURE_NAME}Module," '
+        awk -v text="                    // [FEATURE:${FEATURE_NAME}:START]\n                    ${FEATURE_NAME}Module,\n                    // [FEATURE:${FEATURE_NAME}:END]" '
             /\/\/ \[FEATURE_KOIN_MODULES_END\]/ { print text }
             { print }
         ' "$BOOTSTRAP_FILE" > "$BOOTSTRAP_FILE.tmp" && mv "$BOOTSTRAP_FILE.tmp" "$BOOTSTRAP_FILE"
@@ -237,13 +238,13 @@ fi
 NAVGRAPH_FILE=$(find shared/src/commonMain/kotlin -name "AppNavGraph.kt" | head -n 1)
 if [ -n "$NAVGRAPH_FILE" ] && [ -f "$NAVGRAPH_FILE" ]; then
     if grep -q "// \[FEATURE_IMPORTS_END\]" "$NAVGRAPH_FILE"; then
-        awk -v text="import ${PKG_PREFIX}.feature.${FEATURE_NAME}.api.${CLASS_PREFIX}NavKey\nimport ${PKG_PREFIX}.feature.${FEATURE_NAME}.impl.${CLASS_PREFIX}Screen" '
+        awk -v text="// [FEATURE:${FEATURE_NAME}:START]\nimport ${PKG_PREFIX}.feature.${FEATURE_NAME}.api.${CLASS_PREFIX}NavKey\nimport ${PKG_PREFIX}.feature.${FEATURE_NAME}.impl.${CLASS_PREFIX}Screen\n// [FEATURE:${FEATURE_NAME}:END]" '
             /\/\/ \[FEATURE_IMPORTS_END\]/ { print text }
             { print }
         ' "$NAVGRAPH_FILE" > "$NAVGRAPH_FILE.tmp" && mv "$NAVGRAPH_FILE.tmp" "$NAVGRAPH_FILE"
     fi
     if grep -q "// \[FEATURE_NAV_CASES_END\]" "$NAVGRAPH_FILE"; then
-        awk -v text="        is ${CLASS_PREFIX}NavKey -> {\n            ${CLASS_PREFIX}Screen(\n                modifier = modifier,\n            )\n        }" '
+        awk -v text="        // [FEATURE:${FEATURE_NAME}:START]\n        is ${CLASS_PREFIX}NavKey -> {\n            ${CLASS_PREFIX}Screen(\n                modifier = modifier,\n            )\n        }\n        // [FEATURE:${FEATURE_NAME}:END]" '
             /\/\/ \[FEATURE_NAV_CASES_END\]/ { print text }
             { print }
         ' "$NAVGRAPH_FILE" > "$NAVGRAPH_FILE.tmp" && mv "$NAVGRAPH_FILE.tmp" "$NAVGRAPH_FILE"

@@ -36,7 +36,7 @@ ADMOB_REWARDED_ID = ca-app-pub-3940256099942544/1712485313
 ADMOB_APP_OPEN_ID = ca-app-pub-3940256099942544/5575463023
 
 // -------------------------------------------------------------------
-// 5. 八大商业化 Kit 测试凭证 (Commercial Kits Test Credentials)
+// 5. 十大商业化与基础设施 Kit 测试凭证 (Kits Test Credentials)
 // -------------------------------------------------------------------
 // CoreMmp (AppsFlyer 测试 Token 与 Apple App ID)
 APPSFLYER_KEY = dummy_appsflyer_dev_key

@@ -12,12 +12,17 @@ import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.network.coreNetworkModule
 // [FEATURE_IMPORTS_START]
+// [FEATURE:home:START]
 import xxx.yyy.zzz.feature.home.impl.homeModule
+// [FEATURE:home:END]
+// [FEATURE:debug:START]
+import xxx.yyy.zzz.feature.debug.impl.debugModule
+// [FEATURE:debug:END]
 // [FEATURE_IMPORTS_END]
 
 /**
  * 跨平台 KMP 核心库引导器（AppBootstrap）。
- * 专职负责已实现跨平台的纯 KMP 基础设施（Koin DI 容器：Room / DataStore / Ktor）初始化。
+ * 专职负责已实现跨平台的纯 KMP 基础设施（Koin DI 容器：Room / DataStore / Ktor）与各业务 Feature 模块初始化。
  */
 object AppBootstrap {
     private var isInitialized = false
@@ -43,7 +48,12 @@ object AppBootstrap {
                     coreDatabaseModule,
                     coreDatastoreModule,
                     // [FEATURE_KOIN_MODULES_START]
+                    // [FEATURE:home:START]
                     homeModule,
+                    // [FEATURE:home:END]
+                    // [FEATURE:debug:START]
+                    debugModule,
+                    // [FEATURE:debug:END]
                     // [FEATURE_KOIN_MODULES_END]
                 )
             }

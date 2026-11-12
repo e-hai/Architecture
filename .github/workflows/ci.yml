@@ -14,6 +14,12 @@ jobs:
   kmp-build-and-test:
     name: Code Quality, Unit Tests & Multiplatform Build
     runs-on: macos-14
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,8 +31,8 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Make Gradle Wrapper executable
-        run: chmod +x gradlew
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew scripts/*.sh
 
       - name: Run Spotless Code Style Check
         run: ./gradlew spotlessCheck
@@ -44,3 +50,12 @@ jobs:
         run: |
           cd iosApp
           swift test
+
+      - name: Generate Xcode Project and Build iOS Simulator App
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+          cd iosApp
+          xcodegen generate --spec project.yml
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build

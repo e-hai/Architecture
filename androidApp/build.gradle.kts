@@ -153,25 +153,47 @@ dependencies {
         implementation("androidx.work:work-runtime-ktx:2.8.1")
     }
     implementation(project(":shared"))
+    // [KIT_DEPENDENCIES_START]
+    // [KIT:log:START]
     implementation(project(":core:log"))
-    implementation(project(":core:crashreport"))
-    implementation(project(":core:analytics"))
-    implementation(project(":core:abtesting"))
-    implementation(project(":core:mmp"))
-    implementation(project(":core:ads"))
-    implementation(project(":core:pay"))
-    implementation(project(":core:push"))
-    implementation(project(":core:video"))
-    implementation(project(":core:pag"))
     implementation(libs.log.kit)
+    // [KIT:log:END]
+    // [KIT:crashreport:START]
+    implementation(project(":core:crashreport"))
     implementation(libs.crashreport.kit)
+    // [KIT:crashreport:END]
+    // [KIT:analytics:START]
+    implementation(project(":core:analytics"))
     implementation(libs.analytics.kit.firebase)
+    // [KIT:analytics:END]
+    // [KIT:abtesting:START]
+    implementation(project(":core:abtesting"))
     implementation(libs.abtesting.kit.firebase)
+    // [KIT:abtesting:END]
+    // [KIT:mmp:START]
+    implementation(project(":core:mmp"))
     implementation(libs.mmp.kit.appsflyer)
+    // [KIT:mmp:END]
+    // [KIT:ads:START]
+    implementation(project(":core:ads"))
     implementation(libs.ads.kit.admob)
+    // [KIT:ads:END]
+    // [KIT:pay:START]
+    implementation(project(":core:pay"))
     implementation(libs.pay.kit)
+    // [KIT:pay:END]
+    // [KIT:push:START]
+    implementation(project(":core:push"))
     implementation(libs.push.kit)
+    // [KIT:push:END]
+    // [KIT:video:START]
+    implementation(project(":core:video"))
     implementation(libs.video.kit)
+    // [KIT:video:END]
+    // [KIT:pag:START]
+    implementation(project(":core:pag"))
+    // [KIT:pag:END]
+    // [KIT_DEPENDENCIES_END]
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
 }

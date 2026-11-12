@@ -36,7 +36,7 @@ ADMOB_REWARDED_ID =
 ADMOB_APP_OPEN_ID = 
 
 // -------------------------------------------------------------------
-// 5. 八大商业化 Kit 正式凭证 (Commercial Kits Production Credentials)
+// 5. 十大商业化与基础设施 Kit 正式凭证 (Kits Production Credentials)
 // -------------------------------------------------------------------
 // CoreMmp (AppsFlyer 生产 Token 与 Apple App ID)
 APPSFLYER_KEY = dummy_appsflyer_prod_key

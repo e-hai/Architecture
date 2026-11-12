@@ -145,7 +145,7 @@ NEW_PATH=$(echo "$NEW_NAMESPACE" | tr '.' '/')
 # 2. 全局文本替换
 echo -e "${YELLOW}[1/6] 正在执行全局文本内容替换...${NC}"
 
-find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" -o -name "*.example" -o -name "*.properties" -o -name "*.xcconfig" \) \
+find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" -o -name "remove_feature.sh" -o -name "manage_kit.sh" -o -name "*.example" -o -name "*.properties" -o -name "*.xcconfig" \) \
     -not -path '*/.*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './init_project.sh' | while read -r file; do
     "${SED_INPLACE[@]}" "s/xxx\.yyy\.zzz/${NEW_NAMESPACE}/g" "$file"
     "${SED_INPLACE[@]}" "s/myproject/${NEW_PREFIX}/g" "$file"
@@ -176,7 +176,7 @@ echo -e "${GREEN}✔ 文本替换完成。${NC}"
 echo -e "${YELLOW}[2/6] 正在移动源码文件夹以匹配新包路径...${NC}"
 
 find . -type d \( -path "*/src/*/kotlin/${OLD_PATH}" -o -path "*/src/*/java/${OLD_PATH}" \) | while read -r old_dir; do
-    base_dir=$(echo "$old_dir" | sed "s/\/${OLD_PATH}//g")
+    base_dir="${old_dir%/${OLD_PATH}}"
     mkdir -p "${base_dir}/${NEW_PATH}"
     mv "${old_dir}"/* "${base_dir}/${NEW_PATH}/"
     rm -rf "${base_dir}/xxx"
@@ -185,7 +185,7 @@ done
 # 4. Room 数据库 Schema 目录重命名
 echo -e "${YELLOW}[3/6] 正在同步 Room Schema 快照目录...${NC}"
 find core/database/schemas -maxdepth 1 -type d -name "${OLD_DOT_PKG}*" 2>/dev/null | while read -r schema_dir; do
-    target_dir=$(echo "$schema_dir" | sed "s/${OLD_DOT_PKG}/${NEW_NAMESPACE}/g")
+    target_dir="${schema_dir/${OLD_DOT_PKG}/${NEW_NAMESPACE}}"
     mv "$schema_dir" "$target_dir"
 done
 

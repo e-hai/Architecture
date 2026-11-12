@@ -6,33 +6,55 @@ options:
   xcodeVersion: "16.0"
 
 packages:
+  # [KIT:log:START]
   LogKit:
     url: https://github.com/e-hai/LogKit-iOS.git
     from: 1.0.0
+  # [KIT:log:END]
+  # [KIT:crashreport:START]
   CrashReportKit:
     url: https://github.com/e-hai/CrashReportKit-iOS.git
     from: 1.0.0
+  # [KIT:crashreport:END]
+  # [KIT:analytics:START]
   AnalyticsKit:
     url: https://github.com/e-hai/AnalyticsKit-iOS.git
     from: 1.0.0
+  # [KIT:analytics:END]
+  # [KIT:abtesting:START]
   AbTestingKit:
     url: https://github.com/e-hai/AbTestingKit-iOS.git
     from: 1.0.0
+  # [KIT:abtesting:END]
+  # [KIT:mmp:START]
   MmpKit:
     url: https://github.com/e-hai/MmpKit-iOS.git
     from: 1.0.0
+  # [KIT:mmp:END]
+  # [KIT:ads:START]
   AdsKit:
     url: https://github.com/e-hai/AdsKit-iOS.git
-    from: 1.0.0
+    from: 1.0.2
+  # [KIT:ads:END]
+  # [KIT:pay:START]
   PayKit:
     url: https://github.com/e-hai/PayKit-iOS.git
-    from: 1.0.0
+    from: 1.1.1
+  # [KIT:pay:END]
+  # [KIT:push:START]
   PushKit:
     url: https://github.com/e-hai/PushKit-iOS.git
     from: 1.0.0
+  # [KIT:push:END]
+  # [KIT:video:START]
   VideoKit:
     url: https://github.com/e-hai/VideoKit-iOS.git
     from: 1.0.0
+  # [KIT:video:END]
+  # [KIT:pag:START]
+  LibPag:
+    path: Vendor/LibPag
+  # [KIT:pag:END]
 
 targets:
   iosApp:
@@ -57,26 +79,46 @@ targets:
         ADMOB_APP_OPEN_ID: "$(ADMOB_APP_OPEN_ID)"
         UILaunchScreen: {}
     dependencies:
+      # [KIT:log:START]
       - package: LogKit
         product: LogKit
+      # [KIT:log:END]
+      # [KIT:crashreport:START]
       - package: CrashReportKit
         product: CrashReportKit
+      # [KIT:crashreport:END]
+      # [KIT:analytics:START]
       - package: AnalyticsKit
         product: Analytics
+      # [KIT:analytics:END]
+      # [KIT:abtesting:START]
       - package: AbTestingKit
         product: AbTesting
+      # [KIT:abtesting:END]
+      # [KIT:mmp:START]
       - package: MmpKit
         product: MmpCore
+      # [KIT:mmp:END]
+      # [KIT:ads:START]
       - package: AdsKit
         product: AdsKit
+      # [KIT:ads:END]
+      # [KIT:pay:START]
       - package: PayKit
         product: PayKit
+      # [KIT:pay:END]
+      # [KIT:push:START]
       - package: PushKit
         product: PushKit
+      # [KIT:push:END]
+      # [KIT:video:START]
       - package: VideoKit
         product: VideoKit
-      - framework: Frameworks/libpag.xcframework
-        embed: true
+      # [KIT:video:END]
+      # [KIT:pag:START]
+      - package: LibPag
+        product: libpag
+      # [KIT:pag:END]
       - framework: ../shared/build/bin/iosSimulatorArm64/debugFramework/Shared.framework
         embed: true
     preBuildScripts:
@@ -92,7 +134,6 @@ targets:
         ONLY_ACTIVE_ARCH: YES
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/Frameworks
           - $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
           - $(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework
       configs:

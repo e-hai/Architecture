@@ -20,6 +20,11 @@ interface AdsDelegate {
     fun isReady(triggerId: String): Boolean
 
     fun showAd(triggerId: String)
+
+    /**
+     * 打开广告 SDK 原生调试 / 聚合检查面板（如 AdMob Ad Inspector / AppLovin Mediation Debugger）。
+     */
+    fun openDebug()
 }
 
 /**
@@ -39,6 +44,10 @@ object DefaultAdsDelegate : AdsDelegate {
 
     override fun showAd(triggerId: String) {
         println("[Ads] ShowAd: triggerId=$triggerId (NoOp)")
+    }
+
+    override fun openDebug() {
+        println("[Ads] OpenDebug (NoOp)")
     }
 }
 
@@ -67,4 +76,6 @@ object CoreAds : AdsDelegate {
     override fun isReady(triggerId: String): Boolean = delegate.isReady(triggerId)
 
     override fun showAd(triggerId: String) = delegate.showAd(triggerId)
+
+    override fun openDebug() = delegate.openDebug()
 }

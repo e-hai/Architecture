@@ -143,10 +143,10 @@ flowchart LR
 
 **设计要点**：
 - 无须声明 `*Delegate` 接口与桥接；
-- `:core:pag` 统一封装 `CorePag` 门面及 `PagView` 等跨端 UI 组件；
-- 宿主仅需一行底层平台初始化：
+- `:core:pag` 通过 `CorePag` 与 `PagComponents.kt` 统一封装 `PagView`、`PagImageView`、`rememberPagState` 与 `PagSource`，严禁业务层直接 `import io.github.pagkit.*`；
+- 宿主仅需处理平台底层初始化：
   - Android：`NativeKitBootstrap` 中调用 `PagKitAndroid.init(appContext)` 提取原生 `.so`；
-  - iOS：Xcode 链接 `libpag.xcframework`。
+  - iOS：Xcode 通过 `iosApp/Vendor/LibPag` 本地 Swift Package (`binaryTarget`) 自动拉取并嵌入 `libpag.xcframework`，Gradle Kotlin/Native 链接阶段由 `scripts/ensure_libpag_xcframework.sh` 自动将官方包缓存至 `.gradle/libpag-ios/`（8MB 二进制零入库）。
 
 ---
 

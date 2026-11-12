@@ -29,7 +29,7 @@ public struct iOSApp: App {
         let baseUrl = info?["BASE_URL"] as? String ?? ""
         let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
 
-        // 1. 初始化未实现跨平台的 iOS 原生 Kit (8 大 Swift SPM Bridge)
+        // 1. 初始化十大基础设施与商业化 Kit (9 大 Swift SPM 委托 + PagKit)
         NativeKitBootstrap.initKits(
             admobAppId: admobAppId,
             appsFlyerKey: appsFlyerKey,
