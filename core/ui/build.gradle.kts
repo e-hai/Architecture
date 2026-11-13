@@ -3,8 +3,10 @@ plugins {
     alias(libs.plugins.myproject.kmp.compose)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.ui"
+kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.ui"
+    }
 }
 
 compose.resources {

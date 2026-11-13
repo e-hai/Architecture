@@ -10,11 +10,13 @@
 
 | 层次/目录 | 职责与插件 | 依赖规则 |
 | :--- | :--- | :--- |
-| **`androidApp`** | **独立 Android 宿主** (`com.android.application`)<br/>Application / MainActivity / Manifest / NativeKitBootstrap (9 大 `Android*Delegate` + 原生运行环境初始化) / 打包 | 依赖 `shared` 库、各 `core` 门面与底层原生 Kit AAR / 制品 |
-| **`shared`** | **纯 KMP 共享应用与 UI 根库** (`myproject.kmp.library` + CMP)<br/>App 根 Composable、AppNavGraph、Koin 装配、导出 `Shared.framework` | 聚合各 `core:*` 与 `feature:*` 模块 |
+| **`androidApp`** | **独立 Android 宿主** (`com.android.application` + AGP 9 Built-in Kotlin + New DSL)<br/>Application / MainActivity / Manifest / NativeKitBootstrap (9 大 `Android*Delegate` + 原生运行环境初始化) / 打包 | 依赖 `shared` 库、各 `core` 门面与底层原生 Kit AAR / 制品 |
+| **`shared`** | **纯 KMP 共享应用与 UI 根库** (`myproject.kmp.library` + `com.android.kotlin.multiplatform.library` + CMP)<br/>App 根 Composable、AppNavGraph、Koin 装配、导出 `Shared.framework` | 聚合各 `core:*` 与 `feature:*` 模块 |
 | **`iosApp`** | **独立 iOS 宿主工程** (Xcode / Swift 6 SPM)<br/>引入 `e-hai/*-iOS` SPM，NativeKitBootstrap (9 大 `Ios*Delegate`)，承载 `MainViewController` | 消费 `shared` 导出的 XCFramework 与 SPM 原生库 |
 | **`features:*`** | **业务特性模块** (`api` + `impl`)，CMP 跨平台呈现 | 外部仅依赖 `api`，`impl` 依赖 `core:*` |
-| **`core:*`** | **核心基础设施与十大 Kit 模块** (纯 KMP 库) | 单向被上层依赖，严禁反向依赖业务 |
+| **`core:*`** | **核心基础设施与十大 Kit 模块** (纯 KMP 库，使用 `kotlin { android { namespace = ... } }`) | 单向被上层依赖，严禁反向依赖业务 |
+
+> **AGP 9.0 原生插件约定**：所有 KMP 模块已彻底移除 `com.android.library`、`org.jetbrains.kotlin.android` 及 `gradle.properties` 中的 `android.builtInKotlin=false` / `android.newDsl=false` 降级开关；新增/编辑 KMP 模块时，严禁使用顶层 `android { }` 块，必须在 `kotlin { android { namespace = "..." } }` 中声明包名；含 Compose Resources 的模块由 `myproject.kmp.compose` 统一开启 `androidResources.enable = true`（且 Compose Multiplatform 需保持 `1.9.3+` 以兼容 AGP 9 `onVariants` API）。
 
 ---
 

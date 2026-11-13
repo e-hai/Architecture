@@ -4,11 +4,11 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.navigation"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.navigation"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)

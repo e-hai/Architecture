@@ -4,11 +4,11 @@ plugins {
     alias(libs.plugins.myproject.koin)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.shared"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.shared"
+    }
+
     listOf(
         iosArm64(),
         iosSimulatorArm64(),

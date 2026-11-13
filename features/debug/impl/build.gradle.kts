@@ -2,11 +2,11 @@ plugins {
     alias(libs.plugins.myproject.kmp.feature.impl)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.feature.debug.impl"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.feature.debug.impl"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":features:debug:api"))

@@ -137,14 +137,17 @@ android {
         }
     }
 
+    flavorDimensions += "environment"
     productFlavors {
-        named("dev") {
+        create("dev") {
+            dimension = "environment"
             // 锁定 IDE 默认构建变体为 devDebug，点击运行按钮 100% 走测试配置
             isDefault = true
             signingConfig = signingConfigs.getByName("test")
             applyEnv(devEnv)
         }
-        named("prod") {
+        create("prod") {
+            dimension = "environment"
             signingConfig = signingConfigs.getByName("prod")
             applyEnv(prodEnv)
         }

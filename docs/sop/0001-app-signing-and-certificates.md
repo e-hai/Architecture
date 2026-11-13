@@ -182,7 +182,7 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 | :--- | :--- | :--- | :--- |
 | **Android** | 1. 密钥文件安全忽略 | `.gitignore` 已默认忽略 `keystore.properties`、`*.jks`、`*.keystore`。 | [.gitignore](file:///Users/a/Develop/project/android/Architecture/.gitignore) |
 | **Android** | 2. 密钥属性文件模版 | 已提供带字段说明的模板文件。 | [keystore.properties.example](file:///Users/a/Develop/project/android/Architecture/keystore.properties.example) |
-| **Android** | 3. Gradle 环境维度声明 | 全局约定插件中已统一注册 `environment` 维度与 `dev`、`prod` 两个 flavor。 | [AndroidApplicationConventionPlugin.kt](file:///Users/a/Develop/project/android/Architecture/build-logic/convention/src/main/kotlin/AndroidApplicationConventionPlugin.kt#L32-L40) |
+| **Android** | 3. Gradle 环境维度声明 | Android 宿主中统一注册 `environment` 维度与 `dev`、`prod` 两个 flavor。 | [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts#L140-L154) |
 | **Android** | 4. Gradle 签名逻辑与变体绑定 | 宿主已实现**三级属性读取**与**链式无证书安全降级**机制，自动映射 4 大构建变体。 | [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts#L7-L86) |
 | **iOS** | 5. Xcode 多环境 Bundle ID 隔离 | `iosApp/project.yml` 已配置 `Debug` 对应 `APP_ID_DEV`、`Release` 对应 `APP_ID_PROD`。 | [iosApp/project.yml](file:///Users/a/Develop/project/android/Architecture/iosApp/project.yml#L24-L32) |
 | **双端** | 6. 一键全局包名替换 | `./init_project.sh` 可一键将双端默认包名重命名为业务正式包名与测试包名。 | [init_project.sh](file:///Users/a/Develop/project/android/Architecture/init_project.sh) |
@@ -268,8 +268,8 @@ keytool -list -v -keystore config/keystore/release.jks -alias release_key -store
 > [!IMPORTANT]
 > **什么时候才需要开发者手动修改 [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts)？**
 > 仅在以下 3 种进阶扩展场景下才需要改动：
-> 1. **定制测试版本名后缀**：例如希望测试包在系统应用信息中显示 `1.0.0-dev`，在 `productFlavors.named("dev")` 中增加 `versionNameSuffix = "-dev"`；
-> 2. **增加第三个环境**：需要新增预发（`staging`）环境时，在 `AndroidApplicationConventionPlugin.kt` 和 `androidApp/build.gradle.kts` 中同步添加 `staging` flavor；
+> 1. **定制测试版本名后缀**：例如希望测试包在系统应用信息中显示 `1.0.0-dev`，在 `productFlavors.getByName("dev")` / `create("dev")` 中增加 `versionNameSuffix = "-dev"`；
+> 2. **增加第三个环境**：需要新增预发（`staging`）环境时，只需在 `androidApp/build.gradle.kts` 的 `productFlavors` 中新增 `create("staging") { dimension = "environment"; ... }`；
 > 3. **定制签名方案版本**：需要强制开关 V1/V2/V3 方案时在 `signingConfigs` 显式声明。
 
 ---

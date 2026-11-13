@@ -4,11 +4,11 @@ plugins {
     alias(libs.plugins.myproject.koin)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.database"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.database"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:model"))

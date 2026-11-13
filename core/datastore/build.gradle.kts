@@ -3,11 +3,11 @@ plugins {
     alias(libs.plugins.myproject.koin)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.datastore"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.datastore"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.datastore.preferences.core)

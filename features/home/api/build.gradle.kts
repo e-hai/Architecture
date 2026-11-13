@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.myproject.kmp.feature.api)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.feature.home.api"
+kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.feature.home.api"
+    }
 }

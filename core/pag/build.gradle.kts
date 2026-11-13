@@ -3,10 +3,6 @@ plugins {
     alias(libs.plugins.myproject.kmp.compose)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.pag"
-}
-
 val libpagCacheDir = rootProject.file(".gradle/libpag-ios/4.5.102")
 val xcframeworkPath = libpagCacheDir.resolve("libpag.xcframework")
 val ensureScript = rootProject.file("scripts/ensure_libpag_xcframework.sh")
@@ -20,6 +16,10 @@ val ensureLibpagXcframework =
     }
 
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.pag"
+    }
+
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }

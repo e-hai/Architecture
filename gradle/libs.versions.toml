@@ -11,7 +11,7 @@ kotlin = "2.3.21"
 ksp = "2.3.8"
 spotless = "8.5.1"
 googleServices = "4.4.4"
-composeMultiplatform = "1.8.0"
+composeMultiplatform = "1.9.3"
 
 # Kotlinx
 kotlinxCoroutines = "1.11.0"
@@ -120,7 +120,7 @@ spotless-gradlePlugin = { group = "com.diffplug.spotless", name = "spotless-plug
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

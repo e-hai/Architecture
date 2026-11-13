@@ -88,8 +88,10 @@ plugins {
     alias(libs.plugins.${PLUGIN_PREFIX}.kmp.feature.api)
 }
 
-android {
-    namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.api"
+kotlin {
+    android {
+        namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.api"
+    }
 }
 EOF
 
@@ -113,11 +115,11 @@ plugins {
     alias(libs.plugins.${PLUGIN_PREFIX}.kmp.feature.impl)
 }
 
-android {
-    namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.impl"
-}
-
 kotlin {
+    android {
+        namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.impl"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":features:${FEATURE_NAME}:api"))
@@ -408,11 +410,11 @@ plugins {
     alias(libs.plugins.${PLUGIN_PREFIX}.kmp.feature.impl)
 }
 
-android {
-    namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.impl"
-}
-
 kotlin {
+    android {
+        namespace = "${PKG_PREFIX}.feature.${FEATURE_PKG}.impl"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":features:${FEATURE_NAME}:api"))

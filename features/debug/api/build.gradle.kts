@@ -4,11 +4,11 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.feature.debug.api"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.feature.debug.api"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)

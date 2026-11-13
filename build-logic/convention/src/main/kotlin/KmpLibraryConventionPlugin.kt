@@ -1,7 +1,8 @@
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -17,16 +18,16 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("org.jetbrains.kotlin.multiplatform")
-                apply("com.android.library")
+                apply("com.android.kotlin.multiplatform.library")
                 apply("myproject.spotless")
             }
 
-            extensions.configure<LibraryExtension> {
-                configureKotlinAndroid(this)
-            }
-
             extensions.configure<KotlinMultiplatformExtension> {
-                androidTarget()
+                // 使用 AGP 9.0 原生 KMP 库扩展配置单变体 Android Target，并开启 JVM 单元测试支持
+                (this as ExtensionAware).extensions.configure<KotlinMultiplatformAndroidLibraryTarget>("android") {
+                    configureKotlinAndroid(this)
+                    withHostTest {}
+                }
                 iosArm64()
                 iosSimulatorArm64()
 

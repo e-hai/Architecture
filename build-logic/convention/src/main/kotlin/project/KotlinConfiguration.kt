@@ -1,7 +1,7 @@
 package project
 
 import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
@@ -31,17 +31,16 @@ fun Project.configureKotlinAndroid(commonExtension: Any) {
                 }
             }
         }
-        is LibraryExtension -> {
+        is KotlinMultiplatformAndroidLibraryTarget -> {
             commonExtension.apply {
                 compileSdk {
                     version = release(compileSdkMajor) {
                         minorApiLevel = compileSdkMinor
                     }
                 }
-                defaultConfig.minSdk = minSdkVersion
-                compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_17
-                    targetCompatibility = JavaVersion.VERSION_17
+                minSdk = minSdkVersion
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_17)
                 }
             }
         }

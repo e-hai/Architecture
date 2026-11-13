@@ -3,11 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-android {
-    namespace = "xxx.yyy.zzz.core.model"
-}
-
 kotlin {
+    android {
+        namespace = "xxx.yyy.zzz.core.model"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)

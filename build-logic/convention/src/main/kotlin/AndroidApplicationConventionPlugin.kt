@@ -14,7 +14,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         with(target) {
             with(pluginManager) {
                 apply("com.android.application")
-                apply("org.jetbrains.kotlin.android")
                 apply("org.jetbrains.kotlin.plugin.compose")
                 apply("myproject.spotless")
                 apply("myproject.koin")
@@ -27,16 +26,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 buildFeatures {
                     buildConfig = true
                     compose = true
-                }
-
-                flavorDimensions += "environment"
-                productFlavors {
-                    create("dev") {
-                        dimension = "environment"
-                    }
-                    create("prod") {
-                        dimension = "environment"
-                    }
                 }
 
                 packaging {
