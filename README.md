@@ -75,7 +75,9 @@
 | **编译运行 Android (测试包)** | `./gradlew :androidApp:assembleDevDebug` | 生成测试 ID + 测试签名的 Android Debug APK |
 | **打包 Android (正式发布包)** | `./gradlew :androidApp:assembleProdRelease` | 生成正式 ID + 正式签名的 Release APK/AAB |
 | **生成 iOS Xcode 工程** | `cd iosApp && xcodegen generate --spec project.yml` | 由 `project.yml` 本地生成 `iosApp.xcodeproj`（已纳入 `.gitignore`，避免团队 `pbxproj` 冲突） |
+| **运行 iOS 宿主集成测试** | `cd iosApp && xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test` | 在 iOS Simulator 中真机链路测试 `Shared.framework` + 9 大 `Ios*Delegate`（CI 自动选定可用模拟器 UDID） |
 | **编译链接 iOS 框架** | `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` | 验证 `Shared.framework` 导出与链接 |
+| **构建无 Debug 面板 Prod 包** | `./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false` | 构建期物理裁剪 `:features:debug` 与 `like.pag`（iOS `Release` 构建由 `project.yml` 自动传入） |
 | **运行全模块单元测试** | `./gradlew allTests` | 运行全跨平台 `commonTest`、Android 单元测试与 iOS Simulator 测试 |
 | **格式化代码风格** | `./gradlew spotlessApply` | 依据官方 ktlint 规范自动格式化全工程代码 |
 | **代码规范静态检查** | `./gradlew spotlessCheck` | CI 门禁检查代码格式 |
@@ -158,7 +160,8 @@ Architecture/
 │           ├── NativeKitBootstrap.kt            # 十大 Kit 统一引导装配器
 │           └── delegates/Android*Delegate.kt    # 9 个独立拆分的原生委托实现
 ├── iosApp/                                      # [第一层：iOS 宿主薄壳]
-│   ├── Package.swift / project.yml              # 引入 e-hai/*-iOS 与 Vendor/LibPag SPM
+│   ├── project.yml                              # XcodeGen 单一真源（引入 e-hai/*-iOS 与 Vendor/LibPag SPM）
+│   ├── DebugResources/                          # 仅 Debug 构建打入的调试资源 (如 like.pag)
 │   ├── Vendor/LibPag/Package.swift              # libpag.xcframework 官方 binaryTarget SPM 包装
 │   └── Sources/
 │       ├── iOSApp.swift                         # SwiftUI App 入口

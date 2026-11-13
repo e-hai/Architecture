@@ -27,7 +27,7 @@ import xxx.yyy.zzz.core.ui.generated.resources.welcome_message
  */
 @Composable
 fun HomeScreen(
-    onNavigateToDebug: () -> Unit = {},
+    onNavigateToDebug: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -50,7 +50,7 @@ fun HomeScreen(
             style = MaterialTheme.typography.bodyMedium,
         )
 
-        if (uiState.isDebug) {
+        if (uiState.isDebug && onNavigateToDebug != null) {
             Spacer(modifier = Modifier.height(24.dp))
             OutlinedButton(onClick = onNavigateToDebug) {
                 Text("🛠️ " + stringResource(Res.string.open_debug_console))

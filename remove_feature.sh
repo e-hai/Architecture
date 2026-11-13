@@ -82,6 +82,11 @@ fi
 
 echo -e "${YELLOW}[2/3] 删除物理模块目录 features/${FEATURE_NAME}...${NC}"
 rm -rf "features/${FEATURE_NAME}"
+if [ "$FEATURE_NAME" = "debug" ]; then
+    rm -rf "shared/src/debugEnabled"
+    rm -f androidApp/src/*/assets/like.pag
+    rm -f iosApp/Sources/like.pag iosApp/DebugResources/like.pag
+fi
 
 echo -e "${YELLOW}[3/3] 执行 Spotless 格式化...${NC}"
 chmod +x gradlew

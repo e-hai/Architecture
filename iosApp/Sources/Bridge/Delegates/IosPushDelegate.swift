@@ -1,11 +1,7 @@
 import Foundation
 import PushKit
-#if canImport(UIKit)
-import UIKit
-#endif
-
-#if canImport(Shared)
 import Shared
+import UIKit
 
 /**
  * iOS 推送通知委托实现（1:1 透传 PushKit-iOS 原生 SDK，并在宿主生命周期同步系统权限与 APNs Token）。
@@ -46,7 +42,6 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
 
         refreshPermissionStatusAsync()
 
-        #if canImport(UIKit)
         lock.lock()
         let shouldRegisterObserver = activeObserver == nil
         lock.unlock()
@@ -62,7 +57,6 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
             activeObserver = observer
             lock.unlock()
         }
-        #endif
     }
 
     func registerPush() {
@@ -134,4 +128,3 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
         }
     }
 }
-#endif

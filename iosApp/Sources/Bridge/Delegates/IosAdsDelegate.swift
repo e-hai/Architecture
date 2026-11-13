@@ -1,7 +1,5 @@
 import AdsKit
 import Foundation
-
-#if canImport(Shared)
 import Shared
 import UIKit
 
@@ -192,4 +190,3 @@ private final class CustomAdsListener: AdCallback {
         onClosedClosure()
     }
 }
-#endif

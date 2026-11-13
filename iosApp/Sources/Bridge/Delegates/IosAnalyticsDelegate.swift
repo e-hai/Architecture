@@ -1,5 +1,6 @@
 import Analytics
 import Foundation
+import Shared
 
 #if canImport(AnalyticsFirebase)
 import AnalyticsFirebase
@@ -8,9 +9,6 @@ import AnalyticsFirebase
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif
-
-#if canImport(Shared)
-import Shared
 
 /**
  * iOS 数据埋点委托实现（1:1 透传 AnalyticsKit-iOS 原生 SDK）。
@@ -77,4 +75,3 @@ internal final class IosAnalyticsDelegate: NSObject, AnalyticsDelegate, @uncheck
         Analytics.setUserProperty(name: name, value: value)
     }
 }
-#endif

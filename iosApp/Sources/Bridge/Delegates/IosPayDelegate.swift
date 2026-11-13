@@ -1,7 +1,5 @@
 import Foundation
 import PayKit
-
-#if canImport(Shared)
 import Shared
 
 /**
@@ -118,4 +116,3 @@ internal final class IosPayDelegate: NSObject, PayDelegate, @unchecked Sendable 
         }
     }
 }
-#endif

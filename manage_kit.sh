@@ -132,7 +132,6 @@ cmd_remove() {
     rm -f "$IOS_DELEGATE"
 
     strip_kit_block "iosApp/project.yml" "$KIT"
-    strip_kit_block "iosApp/Package.swift" "$KIT"
     if [ "$KIT" = "pag" ]; then
         rm -rf "iosApp/Vendor/LibPag"
     fi

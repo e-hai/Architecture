@@ -1,12 +1,10 @@
 import AbTesting
 import Foundation
+import Shared
 
 #if canImport(AbTestingFirebase)
 import AbTestingFirebase
 #endif
-
-#if canImport(Shared)
-import Shared
 
 /**
  * iOS A/B 测试委托实现（优先挂载 Firebase Remote Config，缺失 GoogleService-Info.plist 时安全降级本地默认值）。
@@ -79,4 +77,3 @@ internal final class IosAbTestingDelegate: NSObject, AbTestingDelegate, @uncheck
         AbTestingClient.getDouble(key, default: defaultValue)
     }
 }
-#endif

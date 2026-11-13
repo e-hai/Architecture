@@ -122,10 +122,7 @@ android {
                 // 严禁回退给 test 签名！当执行正式 Release 打包任务时，强制阻断报错
                 gradle.taskGraph.whenReady {
                     val isBuildingProdRelease =
-                        allTasks.any {
-                            it.name.contains("Prod", ignoreCase = true) &&
-                                it.name.contains("Release", ignoreCase = true)
-                        }
+                        allTasks.any { it.name.contains("ProdRelease") }
                     if (isBuildingProdRelease) {
                         throw GradleException(
                             "【安全隔离拦截】检测到正在打包正式 Release 应用，但未配置有效正式证书 (STORE_FILE)！" +

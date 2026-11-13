@@ -1,13 +1,9 @@
 // [KIT:push:START]
 import PushKit
 // [KIT:push:END]
-import SwiftUI
-#if canImport(UIKit)
-import UIKit
-#endif
-
-#if canImport(Shared)
 import Shared
+import SwiftUI
+import UIKit
 
 // [KIT:push:START]
 /**
@@ -45,8 +41,6 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
  * 3. 执行冷启动标准化初始化：
  *    - Phase 1: NativeKitBootstrap.initKits()（未跨平台原生 Kit 初始化与桥接）
  *    - Phase 2: AppBootstrap.shared.doInitKoin()（已跨平台纯 KMP 库 Koin 容器启动）
- *
- * 注：仅在存在 Shared.framework 的完整应用工程中编译生效。
  */
 @main
 public struct iOSApp: App {
@@ -114,4 +108,3 @@ public struct iOSApp: App {
         }
     }
 }
-#endif

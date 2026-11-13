@@ -31,6 +31,7 @@ INITIAL_FEATURES=""
 DRY_RUN=false
 FORCE=false
 AUTO_YES=false
+NO_DEBUG=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -58,6 +59,10 @@ while [[ $# -gt 0 ]]; do
             INITIAL_FEATURES="$2"
             shift 2
             ;;
+        --no-debug)
+            NO_DEBUG=true
+            shift
+            ;;
         --dry-run)
             DRY_RUN=true
             shift
@@ -72,7 +77,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo -e "${RED}[未知选项] $1${NC}"
-            echo -e "用法: ./init_project.sh [--package <pkg>] [--name <app_name>] [--app-id <formal_id>] [--test-app-id <test_id>] [--prefix <prefix>] [--features <feat1,feat2>] [--yes] [--dry-run] [--force]"
+            echo -e "用法: ./init_project.sh [--package <pkg>] [--name <app_name>] [--app-id <formal_id>] [--test-app-id <test_id>] [--prefix <prefix>] [--features <feat1,feat2>] [--no-debug] [--yes] [--dry-run] [--force]"
             exit 1
             ;;
     esac
@@ -161,6 +166,9 @@ echo -e "- 约定插件前缀:              ${GREEN}$NEW_PREFIX${NC}"
 echo -e "- 应用名称:                  ${GREEN}$NEW_APP_NAME${NC}"
 if [ -n "$INITIAL_FEATURES" ]; then
     echo -e "- 待创建初始业务模块:        ${GREEN}$INITIAL_FEATURES${NC}"
+fi
+if [ "$NO_DEBUG" = true ]; then
+    echo -e "- 调试控制台:                ${YELLOW}已禁用 (--no-debug，将移除 :features:debug)${NC}"
 fi
 
 if [ "$DRY_RUN" = true ]; then
@@ -272,7 +280,7 @@ echo -e "${YELLOW}[5/6] 正在自动触发 Spotless 代码格式化...${NC}"
 chmod +x gradlew
 ./gradlew spotlessApply || echo -e "${YELLOW}[警告] Spotless 格式化失败，可能需要手动修复语法。${NC}"
 
-# 7. 批量创建初始业务特性模块
+# 7. 按需创建初始业务特性模块与可选裁剪 Debug 面板
 if [ -n "$INITIAL_FEATURES" ]; then
     echo -e "\n${YELLOW}[6/6] 正在自动批量创建初始业务模块: ${INITIAL_FEATURES}...${NC}"
     chmod +x create_feature.sh
@@ -284,6 +292,12 @@ if [ -n "$INITIAL_FEATURES" ]; then
             ./create_feature.sh "$feat_trimmed"
         fi
     done
+fi
+
+if [ "$NO_DEBUG" = true ] && [ -d "features/debug" ]; then
+    echo -e "\n${YELLOW}[额外裁剪] 已指定 --no-debug，正在安全卸载 :features:debug 模块...${NC}"
+    chmod +x remove_feature.sh
+    ./remove_feature.sh debug
 fi
 
 echo -e "\n${GREEN}====================================================${NC}"

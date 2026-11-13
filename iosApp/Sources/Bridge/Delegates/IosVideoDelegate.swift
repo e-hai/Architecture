@@ -1,8 +1,6 @@
 import Foundation
-import VideoKit
-
-#if canImport(Shared)
 import Shared
+import VideoKit
 
 /**
  * iOS 视频播放与缓存委托实现（1:1 透传 VideoKit-iOS 原生 SDK）。
@@ -48,4 +46,3 @@ internal final class IosVideoDelegate: NSObject, VideoDelegate {
         print("[IosVideoDelegate] VodProgressStore cleared for: \(videoId)")
     }
 }
-#endif

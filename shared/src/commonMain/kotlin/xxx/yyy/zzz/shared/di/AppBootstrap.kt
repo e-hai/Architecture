@@ -11,13 +11,11 @@ import xxx.yyy.zzz.core.log.CoreLog
 import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.network.coreNetworkModule
+import xxx.yyy.zzz.shared.debug.DebugPanelBridge
 // [FEATURE_IMPORTS_START]
 // [FEATURE:home:START]
 import xxx.yyy.zzz.feature.home.impl.homeModule
 // [FEATURE:home:END]
-// [FEATURE:debug:START]
-import xxx.yyy.zzz.feature.debug.impl.debugModule
-// [FEATURE:debug:END]
 // [FEATURE_IMPORTS_END]
 
 /**
@@ -51,10 +49,8 @@ object AppBootstrap {
                     // [FEATURE:home:START]
                     homeModule,
                     // [FEATURE:home:END]
-                    // [FEATURE:debug:START]
-                    debugModule,
-                    // [FEATURE:debug:END]
                     // [FEATURE_KOIN_MODULES_END]
+                    *DebugPanelBridge.koinModules.toTypedArray(),
                 )
             }
             CoreLog.i(LogTags.APP, "KMP Koin DI container initialized for env: ${appConfig.env}, debug: ${appConfig.isDebug}.")

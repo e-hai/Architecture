@@ -1,7 +1,5 @@
 import CrashReportKit
 import Foundation
-
-#if canImport(Shared)
 import Shared
 
 /**
@@ -33,4 +31,3 @@ internal final class IosCrashReportDelegate: NSObject, CrashReportDelegate {
         CrashReport.recordException(error)
     }
 }
-#endif

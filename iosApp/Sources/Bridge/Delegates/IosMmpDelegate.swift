@@ -1,5 +1,6 @@
 import Foundation
 import MmpCore
+import Shared
 
 #if canImport(MmpAppsFlyer)
 import MmpAppsFlyer
@@ -8,9 +9,6 @@ import MmpAppsFlyer
 #if canImport(AppsFlyerLib)
 import AppsFlyerLib
 #endif
-
-#if canImport(Shared)
-import Shared
 
 /**
  * iOS 宿主深度链接（URL Scheme / Universal Links）转发桥接器。
@@ -185,4 +183,3 @@ internal final class IosMmpDelegate: NSObject, MmpDelegate, @unchecked Sendable 
         )
     }
 }
-#endif

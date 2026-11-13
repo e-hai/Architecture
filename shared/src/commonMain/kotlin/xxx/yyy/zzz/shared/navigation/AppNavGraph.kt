@@ -4,20 +4,15 @@ package xxx.yyy.zzz.shared.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import xxx.yyy.zzz.core.log.CoreLog
-import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.navigation.NavKey
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.ui.ErrorView
+import xxx.yyy.zzz.shared.debug.DebugPanelBridge
 // [FEATURE_IMPORTS_START]
 // [FEATURE:home:START]
 import xxx.yyy.zzz.feature.home.api.HomeNavKey
 import xxx.yyy.zzz.feature.home.impl.HomeScreen
 // [FEATURE:home:END]
-// [FEATURE:debug:START]
-import xxx.yyy.zzz.feature.debug.api.DebugNavKey
-import xxx.yyy.zzz.feature.debug.impl.DebugScreen
-// [FEATURE:debug:END]
 // [FEATURE_IMPORTS_END]
 
 // [START_ROUTE_START]
@@ -44,33 +39,28 @@ fun AppNavGraph(
         // [FEATURE:home:START]
         is HomeNavKey -> {
             HomeScreen(
-                onNavigateToDebug = { navigator.navigate(DebugNavKey) },
+                onNavigateToDebug = DebugPanelBridge.createNavigateAction(navigator),
                 modifier = modifier,
             )
         }
 
         // [FEATURE:home:END]
-        // [FEATURE:debug:START]
-        is DebugNavKey -> {
-            DebugScreen(
-                onBack = {
-                    CoreLog.d(LogTags.NAV, "Go back from Debug")
-                    navigator.goBack()
-                },
-                modifier = modifier,
-            )
-        }
-
-        // [FEATURE:debug:END]
         // [FEATURE_NAV_CASES_END]
 
         else -> {
-            ErrorView(
-                message = "未知页面路由: $currentKey",
-                retryText = "返回首页",
-                onRetry = { navigator.navigate(defaultStartKey) },
-                modifier = modifier,
-            )
+            if (DebugPanelBridge.isDebugKey(currentKey)) {
+                DebugPanelBridge.DebugDestination(
+                    navigator = navigator,
+                    modifier = modifier,
+                )
+            } else {
+                ErrorView(
+                    message = "未知页面路由: $currentKey",
+                    retryText = "返回首页",
+                    onRetry = { navigator.navigate(defaultStartKey) },
+                    modifier = modifier,
+                )
+            }
         }
     }
 }

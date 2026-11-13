@@ -53,58 +53,75 @@ kotlin {
         }
     }
 
+    val enableDebugPanel =
+        providers
+            .gradleProperty("enableDebugPanel")
+            .map { it.toBoolean() }
+            .orElse(true)
+            .get()
+    val hasDebugFeature =
+        rootProject.findProject(":features:debug:api") != null &&
+            rootProject.findProject(":features:debug:impl") != null
+    val includeDebugPanel = enableDebugPanel && hasDebugFeature
+
     sourceSets {
-        commonMain.dependencies {
-            api(project(":core:model"))
-            implementation(project(":core:navigation"))
-            implementation(project(":core:network"))
-            implementation(project(":core:database"))
-            implementation(project(":core:datastore"))
-            implementation(project(":core:ui"))
+        commonMain {
+            kotlin.srcDir(if (includeDebugPanel) "src/debugEnabled/kotlin" else "src/debugDisabled/kotlin")
 
-            // [KIT_APIS_START]
-            // [KIT:log:START]
-            api(project(":core:log"))
-            // [KIT:log:END]
-            // [KIT:crashreport:START]
-            api(project(":core:crashreport"))
-            // [KIT:crashreport:END]
-            // [KIT:analytics:START]
-            api(project(":core:analytics"))
-            // [KIT:analytics:END]
-            // [KIT:abtesting:START]
-            api(project(":core:abtesting"))
-            // [KIT:abtesting:END]
-            // [KIT:mmp:START]
-            api(project(":core:mmp"))
-            // [KIT:mmp:END]
-            // [KIT:ads:START]
-            api(project(":core:ads"))
-            // [KIT:ads:END]
-            // [KIT:pay:START]
-            api(project(":core:pay"))
-            // [KIT:pay:END]
-            // [KIT:push:START]
-            api(project(":core:push"))
-            // [KIT:push:END]
-            // [KIT:video:START]
-            api(project(":core:video"))
-            // [KIT:video:END]
-            // [KIT:pag:START]
-            api(project(":core:pag"))
-            // [KIT:pag:END]
-            // [KIT_APIS_END]
+            dependencies {
+                api(project(":core:model"))
+                implementation(project(":core:navigation"))
+                implementation(project(":core:network"))
+                implementation(project(":core:database"))
+                implementation(project(":core:datastore"))
+                implementation(project(":core:ui"))
 
-            // [FEATURE_DEPENDENCIES_START]
-            // [FEATURE:home:START]
-            implementation(project(":features:home:api"))
-            implementation(project(":features:home:impl"))
-            // [FEATURE:home:END]
-            // [FEATURE:debug:START]
-            implementation(project(":features:debug:api"))
-            implementation(project(":features:debug:impl"))
-            // [FEATURE:debug:END]
-            // [FEATURE_DEPENDENCIES_END]
+                // [KIT_APIS_START]
+                // [KIT:log:START]
+                api(project(":core:log"))
+                // [KIT:log:END]
+                // [KIT:crashreport:START]
+                api(project(":core:crashreport"))
+                // [KIT:crashreport:END]
+                // [KIT:analytics:START]
+                api(project(":core:analytics"))
+                // [KIT:analytics:END]
+                // [KIT:abtesting:START]
+                api(project(":core:abtesting"))
+                // [KIT:abtesting:END]
+                // [KIT:mmp:START]
+                api(project(":core:mmp"))
+                // [KIT:mmp:END]
+                // [KIT:ads:START]
+                api(project(":core:ads"))
+                // [KIT:ads:END]
+                // [KIT:pay:START]
+                api(project(":core:pay"))
+                // [KIT:pay:END]
+                // [KIT:push:START]
+                api(project(":core:push"))
+                // [KIT:push:END]
+                // [KIT:video:START]
+                api(project(":core:video"))
+                // [KIT:video:END]
+                // [KIT:pag:START]
+                api(project(":core:pag"))
+                // [KIT:pag:END]
+                // [KIT_APIS_END]
+
+                // [FEATURE_DEPENDENCIES_START]
+                // [FEATURE:home:START]
+                implementation(project(":features:home:api"))
+                implementation(project(":features:home:impl"))
+                // [FEATURE:home:END]
+                // [FEATURE:debug:START]
+                if (includeDebugPanel) {
+                    implementation(project(":features:debug:api"))
+                    implementation(project(":features:debug:impl"))
+                }
+                // [FEATURE:debug:END]
+                // [FEATURE_DEPENDENCIES_END]
+            }
         }
 
         androidMain.dependencies {

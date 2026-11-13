@@ -1,7 +1,5 @@
 import Foundation
 import LogKit
-
-#if canImport(Shared)
 import Shared
 import UIKit
 
@@ -88,4 +86,3 @@ internal final class IosLogDelegate: NSObject, LogDelegate {
         return topController
     }
 }
-#endif
