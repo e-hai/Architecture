@@ -52,3 +52,8 @@ REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS=3600
 
 # CorePush (FCM Sender ID 正式值)
 FCM_SENDER_ID=
+
+# CorePay (正式环境商店商品 ID 目录，逗号分隔；上线前替换为 Google Play Console 正式商品 ID)
+PAY_SUBS_IDS=
+PAY_CONSUMABLE_IDS=
+PAY_NON_CONSUMABLE_IDS=

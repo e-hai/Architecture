@@ -36,6 +36,12 @@
 	<string>1</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_APP_ID)</string>
+	<key>PAY_CONSUMABLE_IDS</key>
+	<string>$(PAY_CONSUMABLE_IDS)</string>
+	<key>PAY_NON_CONSUMABLE_IDS</key>
+	<string>$(PAY_NON_CONSUMABLE_IDS)</string>
+	<key>PAY_SUBS_IDS</key>
+	<string>$(PAY_SUBS_IDS)</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>

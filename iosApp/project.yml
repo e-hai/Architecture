@@ -77,6 +77,9 @@ targets:
         ADMOB_INTERSTITIAL_ID: "$(ADMOB_INTERSTITIAL_ID)"
         ADMOB_REWARDED_ID: "$(ADMOB_REWARDED_ID)"
         ADMOB_APP_OPEN_ID: "$(ADMOB_APP_OPEN_ID)"
+        PAY_SUBS_IDS: "$(PAY_SUBS_IDS)"
+        PAY_CONSUMABLE_IDS: "$(PAY_CONSUMABLE_IDS)"
+        PAY_NON_CONSUMABLE_IDS: "$(PAY_NON_CONSUMABLE_IDS)"
         UILaunchScreen: {}
     dependencies:
       # [KIT:log:START]

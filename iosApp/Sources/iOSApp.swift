@@ -28,11 +28,17 @@ public struct iOSApp: App {
         let admobAppId = info?["GADApplicationIdentifier"] as? String ?? ""
         let baseUrl = info?["BASE_URL"] as? String ?? ""
         let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
+        let paySubsIds = info?["PAY_SUBS_IDS"] as? String ?? ""
+        let payConsumableIds = info?["PAY_CONSUMABLE_IDS"] as? String ?? ""
+        let payNonConsumableIds = info?["PAY_NON_CONSUMABLE_IDS"] as? String ?? ""
 
         // 1. 初始化十大基础设施与商业化 Kit (9 大 Swift SPM 委托 + PagKit)
         NativeKitBootstrap.initKits(
             admobAppId: admobAppId,
             appsFlyerKey: appsFlyerKey,
+            paySubsIds: paySubsIds,
+            payConsumableIds: payConsumableIds,
+            payNonConsumableIds: payNonConsumableIds,
             debug: isDebug
         )
 

@@ -53,6 +53,9 @@ public final class NativeKitBootstrap: Sendable {
     public static func initKits(
         admobAppId: String = "",
         appsFlyerKey: String = "",
+        paySubsIds: String = "",
+        payConsumableIds: String = "",
+        payNonConsumableIds: String = "",
         debug: Bool = true
     ) {
         print("[KMP-iOS] Initializing native Kit SPM SDKs & Delegates...")
@@ -91,7 +94,13 @@ public final class NativeKitBootstrap: Sendable {
 
         // [KIT:pay:START]
         CorePay.shared.install(delegate: IosPayDelegate())
-        CorePay.shared.doInit()
+        CorePay.shared.doInit(
+            catalog: PayProductCatalog.companion.fromCsv(
+                subsCsv: paySubsIds,
+                consumableCsv: payConsumableIds,
+                nonConsumableCsv: payNonConsumableIds
+            )
+        )
         // [KIT:pay:END]
 
         // [KIT:push:START]

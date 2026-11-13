@@ -10,22 +10,45 @@ import UIKit
  */
 internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable {
     private let debug: Bool
-    @MainActor private var loadedAds: [String: AdsEntity] = [:]
+    private let lock = NSLock()
+    private var loadedAds: [String: AdsEntity] = [:]
 
     init(debug: Bool = false) {
         self.debug = debug
         super.init()
     }
 
+    private func setLoadedAd(_ entity: AdsEntity, for triggerId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        loadedAds[triggerId] = entity
+    }
+
+    private func takeLoadedAd(for triggerId: String) -> AdsEntity? {
+        lock.lock()
+        defer { lock.unlock() }
+        return loadedAds.removeValue(forKey: triggerId)
+    }
+
+    private func removeLoadedAd(for triggerId: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        loadedAds.removeValue(forKey: triggerId)
+    }
+
     func doInit(apiKey: String) {
+        let trimmedKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedKey.isEmpty else {
+            CoreLog.shared.w(tag: LogTags.shared.APP, message: "[Ads-iOS] AdsManager init skipped: empty ADMOB_APP_ID")
+            return
+        }
         let isDebug = debug
         Task { @MainActor in
             AdsKit.registerAllProviders()
-            let admobAppId = apiKey.isEmpty ? "ca-app-pub-3940256099942544~1458002511" : apiKey
             AdsManager.initialize(
                 config: AdsProviderConfig(
                     providerType: .admob,
-                    apiKey: admobAppId
+                    apiKey: trimmedKey
                 ),
                 logEnabled: isDebug,
                 debugEnabled: isDebug,
@@ -47,7 +70,7 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
     }
 
     func loadAd(triggerId: String, adUnitId: String) {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
             print("[Ads-iOS] loadAd: triggerId=\(triggerId), adUnitId=\(adUnitId)")
             let configuredRewarded = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String ?? ""
             let unitId = adUnitId.isEmpty ? configuredRewarded : adUnitId
@@ -60,14 +83,14 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
             let listener = CustomAdsListener(
                 onLoaded: { [weak self] entity in
                     print("[Ads-iOS] onAdLoaded: \(triggerId)")
-                    self?.loadedAds[triggerId] = entity
+                    self?.setLoadedAd(entity, for: triggerId)
                 },
                 onFailed: { error, code in
                     print("[Ads-iOS] onAdFailed: \(triggerId) error=\(error) code=\(code ?? "")")
                 },
                 onClosed: { [weak self] in
                     print("[Ads-iOS] onAdClosed: \(triggerId)")
-                    self?.loadedAds.removeValue(forKey: triggerId)
+                    self?.removeLoadedAd(for: triggerId)
                 }
             )
             AdsManager.loadAd(request: request, adListener: listener)
@@ -75,7 +98,9 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
     }
 
     func isReady(triggerId: String) -> Bool {
-        return true
+        lock.lock()
+        defer { lock.unlock() }
+        return loadedAds[triggerId] != nil
     }
 
     func showAd(triggerId: String) {
@@ -86,7 +111,7 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
                 return
             }
 
-            if let entity = self.loadedAds[triggerId] {
+            if let entity = self.takeLoadedAd(for: triggerId) {
                 entity.show(from: topVC)
             } else {
                 self.showFallbackAdModal(from: topVC, triggerId: triggerId)

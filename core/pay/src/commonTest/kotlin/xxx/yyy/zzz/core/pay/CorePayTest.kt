@@ -26,9 +26,36 @@ class CorePayTest {
 
     @Test
     fun testPurchaseAndSubscriptionLifecycle() {
-        CorePay.doInit()
+        val catalog =
+            PayProductCatalog.fromCsv(
+                subsCsv = "${PayProducts.SUBS_PLUS}, ${PayProducts.SUBS_PRO}",
+                consumableCsv = PayProducts.CONSUMABLE_SKIN_3DAY,
+                nonConsumableCsv = PayProducts.NON_CONSUMABLE_SKIN,
+            )
+        CorePay.doInit(catalog)
         assertEquals(1, fakeDelegate.initCount)
+        assertEquals(catalog, CorePay.getCatalog())
         assertFalse(CorePay.isSubscribed(PayProducts.SUBS_PRO))
+
+        fakeDelegate.stubbedProducts.add(
+            PayProductInfo(
+                productId = PayProducts.SUBS_PRO,
+                type = PayProductType.SUBS,
+                title = "Pro Monthly",
+                description = "Full access",
+                formattedPrice = "$9.99",
+                priceAmountMicros = 9_990_000L,
+                priceCurrencyCode = "USD",
+                subscriptionPeriod = "P1M",
+            ),
+        )
+        var fetched: List<PayProductInfo> = emptyList()
+        CorePay.fetchProducts(catalog.subsProductIds) { products, error ->
+            assertEquals(null, error)
+            fetched = products
+        }
+        assertEquals(1, fetched.size)
+        assertEquals("$9.99", fetched.first().formattedPrice)
 
         var purchaseSuccess = false
         CorePay.purchase(PayProducts.SUBS_PRO) { success, _ ->
@@ -36,6 +63,12 @@ class CorePayTest {
         }
         assertTrue(purchaseSuccess)
         assertTrue(CorePay.isSubscribed(PayProducts.SUBS_PRO))
+
+        var restoreSuccess = false
+        CorePay.restorePurchases { success, _ ->
+            restoreSuccess = success
+        }
+        assertTrue(restoreSuccess)
 
         fakeDelegate.nextPurchaseSuccess = false
         fakeDelegate.nextPurchaseError = "User cancelled"

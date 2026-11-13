@@ -25,6 +25,9 @@ class MyApplication : Application() {
             admobAppId = BuildConfig.ADMOB_APP_ID,
             admobRewardedId = BuildConfig.ADMOB_REWARDED_ID,
             appsFlyerKey = BuildConfig.APPSFLYER_KEY,
+            paySubsIds = BuildConfig.PAY_SUBS_IDS,
+            payConsumableIds = BuildConfig.PAY_CONSUMABLE_IDS,
+            payNonConsumableIds = BuildConfig.PAY_NON_CONSUMABLE_IDS,
         )
 
         // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig

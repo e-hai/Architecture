@@ -23,6 +23,7 @@ import xxx.yyy.zzz.core.log.LogTags
 import xxx.yyy.zzz.core.mmp.CoreMmp
 import xxx.yyy.zzz.core.pag.CorePag
 import xxx.yyy.zzz.core.pay.CorePay
+import xxx.yyy.zzz.core.pay.PayProductCatalog
 import xxx.yyy.zzz.core.push.CorePush
 import xxx.yyy.zzz.core.video.CoreVideo
 // [KIT_IMPORTS_END]
@@ -48,6 +49,9 @@ object NativeKitBootstrap {
         admobAppId: String = "",
         admobRewardedId: String = "",
         appsFlyerKey: String = "",
+        paySubsIds: String = "",
+        payConsumableIds: String = "",
+        payNonConsumableIds: String = "",
     ) {
         // [KIT_INSTALL_START]
         // [KIT:log:START]
@@ -88,7 +92,13 @@ object NativeKitBootstrap {
 
         // [KIT:pay:START]
         CorePay.install(AndroidPayDelegate(application))
-        CorePay.doInit()
+        CorePay.doInit(
+            PayProductCatalog.fromCsv(
+                subsCsv = paySubsIds,
+                consumableCsv = payConsumableIds,
+                nonConsumableCsv = payNonConsumableIds,
+            ),
+        )
         // [KIT:pay:END]
 
         // [KIT:push:START]

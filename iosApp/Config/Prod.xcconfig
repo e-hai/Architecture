@@ -47,3 +47,8 @@ ANALYTICS_DEBUG_MODE = NO
 
 // CoreAbTesting (远程配置拉取间隔)
 REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS = 3600
+
+// CorePay (正式环境 App Store Connect 商品 ID 目录，逗号分隔)
+PAY_SUBS_IDS = 
+PAY_CONSUMABLE_IDS = 
+PAY_NON_CONSUMABLE_IDS =
