@@ -40,22 +40,43 @@ jobs:
       - name: Run KMP Unit Tests (Fake over Mock)
         run: ./gradlew allTests
 
+      - name: Verify Shared KMP Tests with Debug Panel Disabled
+        run: ./gradlew :shared:testAndroidHostTest -PenableDebugPanel=false
+
       - name: Build Android Host Debug APK
         run: ./gradlew :androidApp:assembleDevDebug
 
-      - name: Link Shared.framework for iOS Simulator
-        run: ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+      - name: Run Android Lint Check
+        run: ./gradlew :androidApp:lintDevDebug
 
-      - name: Run Swift Package Tests
+      - name: Build Android Prod Release APK (Temporary CI Keystore, R8 + Debug Stripped)
         run: |
-          cd iosApp
-          swift test
+          CI_KEYSTORE="${RUNNER_TEMP:-/tmp}/ci-release.jks"
+          ./scripts/gen_keystore.sh \
+            --type release \
+            --output "$CI_KEYSTORE" \
+            --alias ci_release_key \
+            --store-pass ci_keystore_pass_123 \
+            --key-pass ci_keystore_pass_123 \
+            --force
+          trap 'rm -f "$CI_KEYSTORE"' EXIT
+          PROD_STORE_FILE="$CI_KEYSTORE" \
+          PROD_STORE_PASSWORD=ci_keystore_pass_123 \
+          PROD_KEY_ALIAS=ci_release_key \
+          PROD_KEY_PASSWORD=ci_keystore_pass_123 \
+          ./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false
 
-      - name: Generate Xcode Project and Build iOS Simulator App
+      - name: Generate Xcode Project, Run iOS Simulator Tests & Build Prod
         run: |
           if ! command -v xcodegen &> /dev/null; then
             brew install xcodegen
           fi
           cd iosApp
           xcodegen generate --spec project.yml
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build
+          SIM_UDID=$(xcrun simctl list devices available iPhone | sed -n 's/.*(\([0-9A-F-]\{36\}\)).*/\1/p' | head -n 1)
+          if [ -z "$SIM_UDID" ]; then
+            echo "No available iPhone Simulator found!"
+            exit 1
+          fi
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination "id=${SIM_UDID}" CODE_SIGNING_ALLOWED=NO test
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Prod -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build

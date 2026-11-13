@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  iOS App 隐私清单（Privacy Manifest），满足 App Store Connect ITMS-91053 / Required Reason API 合规要求。
+  注意：上线前请结合业务实际数据采集情况与 Xcode Archive 生成的 Privacy Report 核对：
+  1. 若业务在生产环境开启 IDFA 追踪，请按 Apple 规范评估更新 NSPrivacyTracking 与 NSPrivacyTrackingDomains；
+  2. 若应用本身额外采集设备/账号/行为数据，请在 NSPrivacyCollectedDataTypes 中如实补充。
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!-- App Preferences / 原生 SDK 读取本应用内 UserDefaults（理由代码 CA92.1） -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<!-- Room KMP / DataStore Okio 访问沙盒内部文件元数据与时间戳（理由代码 C617.1） -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
