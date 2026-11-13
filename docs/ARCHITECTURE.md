@@ -101,13 +101,13 @@ flowchart LR
     end
 
     subgraph AndroidHost["androidApp 宿主"]
-        AndDelegate["private class Android*Delegate : *Delegate"]
+        AndDelegate["internal class Android*Delegate : *Delegate"]
         AndAar["GitHub Packages AAR<br/>(com.github.e-hai.*Kit-Android)"]
         AndDelegate --> AndAar
     end
 
     subgraph IosHost["iosApp 宿主 (Swift 6)"]
-        IosDelegate["private class Ios*Delegate : NSObject, *Delegate"]
+        IosDelegate["internal final class Ios*Delegate : NSObject, *Delegate"]
         IosSPM["Swift 6 SPM<br/>(e-hai/*Kit-iOS)"]
         IosDelegate --> IosSPM
     end

@@ -7,6 +7,7 @@ class FakePushDelegate : PushDelegate {
     var initializedWithFcm: Boolean? = null
     var registered = false
     var currentToken: String? = null
+    var permissionGranted = false
 
     override fun doInit(registerFcm: Boolean) {
         initializedWithFcm = registerFcm
@@ -20,9 +21,14 @@ class FakePushDelegate : PushDelegate {
         currentToken = token
     }
 
+    override fun getPushToken(): String? = currentToken
+
+    override fun hasPushPermission(): Boolean = permissionGranted
+
     fun clear() {
         initializedWithFcm = null
         registered = false
         currentToken = null
+        permissionGranted = false
     }
 }

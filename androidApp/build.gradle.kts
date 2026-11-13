@@ -4,6 +4,21 @@ plugins {
     alias(libs.plugins.myproject.android.application)
 }
 
+// 仅当宿主已放置 google-services.json 时按需激活 Google Services 插件，避免缺失配置时阻塞 CI / 模板编译
+if (listOf(
+        file("google-services.json"),
+        file("src/dev/google-services.json"),
+        file("src/prod/google-services.json"),
+    ).any { it.exists() }
+) {
+    apply(
+        plugin =
+            libs.plugins.google.services
+                .get()
+                .pluginId,
+    )
+}
+
 /**
  * 封装环境配置读取器，支持 .properties 文件、环境特定环境变量 (如 DEV_BASE_URL) 与全局环境变量
  */
@@ -151,10 +166,13 @@ android {
 }
 
 dependencies {
+    // [KIT:ads:START]
     constraints {
+        // unity-ads:4.19.0 (via AdsKit-Android) 传递引入了过时的 work-runtime:2.7.0，强制提升至 2.8.1 避免 Android 12+ PendingIntent 崩溃
         implementation("androidx.work:work-runtime:2.8.1")
         implementation("androidx.work:work-runtime-ktx:2.8.1")
     }
+    // [KIT:ads:END]
     implementation(project(":shared"))
     // [KIT_DEPENDENCIES_START]
     // [KIT:log:START]

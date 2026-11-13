@@ -46,6 +46,9 @@ object NativeKitBootstrap {
     fun initKits(
         application: Application,
         debug: Boolean = true,
+        analyticsDebug: Boolean = debug,
+        remoteConfigMinFetchIntervalSeconds: Long = if (debug) 0L else 3600L,
+        registerFcm: Boolean = hasFirebaseConfig(application),
         admobAppId: String = "",
         admobRewardedId: String = "",
         appsFlyerKey: String = "",
@@ -65,12 +68,18 @@ object NativeKitBootstrap {
         // [KIT:crashreport:END]
 
         // [KIT:analytics:START]
-        CoreAnalytics.install(AndroidAnalyticsDelegate(application, debug))
+        CoreAnalytics.install(AndroidAnalyticsDelegate(application, analyticsDebug))
         CoreAnalytics.doInit()
         // [KIT:analytics:END]
 
         // [KIT:abtesting:START]
-        CoreAbTesting.install(AndroidAbTestingDelegate(application, debug))
+        CoreAbTesting.install(
+            AndroidAbTestingDelegate(
+                context = application,
+                debug = debug,
+                minFetchIntervalSeconds = remoteConfigMinFetchIntervalSeconds,
+            ),
+        )
         CoreAbTesting.doInit()
         // [KIT:abtesting:END]
 
@@ -103,7 +112,7 @@ object NativeKitBootstrap {
 
         // [KIT:push:START]
         CorePush.install(AndroidPushDelegate(application))
-        CorePush.doInit(registerFcm = false)
+        CorePush.doInit(registerFcm = registerFcm)
         // [KIT:push:END]
 
         // [KIT:video:START]
@@ -119,4 +128,7 @@ object NativeKitBootstrap {
 
         CoreLog.i(LogTags.APP, "Android native kits initialized successfully.")
     }
+
+    private fun hasFirebaseConfig(application: Application): Boolean =
+        application.resources.getIdentifier("google_app_id", "string", application.packageName) != 0
 }

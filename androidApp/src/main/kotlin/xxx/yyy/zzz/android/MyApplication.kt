@@ -22,6 +22,8 @@ class MyApplication : Application() {
         NativeKitBootstrap.initKits(
             application = this,
             debug = isDebug,
+            analyticsDebug = BuildConfig.ANALYTICS_DEBUG_MODE,
+            remoteConfigMinFetchIntervalSeconds = BuildConfig.REMOTE_CONFIG_MIN_FETCH_INTERVAL.toLong(),
             admobAppId = BuildConfig.ADMOB_APP_ID,
             admobRewardedId = BuildConfig.ADMOB_REWARDED_ID,
             appsFlyerKey = BuildConfig.APPSFLYER_KEY,

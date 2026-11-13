@@ -4,6 +4,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -25,12 +26,17 @@ class CorePushTest {
 
     @Test
     fun testPushDispatchesToDelegate() {
+        fakeDelegate.permissionGranted = true
         CorePush.doInit(registerFcm = true)
         CorePush.registerPush()
         CorePush.setPushToken("test_token_888")
 
         assertEquals(true, fakeDelegate.initializedWithFcm)
         assertTrue(fakeDelegate.registered)
-        assertEquals("test_token_888", fakeDelegate.currentToken)
+        assertEquals("test_token_888", CorePush.getPushToken())
+        assertTrue(CorePush.hasPushPermission())
+
+        fakeDelegate.permissionGranted = false
+        assertFalse(CorePush.hasPushPermission())
     }
 }

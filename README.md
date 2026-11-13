@@ -24,20 +24,22 @@
 # 方式 A：交互式向导（自动推导默认值，按回车即可完成）：
 ./init_project.sh
 
-# 方式 B：单行命令行参数极速立项（支持独立指定正式与测试应用 ID）：
+# 方式 B：单行命令行参数极速立项（支持独立指定正式与测试应用 ID；加 `--yes` 自动采用其余默认值）：
 ./init_project.sh \
   --package com.example.news \
   --app-id com.example.news \
   --test-app-id com.example.news.dev \
   --name "NewsApp" \
-  --features "news,favorites,profile"
+  --features "news,favorites,profile" \
+  --yes
 ```
 > **提示**：通过 `--features` 参数可同时批量生成并自动挂载多个初始业务特性模块；`--app-id` 与 `--test-app-id` 自动写入双端工程配置。
 
 ### 1.2 业务模块与 Kit 热插拔管理 (`create_feature.sh` / `remove_feature.sh` / `manage_kit.sh`)
 当需要为项目添加新的业务特性时，运行：
 ```bash
-./create_feature.sh profile
+./create_feature.sh profile              # 标准 UI + ViewModel 模块
+./create_feature.sh profile --with-data  # 额外生成 Offline-First Repository 数据层样板
 ```
 该脚本采用标准 `api` + `impl` 规范生成模块，并**全自动完成以下挂载（无需手动修改任何配置文件）**：
 1. `settings.gradle.kts`：注册 `:features:profile:api` 与 `:features:profile:impl`；
@@ -72,8 +74,9 @@
 | :--- | :--- | :--- |
 | **编译运行 Android (测试包)** | `./gradlew :androidApp:assembleDevDebug` | 生成测试 ID + 测试签名的 Android Debug APK |
 | **打包 Android (正式发布包)** | `./gradlew :androidApp:assembleProdRelease` | 生成正式 ID + 正式签名的 Release APK/AAB |
+| **生成 iOS Xcode 工程** | `cd iosApp && xcodegen generate --spec project.yml` | 由 `project.yml` 本地生成 `iosApp.xcodeproj`（已纳入 `.gitignore`，避免团队 `pbxproj` 冲突） |
 | **编译链接 iOS 框架** | `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` | 验证 `Shared.framework` 导出与链接 |
-| **运行全模块单元测试** | `./gradlew testDebugUnitTest` | 运行所有核心库与特性模块的单测 |
+| **运行全模块单元测试** | `./gradlew allTests` | 运行全跨平台 `commonTest`、Android 单元测试与 iOS Simulator 测试 |
 | **格式化代码风格** | `./gradlew spotlessApply` | 依据官方 ktlint 规范自动格式化全工程代码 |
 | **代码规范静态检查** | `./gradlew spotlessCheck` | CI 门禁检查代码格式 |
 
@@ -86,8 +89,8 @@
 ```mermaid
 flowchart TD
     subgraph Tier1["第一层：平台宿主薄壳层 (Platform Host Layer)"]
-        AndroidApp["🤖 androidApp (独立 Android 容器)\nApplication / MainActivity / Manifest / 打包签名\n注入 8 个 Android*Delegate 实现"]
-        IosApp["🍎 iosApp (独立 iOS Swift 6 SPM 工程)\niOSApp.swift / ContentView\n注入 8 个 Ios*Delegate 实现"]
+        AndroidApp["🤖 androidApp (独立 Android 容器)\nApplication / MainActivity / Manifest / 打包签名\n注入 9 个 Android*Delegate 实现 (+ PagKit)"]
+        IosApp["🍎 iosApp (独立 iOS Swift 6 SPM 工程)\niOSApp.swift / ContentView\n注入 9 个 Ios*Delegate 实现 (+ PagKit)"]
     end
 
     subgraph Tier2["第二层：跨平台业务与呈现层 (Shared App & Feature Layer)"]
@@ -118,8 +121,8 @@ flowchart TD
             CoreUi[":core:ui\nTheme / 多语言资源 / 通用组件"]
         end
 
-        subgraph CoreKits["8 大商业化 Kit 纯 commonMain 契约门面"]
-            KitsFacade["CoreLog / CoreCrashReport / CoreAnalytics / CoreAbTesting\nCoreMmp / CoreAds / CorePay / CorePush"]
+        subgraph CoreKits["十大基础设施与商业化 Kit (9 大委托 + 1 个 KMP 直连)"]
+            KitsFacade["CoreLog / CoreCrashReport / CoreAnalytics / CoreAbTesting\nCoreMmp / CoreAds / CorePay / CorePush / CoreVideo / CorePag"]
         end
     end
 
@@ -316,7 +319,7 @@ sequenceDiagram
 
 | 我想要实现什么？（日常开发场景） | 目标模块与物理目录 | 操作步骤与指南 |
 | :--- | :--- | :--- |
-| **1. 新增一个完整的业务特性页面**<br/>（如新建个人中心 `profile`） | `features/profile/api`<br/>`features/profile/impl` | 直接运行 `./create_feature.sh profile`，在生成的 `ProfileScreen.kt` 与 `ProfileViewModel.kt` 中编写业务逻辑即可，脚本会自动挂载路由与 DI。 |
+| **1. 新增一个完整的业务特性页面**<br/>（如新建个人中心 `profile`） | `features/profile/api`<br/>`features/profile/impl` | 直接运行 `./create_feature.sh profile`（如需附带 Offline-First Repository 样板可加 `--with-data`），在生成的 `ProfileScreen.kt` 与 `ProfileViewModel.kt` 中编写业务逻辑即可，脚本会自动挂载路由与 DI。 |
 | **2. 在现有业务模块内添加子页面或弹窗**<br/>（如商品模块的规格选择弹窗） | `features/<name>/impl/src/commonMain` | 在该特性的 `impl` 目录下新增 Composable 控件与对应状态模型，并在现有 Screen 中调用。 |
 | **3. 从 A 业务页面跳转到 B 业务页面**<br/>（如首页点击头像跳转个人中心） | `features/A/impl/build.gradle.kts` | 在 A 的 `impl` 中添加 `implementation(project(":features:B:api"))`，在 Screen 中调用 `navigator.navigate(BNavKey(...))`。 |
 | **4. 编写业务网络请求与本地持久化逻辑**<br/>（如文章列表离线缓存） | `features/<name>/impl` + `core:database` | 1. 在 `core:database` 定义 Entity/DAO；<br/>2. 在业务 `impl` 中编写 `XxxRepository`，组装 Ktor 与 Room 实现离线优先，并注册到 `<Name>Module.kt`。 |

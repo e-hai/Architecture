@@ -3,19 +3,19 @@
 compileSdk = "37"
 compileSdkMinor = "1"
 minSdk = "26"
-targetSdk = "34"
+targetSdk = "35"
 
 # Gradle Plugins & Core Tooling
 androidGradlePlugin = "9.3.1"
 kotlin = "2.3.21"
 ksp = "2.3.8"
 spotless = "8.5.1"
+googleServices = "4.4.4"
 composeMultiplatform = "1.8.0"
 
 # Kotlinx
 kotlinxCoroutines = "1.11.0"
 kotlinxSerialization = "1.11.0"
-kotlinxDatetime = "0.8.0"
 
 # Ktor
 ktor = "3.1.1"
@@ -39,8 +39,8 @@ androidxCore = "1.15.0"
 analyticsKit = "1.0.1"
 abTestingKit = "1.0.1"
 crashReportKit = "1.0.1"
-mmpKit = "1.0.0"
-adsKit = "1.0.2"
+mmpKit = "1.0.1"
+adsKit = "1.0.3"
 payKit = "1.1.1"
 pushKit = "1.0.1"
 logKit = "1.0.1"
@@ -51,15 +51,12 @@ pagKit = "0.1.4"
 coil = "3.1.0"
 
 # Testing
-junit = "4.13.2"
 turbine = "1.2.1"
 
 [libraries]
 # Kotlinx
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 # Ktor
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -108,7 +105,6 @@ coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref 
 coil-network-ktor3 = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
 
 # Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
@@ -132,6 +128,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 
 # Custom Convention Plugins
 myproject-android-application = { id = "myproject.android.application" }

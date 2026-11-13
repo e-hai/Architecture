@@ -69,6 +69,7 @@ dependencyResolutionManagement {
             }
         }
 
+        // [KIT:ads:START]
         // AdsKit / AdMob mediation
         maven { url = uri("https://imobile.github.io/adnw-sdk-android") }
         maven { url = uri("https://android-sdk.is.com/") }
@@ -82,6 +83,7 @@ dependencyResolutionManagement {
         maven { url = uri("https://maven.ogury.co") }
         maven { url = uri("https://s3.amazonaws.com/smaato-sdk-releases/") }
         maven { url = uri("https://verve.jfrog.io/artifactory/verve-gradle-release") }
+        // [KIT:ads:END]
     }
 }
 

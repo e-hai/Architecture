@@ -91,6 +91,10 @@ internal class AndroidAdsDelegate(
         adUnitId: String,
     ) {
         val resolvedUnitId = adUnitId.ifBlank { defaultRewardedUnitId }
+        if (resolvedUnitId.isBlank()) {
+            CoreLog.w(LogTags.ADS, "[Ads-Android] loadAd skipped: empty adUnitId for trigger=$triggerId")
+            return
+        }
         val request =
             AdsRequest(
                 triggerId = triggerId,

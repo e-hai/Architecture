@@ -1,7 +1,40 @@
+// [KIT:push:START]
+import PushKit
+// [KIT:push:END]
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 #if canImport(Shared)
 import Shared
+
+// [KIT:push:START]
+/**
+ * iOS UIApplicationDelegate 适配器，负责接收 APNs 设备 Token 与远程推送回调并回传至 CorePush / PushKit。
+ */
+public final class AppDelegate: NSObject, UIApplicationDelegate {
+    public func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        PushKitManager.shared.apnsProvider.handleDeviceToken(deviceToken)
+        if let token = PushKitManager.shared.apnsProvider.getToken(), !token.isEmpty {
+            CorePush.shared.setPushToken(token: token)
+        }
+    }
+
+    public func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        CoreLog.shared.w(
+            tag: LogTags.shared.PUSH,
+            message: "[Push-iOS] APNs 注册失败: \(error.localizedDescription)"
+        )
+    }
+}
+// [KIT:push:END]
 
 /**
  * iOS 独立应用程序系统入口（遵循 SwiftUI App 协议）。
@@ -17,6 +50,10 @@ import Shared
  */
 @main
 public struct iOSApp: App {
+    // [KIT:push:START]
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    // [KIT:push:END]
+
     public init() {
         #if DEBUG
         let isDebug = true
@@ -28,17 +65,27 @@ public struct iOSApp: App {
         let admobAppId = info?["GADApplicationIdentifier"] as? String ?? ""
         let baseUrl = info?["BASE_URL"] as? String ?? ""
         let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
+        let appsFlyerAppId = info?["APPSFLYER_APP_ID"] as? String ?? ""
         let paySubsIds = info?["PAY_SUBS_IDS"] as? String ?? ""
         let payConsumableIds = info?["PAY_CONSUMABLE_IDS"] as? String ?? ""
         let payNonConsumableIds = info?["PAY_NON_CONSUMABLE_IDS"] as? String ?? ""
+        let analyticsDebugRaw = info?["ANALYTICS_DEBUG_MODE"] as? String ?? ""
+        let analyticsDebug = analyticsDebugRaw.isEmpty
+            ? isDebug
+            : (analyticsDebugRaw.caseInsensitiveCompare("YES") == .orderedSame || analyticsDebugRaw == "true")
+        let fetchIntervalRaw = info?["REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS"] as? String ?? ""
+        let remoteConfigMinFetchInterval = Double(fetchIntervalRaw)
 
         // 1. 初始化十大基础设施与商业化 Kit (9 大 Swift SPM 委托 + PagKit)
         NativeKitBootstrap.initKits(
             admobAppId: admobAppId,
             appsFlyerKey: appsFlyerKey,
+            appsFlyerAppId: appsFlyerAppId,
             paySubsIds: paySubsIds,
             payConsumableIds: payConsumableIds,
             payNonConsumableIds: payNonConsumableIds,
+            analyticsDebug: analyticsDebug,
+            remoteConfigMinFetchIntervalSeconds: remoteConfigMinFetchInterval,
             debug: isDebug
         )
 
@@ -56,33 +103,15 @@ public struct iOSApp: App {
     public var body: some Scene {
         WindowGroup {
             ContentView()
+                // [KIT:mmp:START]
+                .onOpenURL { url in
+                    IosMmpBridge.handleOpenUrl(url)
+                }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                    IosMmpBridge.continueUserActivity(userActivity)
+                }
+                // [KIT:mmp:END]
         }
     }
 }
 #endif
-
-/**
- * 可复用根视图组件（遵循 SwiftUI View 协议）。
- *
- * 设计定位与应用场景：
- * 1. 单元测试沙盒（Unit & UI Testing）：
- *    在 Swift Testing / XCTest 单元测试环境下，避免 @main 导致的 duplicate symbol _main 符号冲突，
- *    测试用例可直接实例化本 View 进行视图初始化验证与快照测试。
- * 2. 混编嵌入模式（Add-to-App / Hybrid Integration）：
- *    当本项目作为 SPM 库（iosAppLib）被现有的大型外部宿主 App（已有自身的 @main AppDelegate/App）引入时，
- *    外部宿主无法也不应再声明第二个 @main，而是将 iOSAppView 作为普通 SwiftUI View 嵌入任意 TabBar 或页面中。
- * 3. Xcode 画布预览（#Preview）：
- *    支持在 Xcode Canvas 中直接通过 #Preview { iOSAppView() } 预览根视图渲染效果。
- */
-public struct iOSAppView: View {
-    public init() {
-        NativeKitBootstrap.initKits()
-        #if canImport(Shared)
-        AppBootstrap.shared.doInitKoin()
-        #endif
-    }
-
-    public var body: some View {
-        ContentView()
-    }
-}

@@ -74,6 +74,10 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
             print("[Ads-iOS] loadAd: triggerId=\(triggerId), adUnitId=\(adUnitId)")
             let configuredRewarded = Bundle.main.infoDictionary?["ADMOB_REWARDED_ID"] as? String ?? ""
             let unitId = adUnitId.isEmpty ? configuredRewarded : adUnitId
+            guard !unitId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                CoreLog.shared.w(tag: LogTags.shared.APP, message: "[Ads-iOS] loadAd skipped: empty adUnitId for trigger=\(triggerId)")
+                return
+            }
             let request = AdsRequest(
                 triggerId: triggerId,
                 adUnitId: unitId,

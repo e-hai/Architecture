@@ -1,16 +1,26 @@
 import Foundation
 import SwiftUI
 
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
+
 #if !canImport(Shared)
 // [KIT_FALLBACK_IMPORTS_START]
 // [KIT:abtesting:START]
 import AbTesting
+#if canImport(AbTestingFirebase)
+import AbTestingFirebase
+#endif
 // [KIT:abtesting:END]
 // [KIT:ads:START]
 import AdsKit
 // [KIT:ads:END]
 // [KIT:analytics:START]
 import Analytics
+#if canImport(AnalyticsFirebase)
+import AnalyticsFirebase
+#endif
 // [KIT:analytics:END]
 // [KIT:crashreport:START]
 import CrashReportKit
@@ -20,6 +30,9 @@ import LogKit
 // [KIT:log:END]
 // [KIT:mmp:START]
 import MmpCore
+#if canImport(MmpAppsFlyer)
+import MmpAppsFlyer
+#endif
 // [KIT:mmp:END]
 // [KIT:pay:START]
 import PayKit
@@ -43,22 +56,38 @@ import Shared
  * 与 Android 端的 NativeKitBootstrap 保持 1:1 对称与相同设计范式。
  */
 public final class NativeKitBootstrap: Sendable {
+    private static func configureFirebaseIfAvailable() -> Bool {
+        guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else {
+            return false
+        }
+        #if canImport(FirebaseCore)
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        return FirebaseApp.app() != nil
+        #else
+        return false
+        #endif
+    }
+
     /**
      * 批量初始化并注册所有 iOS 原生 Kit 的 Swift SPM 委托实现至 Core 跨平台门面。
-     *
-     * @param admobAppId AdMob 应用 ID (来自 Info.plist GADApplicationIdentifier)
-     * @param appsFlyerKey AppsFlyer Token (来自 Info.plist APPSFLYER_KEY)
-     * @param debug 是否开启调试模式
      */
     public static func initKits(
         admobAppId: String = "",
         appsFlyerKey: String = "",
+        appsFlyerAppId: String = "",
         paySubsIds: String = "",
         payConsumableIds: String = "",
         payNonConsumableIds: String = "",
+        analyticsDebug: Bool? = nil,
+        remoteConfigMinFetchIntervalSeconds: TimeInterval? = nil,
+        registerPushAtLaunch: Bool? = nil,
         debug: Bool = true
     ) {
         print("[KMP-iOS] Initializing native Kit SPM SDKs & Delegates...")
+        let firebaseConfigured = configureFirebaseIfAvailable()
+        let effectiveAnalyticsDebug = analyticsDebug ?? debug
 
         #if canImport(Shared)
         // [KIT_INSTALL_START]
@@ -73,17 +102,22 @@ public final class NativeKitBootstrap: Sendable {
         // [KIT:crashreport:END]
 
         // [KIT:analytics:START]
-        CoreAnalytics.shared.install(delegate: IosAnalyticsDelegate())
+        CoreAnalytics.shared.install(delegate: IosAnalyticsDelegate(debug: effectiveAnalyticsDebug))
         CoreAnalytics.shared.doInit()
         // [KIT:analytics:END]
 
         // [KIT:abtesting:START]
-        CoreAbTesting.shared.install(delegate: IosAbTestingDelegate())
+        CoreAbTesting.shared.install(
+            delegate: IosAbTestingDelegate(
+                debug: debug,
+                minimumFetchIntervalInSeconds: remoteConfigMinFetchIntervalSeconds
+            )
+        )
         CoreAbTesting.shared.doInit()
         // [KIT:abtesting:END]
 
         // [KIT:mmp:START]
-        CoreMmp.shared.install(delegate: IosMmpDelegate())
+        CoreMmp.shared.install(delegate: IosMmpDelegate(debug: debug, appId: appsFlyerAppId))
         CoreMmp.shared.doInit(appToken: appsFlyerKey)
         // [KIT:mmp:END]
 
@@ -105,7 +139,7 @@ public final class NativeKitBootstrap: Sendable {
 
         // [KIT:push:START]
         CorePush.shared.install(delegate: IosPushDelegate())
-        CorePush.shared.doInit(registerFcm: false)
+        CorePush.shared.doInit(registerFcm: registerPushAtLaunch ?? firebaseConfigured)
         // [KIT:push:END]
 
         // [KIT:video:START]
@@ -129,17 +163,50 @@ public final class NativeKitBootstrap: Sendable {
         CrashReport.initialize(config: CrashReportConfig(enabled: true))
         // [KIT:crashreport:END]
         // [KIT:analytics:START]
+        var analyticsProviders: [AnalyticsProvider] = []
+        if effectiveAnalyticsDebug {
+            analyticsProviders.append(LoggingAnalyticsProvider())
+        }
+        #if canImport(AnalyticsFirebase)
+        if firebaseConfigured {
+            analyticsProviders.append(FirebaseAnalyticsProvider())
+        }
+        #endif
         Analytics.initialize(config: AnalyticsConfig(
-            providers: [LoggingAnalyticsProvider()],
+            providers: analyticsProviders,
             enabled: true,
-            debug: true
+            debug: effectiveAnalyticsDebug
         ))
         // [KIT:analytics:END]
         // [KIT:abtesting:START]
+        #if canImport(AbTestingFirebase)
+        if firebaseConfigured {
+            AbTestingClient.install(
+                FirebaseAbTestingProvider(
+                    config: AbTestingConfig(minimumFetchIntervalInSeconds: remoteConfigMinFetchIntervalSeconds ?? (debug ? 0 : 3600))
+                )
+            )
+        } else {
+            AbTestingClient.install(FakeAbTestingProvider())
+        }
+        #else
         AbTestingClient.install(FakeAbTestingProvider())
+        #endif
         // [KIT:abtesting:END]
         // [KIT:mmp:START]
-        Mmp.setLogEnabled(true)
+        let trimmedMmpToken = appsFlyerKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedMmpToken.isEmpty {
+            #if canImport(MmpAppsFlyer)
+            Mmp.initialize(
+                config: MmpConfig(appToken: trimmedMmpToken, isDebug: debug, appId: appsFlyerAppId, enableLog: debug),
+                client: AppsFlyerClient()
+            )
+            #else
+            Mmp.setLogEnabled(debug)
+            #endif
+        } else {
+            Mmp.setLogEnabled(debug)
+        }
         // [KIT:mmp:END]
         // [KIT:pay:START]
         PayKit.initialize(configuration: PayKitConfiguration())

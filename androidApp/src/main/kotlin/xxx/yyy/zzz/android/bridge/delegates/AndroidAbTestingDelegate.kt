@@ -17,26 +17,33 @@ import xxx.yyy.zzz.core.log.CoreLog
 internal class AndroidAbTestingDelegate(
     private val context: Context,
     private val debug: Boolean,
+    private val minFetchIntervalSeconds: Long = if (debug) 0L else 3600L,
 ) : AbTestingDelegate {
     override fun doInit() {
-        runCatching {
-            AbTestingClient.install(
-                FirebaseAbTestingProvider(
-                    context = context.applicationContext,
-                    config =
-                        AbTestingConfig(
-                            minimumFetchIntervalInSeconds = if (debug) 0L else 3600L,
-                        ),
-                ),
-            )
-        }.onFailure {
-            CoreLog.w("AbTesting", "AbTesting init skipped or failed: ${it.message}")
-        }
+        val installed =
+            runCatching {
+                AbTestingClient.install(
+                    FirebaseAbTestingProvider(
+                        context = context.applicationContext,
+                        config =
+                            AbTestingConfig(
+                                minimumFetchIntervalInSeconds = minFetchIntervalSeconds,
+                            ),
+                    ),
+                )
+            }.onFailure {
+                CoreLog.w("AbTesting", "AbTesting init skipped or failed: ${it.message}")
+            }.isSuccess
+
+        if (!installed) return
 
         CoroutineScope(Dispatchers.Default).launch {
             runCatching {
                 AbTestingClient.setDefaults(AbTestingKeys.defaults())
-                AbTestingClient.fetchAndActivate()
+                val activated = AbTestingClient.fetchAndActivate()
+                CoreLog.d("AbTesting", "[AbTesting-Android] fetchAndActivate=$activated")
+            }.onFailure {
+                CoreLog.w("AbTesting", "[AbTesting-Android] fetchAndActivate failed: ${it.message}")
             }
         }
     }

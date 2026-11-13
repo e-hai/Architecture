@@ -25,7 +25,6 @@ KEY_PASSWORD=
 # 3. 基础网络与 API 环境 (Network & Production Gateway)
 # -------------------------------------------------------------------
 BASE_URL=https://api.example.com
-NETWORK_TIMEOUT_SECONDS=15
 ENABLE_HTTP_LOG=false
 
 # -------------------------------------------------------------------
@@ -41,17 +40,14 @@ ADMOB_APP_OPEN_ID=
 # -------------------------------------------------------------------
 # 5. 十大商业化与基础设施 Kit 正式凭证 (Kits Production Credentials)
 # -------------------------------------------------------------------
-# CoreMmp (AppsFlyer 生产 Token)
-APPSFLYER_KEY=dummy_appsflyer_prod_key
+# CoreMmp (AppsFlyer 生产 Token，上线前填写真实值)
+APPSFLYER_KEY=
 
 # CoreAnalytics (埋点调试模式)
 ANALYTICS_DEBUG_MODE=false
 
 # CoreAbTesting (A/B 测试远程配置最小拉取间隔，线上推荐 3600 秒)
 REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS=3600
-
-# CorePush (FCM Sender ID 正式值)
-FCM_SENDER_ID=
 
 # CorePay (正式环境商店商品 ID 目录，逗号分隔；上线前替换为 Google Play Console 正式商品 ID)
 PAY_SUBS_IDS=

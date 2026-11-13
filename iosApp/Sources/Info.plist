@@ -10,10 +10,16 @@
 	<string>$(ADMOB_INTERSTITIAL_ID)</string>
 	<key>ADMOB_REWARDED_ID</key>
 	<string>$(ADMOB_REWARDED_ID)</string>
+	<key>ANALYTICS_DEBUG_MODE</key>
+	<string>$(ANALYTICS_DEBUG_MODE)</string>
+	<key>APPSFLYER_APP_ID</key>
+	<string>$(APPSFLYER_APP_ID)</string>
 	<key>APPSFLYER_KEY</key>
 	<string>$(APPSFLYER_KEY)</string>
 	<key>BASE_URL</key>
 	<string>$(BASE_URL)</string>
+	<key>REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS</key>
+	<string>$(REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS)</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

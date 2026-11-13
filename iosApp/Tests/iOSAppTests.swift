@@ -15,11 +15,11 @@ struct IOSAppTests {
     }
 
     /**
-     * 验证 iOSAppView 作为可复用视图组件在沙盒环境下能正确完成实例化与生命周期装配。
+     * 验证 ContentView 作为主内容视图组件在沙盒环境下能正确完成实例化。
      */
-    @Test("iOSAppView initializes correctly")
+    @Test("ContentView initializes correctly")
     @MainActor
     func testViewInitialization() {
-        _ = iOSAppView()
+        _ = ContentView()
     }
 }

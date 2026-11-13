@@ -23,7 +23,7 @@ let package = Package(
         .package(url: "https://github.com/e-hai/AbTestingKit-iOS.git", from: "1.0.0"),
         // [KIT:abtesting:END]
         // [KIT:mmp:START]
-        .package(url: "https://github.com/e-hai/MmpKit-iOS.git", from: "1.0.0"),
+        .package(url: "https://github.com/e-hai/MmpKit-iOS.git", from: "1.0.1"),
         // [KIT:mmp:END]
         // [KIT:ads:START]
         .package(url: "https://github.com/e-hai/AdsKit-iOS.git", from: "1.0.2"),
@@ -50,12 +50,15 @@ let package = Package(
                 // [KIT:crashreport:END]
                 // [KIT:analytics:START]
                 .product(name: "Analytics", package: "AnalyticsKit-iOS"),
+                .product(name: "AnalyticsFirebase", package: "AnalyticsKit-iOS"),
                 // [KIT:analytics:END]
                 // [KIT:abtesting:START]
                 .product(name: "AbTesting", package: "AbTestingKit-iOS"),
+                .product(name: "AbTestingFirebase", package: "AbTestingKit-iOS"),
                 // [KIT:abtesting:END]
                 // [KIT:mmp:START]
                 .product(name: "MmpCore", package: "MmpKit-iOS"),
+                .product(name: "MmpAppsFlyer", package: "MmpKit-iOS"),
                 // [KIT:mmp:END]
                 // [KIT:ads:START]
                 .product(name: "AdsKit", package: "AdsKit-iOS"),

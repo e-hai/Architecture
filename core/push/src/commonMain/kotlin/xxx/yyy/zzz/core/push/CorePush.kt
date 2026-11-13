@@ -15,12 +15,24 @@ interface PushDelegate {
     fun registerPush()
 
     fun setPushToken(token: String)
+
+    /**
+     * 获取当前已缓存或平台侧可用的推送 Token。
+     */
+    fun getPushToken(): String? = null
+
+    /**
+     * 查询当前系统通知权限是否已授予。
+     */
+    fun hasPushPermission(): Boolean = false
 }
 
 /**
  * 默认推送兜底实现。
  */
 object DefaultPushDelegate : PushDelegate {
+    private var cachedToken: String? = null
+
     override fun doInit(registerFcm: Boolean) = Unit
 
     override fun registerPush() {
@@ -28,8 +40,13 @@ object DefaultPushDelegate : PushDelegate {
     }
 
     override fun setPushToken(token: String) {
+        cachedToken = token
         println("[Push] setPushToken: $token")
     }
+
+    override fun getPushToken(): String? = cachedToken
+
+    override fun hasPushPermission(): Boolean = false
 }
 
 /**
@@ -52,4 +69,8 @@ object CorePush : PushDelegate {
     override fun registerPush() = delegate.registerPush()
 
     override fun setPushToken(token: String) = delegate.setPushToken(token)
+
+    override fun getPushToken(): String? = delegate.getPushToken()
+
+    override fun hasPushPermission(): Boolean = delegate.hasPushPermission()
 }

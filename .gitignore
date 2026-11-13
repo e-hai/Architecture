@@ -15,6 +15,7 @@ build/
 
 # iOS & Xcode & Swift
 DerivedData/
+*.xcodeproj/
 .build/
 .swiftpm/
 Package.resolved
@@ -27,6 +28,8 @@ local.properties
 keystore.properties
 config/prod.properties
 Secrets.swift
+google-services.json
+GoogleService-Info.plist
 *.p8
 *.mobileprovision
 *.cer

@@ -28,9 +28,16 @@ internal class PushDebugSection : DebugSection {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ElevatedButton(onClick = {
                 CorePush.registerPush()
-                CorePush.setPushToken("mock_fcm_token_12345")
-                emitLog(LogTags.PUSH, "已调用 registerPush，Token 设置为 mock_fcm_token_12345", "I")
-            }) { Text("注册远程推送") }
+                val granted = CorePush.hasPushPermission()
+                val tokenPreview = CorePush.getPushToken()?.take(16)?.let { "$it..." } ?: "等待系统回传"
+                emitLog(LogTags.PUSH, "已触发推送注册，当前权限=$granted, Token=$tokenPreview", "I")
+            }) { Text("申请通知权限并注册") }
+
+            ElevatedButton(onClick = {
+                val granted = CorePush.hasPushPermission()
+                val token = CorePush.getPushToken() ?: "<empty>"
+                emitLog(LogTags.PUSH, "通知权限=$granted, Token=$token", "I")
+            }) { Text("查询推送状态/Token") }
         }
     }
 }

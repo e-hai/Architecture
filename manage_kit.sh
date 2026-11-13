@@ -109,7 +109,10 @@ cmd_remove() {
         strip_kit_block "features/debug/impl/build.gradle.kts" "$KIT"
     fi
 
-    echo -e "${YELLOW}[2/5] 卸载双端宿主 NativeKitBootstrap 与 Delegate 文件...${NC}"
+    echo -e "${YELLOW}[2/5] 卸载双端宿主 NativeKitBootstrap / 入口挂载与 Delegate 文件...${NC}"
+    local MAIN_ACTIVITY="androidApp/src/main/kotlin/${PKG_PATH}/android/MainActivity.kt"
+    strip_kit_block "$MAIN_ACTIVITY" "$KIT"
+
     local AND_BOOTSTRAP="androidApp/src/main/kotlin/${PKG_PATH}/android/bridge/NativeKitBootstrap.kt"
     local AND_DELEGATE="androidApp/src/main/kotlin/${PKG_PATH}/android/bridge/delegates/Android${PASCAL}Delegate.kt"
     strip_kit_block "$AND_BOOTSTRAP" "$KIT"
@@ -119,6 +122,9 @@ cmd_remove() {
         sed -i.bak "/Android${PASCAL}Delegate/d;/core\.${KIT}\./d" "$AND_BOOTSTRAP" && rm -f "$AND_BOOTSTRAP.bak"
     fi
     rm -f "$AND_DELEGATE"
+
+    local IOS_APP="iosApp/Sources/iOSApp.swift"
+    strip_kit_block "$IOS_APP" "$KIT"
 
     local IOS_BOOTSTRAP="iosApp/Sources/Bridge/NativeKitBootstrap.swift"
     local IOS_DELEGATE="iosApp/Sources/Bridge/Delegates/Ios${PASCAL}Delegate.swift"

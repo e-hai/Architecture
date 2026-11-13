@@ -32,7 +32,26 @@ internal class MmpDebugSection : DebugSection {
                 CoreMmp.setCustomerUserId("mmp_user_99")
                 CoreMmp.trackEvent(MmpEvents.PURCHASE, mapOf(MmpParams.SKU to "subs_pro"))
                 emitLog(LogTags.MMP, "上报归因事件: purchase (sku=subs_pro)", "I")
-            }) { Text("上报 MMP 归因") }
+            }) { Text("上报 MMP 事件") }
+            ElevatedButton(onClick = {
+                CoreMmp.trackRevenue(
+                    revenue = 9.99,
+                    currency = "USD",
+                    eventName = MmpEvents.PURCHASE,
+                    params = mapOf(MmpParams.SKU to "subs_pro"),
+                )
+                emitLog(LogTags.MMP, "上报归因收入: 9.99 USD (sku=subs_pro)", "I")
+            }) { Text("上报 MMP 收入") }
+            ElevatedButton(onClick = {
+                val attr = CoreMmp.getAttribution()
+                val summary =
+                    if (attr == null) {
+                        "暂未就绪（需有效 AppsFlyer Key / 真机回调）"
+                    } else {
+                        "isOrganic=${attr.isOrganic}, network=${attr.network}, campaign=${attr.campaign}"
+                    }
+                emitLog(LogTags.MMP, "当前归因快照: $summary", "I")
+            }) { Text("查看归因快照") }
         }
     }
 }

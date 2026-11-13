@@ -1,11 +1,9 @@
 <resources>
     <string name="app_name">Architecture</string>
-    <string name="welcome_message">欢迎体验 KMP 现代化架构</string>
-    <string name="sub_title">Compose Multiplatform · JetBrains 2026 最新工程结构</string>
-    <string name="go_to_settings">前往设置</string>
-    <string name="settings_title">设置中心</string>
-    <string name="back">返回</string>
-    <string name="open_debug_console">开发者调试面板</string>
-    <string name="debug_console_title">调试控制台</string>
-    <string name="clear_log">清空日志</string>
+    <string name="welcome_message">Welcome to KMP Architecture</string>
+    <string name="sub_title">Compose Multiplatform · JetBrains 2026 New Default Structure</string>
+    <string name="back">Back</string>
+    <string name="open_debug_console">Developer Debug Console</string>
+    <string name="debug_console_title">Debug Console</string>
+    <string name="clear_log">Clear Log</string>
 </resources>

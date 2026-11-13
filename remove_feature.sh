@@ -19,7 +19,7 @@ if [ -z "$1" ]; then
 fi
 
 RAW_NAME="$1"
-FEATURE_NAME=$(echo "$RAW_NAME" | tr '[:upper:]' '[:lower:]')
+FEATURE_NAME=$(echo "$RAW_NAME" | tr '[:upper:]-' '[:lower:]_')
 CLASS_PREFIX=$(echo "$FEATURE_NAME" | awk -F_ '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)} 1' OFS="")
 FORCE=false
 if [ "$2" = "--force" ]; then
@@ -48,7 +48,7 @@ if [ -n "$NAVGRAPH_FILE" ] && grep -q "${CLASS_PREFIX}NavKey" "$NAVGRAPH_FILE"; 
 fi
 
 # 检查是否有其他业务模块直接依赖该 feature:api
-OTHER_REFS=$(grep -rnIE --exclude-dir=build --include="*.kts" --include="*.kt" ":features:${FEATURE_NAME}:|projects\.features\.${FEATURE_NAME}\b" features/ 2>/dev/null | grep -v "^features/${FEATURE_NAME}/" || true)
+OTHER_REFS=$(grep -rnIE --exclude-dir=build --include="*.kts" --include="*.kt" ":features:${FEATURE_NAME}:|projects\.features\.${FEATURE_NAME}\b|\b${CLASS_PREFIX}NavKey\b" features/ 2>/dev/null | grep -v "^features/${FEATURE_NAME}/" || true)
 if [ -n "$OTHER_REFS" ] && [ "$FORCE" = false ]; then
     echo -e "${RED}[安全拦截] 检测到其他业务模块引用了 :features:${FEATURE_NAME}：${NC}"
     echo "$OTHER_REFS"
