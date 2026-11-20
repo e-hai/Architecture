@@ -51,12 +51,18 @@ public struct iOSApp: App {
     public init() {
         #if DEBUG
         let isDebug = true
+        let appEnv: AppEnvironment = .dev
         #else
         let isDebug = false
+        let appEnv: AppEnvironment = .prod
         #endif
 
         let info = Bundle.main.infoDictionary
         let admobAppId = info?["GADApplicationIdentifier"] as? String ?? ""
+        let admobBannerId = info?["ADMOB_BANNER_ID"] as? String ?? ""
+        let admobInterstitialId = info?["ADMOB_INTERSTITIAL_ID"] as? String ?? ""
+        let admobRewardedId = info?["ADMOB_REWARDED_ID"] as? String ?? ""
+        let admobAppOpenId = info?["ADMOB_APP_OPEN_ID"] as? String ?? ""
         let baseUrl = info?["BASE_URL"] as? String ?? ""
         let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
         let appsFlyerAppId = info?["APPSFLYER_APP_ID"] as? String ?? ""
@@ -73,6 +79,10 @@ public struct iOSApp: App {
         // 1. 初始化十大基础设施与商业化 Kit (9 大 Swift SPM 委托 + PagKit)
         NativeKitBootstrap.initKits(
             admobAppId: admobAppId,
+            admobBannerId: admobBannerId,
+            admobInterstitialId: admobInterstitialId,
+            admobRewardedId: admobRewardedId,
+            admobAppOpenId: admobAppOpenId,
             appsFlyerKey: appsFlyerKey,
             appsFlyerAppId: appsFlyerAppId,
             paySubsIds: paySubsIds,
@@ -85,7 +95,7 @@ public struct iOSApp: App {
 
         // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
         let config = AppConfig(
-            env: isDebug ? .dev : .prod,
+            env: appEnv,
             isDebug: isDebug,
             baseUrl: baseUrl,
             versionName: info?["CFBundleShortVersionString"] as? String ?? "1.0.0",

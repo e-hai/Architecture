@@ -6,6 +6,7 @@ package xxx.yyy.zzz.core.ads
 class FakeAdsDelegate : AdsDelegate {
     var initializedApiKey: String? = null
     val loadedTriggers = mutableMapOf<String, String>()
+    val loadedFormats = mutableMapOf<String, AdFormat>()
     val shownTriggers = mutableListOf<String>()
     var debugOpenedCount: Int = 0
 
@@ -16,8 +17,10 @@ class FakeAdsDelegate : AdsDelegate {
     override fun loadAd(
         triggerId: String,
         adUnitId: String,
+        format: AdFormat,
     ) {
         loadedTriggers[triggerId] = adUnitId
+        loadedFormats[triggerId] = format
     }
 
     override fun isReady(triggerId: String): Boolean = loadedTriggers.containsKey(triggerId)
@@ -25,6 +28,7 @@ class FakeAdsDelegate : AdsDelegate {
     override fun showAd(triggerId: String) {
         shownTriggers.add(triggerId)
         loadedTriggers.remove(triggerId)
+        loadedFormats.remove(triggerId)
     }
 
     override fun openDebug() {
@@ -34,6 +38,7 @@ class FakeAdsDelegate : AdsDelegate {
     fun clear() {
         initializedApiKey = null
         loadedTriggers.clear()
+        loadedFormats.clear()
         shownTriggers.clear()
         debugOpenedCount = 0
     }

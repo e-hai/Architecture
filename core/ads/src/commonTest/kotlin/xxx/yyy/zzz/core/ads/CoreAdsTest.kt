@@ -32,6 +32,7 @@ class CoreAdsTest {
 
         CoreAds.loadAd(AdsKeys.Trigger.REWARD_VIDEO, "unit_123")
         assertTrue(CoreAds.isReady(AdsKeys.Trigger.REWARD_VIDEO))
+        assertEquals(AdFormat.REWARDED, fakeDelegate.loadedFormats[AdsKeys.Trigger.REWARD_VIDEO])
 
         CoreAds.showAd(AdsKeys.Trigger.REWARD_VIDEO)
         assertEquals(listOf(AdsKeys.Trigger.REWARD_VIDEO), fakeDelegate.shownTriggers)
@@ -39,5 +40,19 @@ class CoreAdsTest {
 
         CoreAds.openDebug()
         assertEquals(1, fakeDelegate.debugOpenedCount)
+    }
+
+    @Test
+    fun testMultiFormatInferenceAndExplicitOverride() {
+        CoreAds.loadAd(AdsKeys.Trigger.HOME_BANNER)
+        CoreAds.loadAd(AdsKeys.Trigger.HOME_INTERSTITIAL)
+        CoreAds.loadAd(AdsKeys.Trigger.APP_OPEN)
+        CoreAds.loadAd("custom_placement", "custom_unit", AdFormat.INTERSTITIAL)
+
+        assertEquals(AdFormat.BANNER, fakeDelegate.loadedFormats[AdsKeys.Trigger.HOME_BANNER])
+        assertEquals(AdFormat.INTERSTITIAL, fakeDelegate.loadedFormats[AdsKeys.Trigger.HOME_INTERSTITIAL])
+        assertEquals(AdFormat.APP_OPEN, fakeDelegate.loadedFormats[AdsKeys.Trigger.APP_OPEN])
+        assertEquals(AdFormat.INTERSTITIAL, fakeDelegate.loadedFormats["custom_placement"])
+        assertEquals("custom_unit", fakeDelegate.loadedTriggers["custom_placement"])
     }
 }

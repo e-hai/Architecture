@@ -17,3 +17,12 @@ spotless {
         ktlint()
     }
 }
+
+// 将 composite build (build-logic) 一并纳入根工程 Spotless 门禁
+tasks.named("spotlessCheck") {
+    dependsOn(gradle.includedBuild("build-logic").task(":convention:spotlessCheck"))
+}
+
+tasks.named("spotlessApply") {
+    dependsOn(gradle.includedBuild("build-logic").task(":convention:spotlessApply"))
+}

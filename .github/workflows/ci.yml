@@ -66,12 +66,16 @@ jobs:
           PROD_KEY_PASSWORD=ci_keystore_pass_123 \
           ./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false
 
-      - name: Generate Xcode Project, Run iOS Simulator Tests & Build Prod
+      - name: Run SwiftLint, Generate Xcode Project, Run iOS Simulator Tests & Build Prod
         run: |
           if ! command -v xcodegen &> /dev/null; then
             brew install xcodegen
           fi
+          if ! command -v swiftlint &> /dev/null; then
+            brew install swiftlint
+          fi
           cd iosApp
+          swiftlint lint --config .swiftlint.yml --strict
           xcodegen generate --spec project.yml
           SIM_UDID=$(xcrun simctl list devices available iPhone | sed -n 's/.*(\([0-9A-F-]\{36\}\)).*/\1/p' | head -n 1)
           if [ -z "$SIM_UDID" ]; then

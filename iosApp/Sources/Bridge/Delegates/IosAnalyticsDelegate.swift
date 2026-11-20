@@ -56,8 +56,8 @@ internal final class IosAnalyticsDelegate: NSObject, AnalyticsDelegate, @uncheck
         for (key, val) in params {
             if let str = val as? String {
                 analyticsParams[key] = .string(str)
-            } else if let b = val as? Bool {
-                analyticsParams[key] = .bool(b)
+            } else if let boolVal = val as? Bool {
+                analyticsParams[key] = .bool(boolVal)
             } else if let num = val as? NSNumber {
                 analyticsParams[key] = .double(num.doubleValue)
             } else {

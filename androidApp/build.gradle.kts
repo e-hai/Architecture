@@ -169,8 +169,8 @@ dependencies {
     // [KIT:ads:START]
     constraints {
         // unity-ads:4.19.0 (via AdsKit-Android) 传递引入了过时的 work-runtime:2.7.0，强制提升至 2.8.1 避免 Android 12+ PendingIntent 崩溃
-        implementation("androidx.work:work-runtime:2.8.1")
-        implementation("androidx.work:work-runtime-ktx:2.8.1")
+        implementation(libs.androidx.work.runtime)
+        implementation(libs.androidx.work.runtime.ktx)
     }
     // [KIT:ads:END]
     implementation(project(":shared"))

@@ -1,12 +1,11 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
-import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import project.configureKotlinAndroid
+import project.configureLibpagNativeLinking
 import project.libsCatalog
 
 /**
@@ -34,26 +33,7 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                 // 若启用了 :core:pag，自动为下游 iOS Test/Framework 链接提供 libpag.xcframework 搜索路径，
                 // 确保任意引用 :core:pag 的 Feature/Shared 模块在运行 allTests 时无需重复声明 linkerOpts
                 if (rootProject.findProject(":core:pag") != null && path != ":core:pag") {
-                    val libpagCacheDir = rootProject.file(".gradle/libpag-ios/4.5.102/libpag.xcframework")
-                    targets.withType(KotlinNativeTarget::class.java).configureEach {
-                        val sliceDir =
-                            if (name.contains("Simulator", ignoreCase = true)) {
-                                "ios-arm64_x86_64-simulator"
-                            } else {
-                                "ios-arm64"
-                            }
-                        val frameworkDir = File(libpagCacheDir, sliceDir)
-                        binaries.all {
-                            linkTaskProvider.configure {
-                                dependsOn(":core:pag:ensureLibpagXcframework")
-                            }
-                            linkerOpts(
-                                "-F${frameworkDir.absolutePath}",
-                                "-rpath",
-                                frameworkDir.absolutePath,
-                            )
-                        }
-                    }
+                    configureLibpagNativeLinking(project = this@with, includeLinkLibraries = false)
                 }
 
                 sourceSets.getByName("commonMain").dependencies {

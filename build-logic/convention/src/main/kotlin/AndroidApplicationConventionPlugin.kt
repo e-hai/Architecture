@@ -21,7 +21,12 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
-                defaultConfig.targetSdk = libsCatalog.findVersion("targetSdk").get().requiredVersion.toInt()
+                defaultConfig.targetSdk =
+                    libsCatalog
+                        .findVersion("targetSdk")
+                        .get()
+                        .requiredVersion
+                        .toInt()
 
                 buildFeatures {
                     buildConfig = true
@@ -30,11 +35,12 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
                 packaging {
                     resources {
-                        excludes += listOf(
-                            "/META-INF/{AL2.0,LGPL2.1}",
-                            "/META-INF/INDEX.LIST",
-                            "/META-INF/DEPENDENCIES",
-                        )
+                        excludes +=
+                            listOf(
+                                "/META-INF/{AL2.0,LGPL2.1}",
+                                "/META-INF/INDEX.LIST",
+                                "/META-INF/DEPENDENCIES",
+                            )
                     }
                 }
             }

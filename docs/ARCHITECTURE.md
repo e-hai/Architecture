@@ -216,7 +216,7 @@ dependencyResolutionManagement {
 
 - 移除遗留 `v` 前缀（如 `1.0.1` 替代 `v1.0.1`）；
 - 命名空间标准化：
-  - Android 原生 Kit：`com.github.e-hai.<RepoName>:<artifactId>:<version>`
+  - Android 原生 Kit：`com.github.e-hai.<RepoName>:<artifactId>:<version>`（例外：`abtesting-firebase` 使用 `com.kit.abtesting:abtesting-firebase`，多子模块仓库 `AnalyticsKit-Android` / `AdsKit-Android` 使用 `com.github.e-hai.<RepoName>:<artifactId>`）
   - KMP 原生 Kit：`io.github.e-hai:pagkit:<version>`
   - iOS 端：Swift Package Manager 指向 `https://github.com/e-hai/<RepoName>-iOS.git`
 

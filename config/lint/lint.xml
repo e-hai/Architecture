@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!--
+      Android Lint 全局规则基线（配合 build-logic warningsAsErrors = true）。
+      仅屏蔽依赖版本外部巡检与刻意锁定的 targetSdk 提示；所有真实缺陷、安全性、资源及 Manifest 检查一律按 Error 阻断。
+    -->
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="OldTargetApi" severity="ignore" />
+</lint>

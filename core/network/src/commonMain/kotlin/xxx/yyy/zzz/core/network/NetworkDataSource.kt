@@ -1,5 +1,9 @@
 package xxx.yyy.zzz.core.network
 
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import xxx.yyy.zzz.core.model.DummyModel
 import xxx.yyy.zzz.core.model.NetworkResult
@@ -9,6 +13,27 @@ import xxx.yyy.zzz.core.model.NetworkResult
  */
 interface NetworkDataSource {
     suspend fun fetchDummyData(): NetworkResult<List<DummyModel>>
+}
+
+/**
+ * 基于真实 Ktor [HttpClient] 的参考网络数据源实现（自动复用 [configureHttpClient] 注入的 baseUrl 与超时配置）。
+ */
+class KtorNetworkDataSource(
+    private val httpClient: HttpClient,
+    private val endpointPath: String = "dummies",
+) : NetworkDataSource {
+    override suspend fun fetchDummyData(): NetworkResult<List<DummyModel>> =
+        try {
+            val response: List<DummyModel> = httpClient.get(endpointPath).body()
+            NetworkResult.Success(response)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            NetworkResult.Error(
+                exception = t,
+                message = t.message ?: "网络请求失败",
+            )
+        }
 }
 
 /**

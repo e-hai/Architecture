@@ -34,9 +34,10 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
             )
         }
         PushKitManager.shared.apnsProvider.setMessageListener { message, provider in
+            let messageId = message.id ?? "nil"
             CoreLog.shared.i(
                 tag: LogTags.shared.PUSH,
-                message: "[Push-iOS] 收到推送消息 (\(provider)): id=\(message.id)"
+                message: "[Push-iOS] 收到推送消息 (\(provider)): id=\(messageId)"
             )
         }
 
@@ -65,12 +66,11 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
             return
         }
 
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             do {
                 let granted = try await PushKitManager.shared.requestPermission()
-                lock.lock()
-                cachedPermissionGranted = granted
-                lock.unlock()
+                self.setCachedPermissionGranted(granted)
                 CoreLog.shared.i(tag: LogTags.shared.PUSH, message: "[Push-iOS] 通知权限请求结果 granted=\(granted)")
 
                 if granted {
@@ -114,17 +114,21 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
 
     private func storeToken(_ token: String) {
         lock.lock()
+        defer { lock.unlock() }
         cachedToken = token
-        lock.unlock()
+    }
+
+    private func setCachedPermissionGranted(_ granted: Bool) {
+        lock.lock()
+        defer { lock.unlock() }
+        cachedPermissionGranted = granted
     }
 
     private func refreshPermissionStatusAsync() {
         guard Bundle.main.bundleIdentifier != nil else { return }
-        Task {
+        Task { [weak self] in
             let granted = await PushKitManager.shared.hasNotificationPermission()
-            lock.lock()
-            cachedPermissionGranted = granted
-            lock.unlock()
+            self?.setCachedPermissionGranted(granted)
         }
     }
 }

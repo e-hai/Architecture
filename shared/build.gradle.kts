@@ -123,9 +123,5 @@ kotlin {
                 // [FEATURE_DEPENDENCIES_END]
             }
         }
-
-        androidMain.dependencies {
-            implementation(libs.koin.android)
-        }
     }
 }

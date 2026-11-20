@@ -15,6 +15,9 @@ internal object DebugPanelBridge {
     /** 当前分支是否已集成调试控制台。 */
     const val IS_ENABLED: Boolean = false
 
+    /** 调试控制台路由键（裁剪态恒为 null）。 */
+    val debugKey: NavKey? = null
+
     /** 需要注入 Koin 容器的调试模块列表（裁剪态为空）。 */
     val koinModules: List<Module> = emptyList()
 

@@ -103,6 +103,8 @@ cmd_remove() {
     echo -e "${YELLOW}[1/5] 卸载 Gradle 与依赖导出锚点...${NC}"
     strip_kit_block "settings.gradle.kts" "$KIT"
     strip_kit_block "shared/build.gradle.kts" "$KIT"
+    strip_kit_block "shared/src/commonMain/kotlin/${PKG_PATH}/shared/App.kt" "$KIT"
+    strip_kit_block "shared/src/commonTest/kotlin/${PKG_PATH}/shared/AppBootstrapTest.kt" "$KIT"
     strip_kit_block "androidApp/build.gradle.kts" "$KIT"
     strip_kit_block "androidApp/proguard-rules.pro" "$KIT"
     if [ -f "features/debug/impl/build.gradle.kts" ]; then
@@ -116,11 +118,6 @@ cmd_remove() {
     local AND_BOOTSTRAP="androidApp/src/main/kotlin/${PKG_PATH}/android/bridge/NativeKitBootstrap.kt"
     local AND_DELEGATE="androidApp/src/main/kotlin/${PKG_PATH}/android/bridge/delegates/Android${PASCAL}Delegate.kt"
     strip_kit_block "$AND_BOOTSTRAP" "$KIT"
-    if [ "$KIT" = "pag" ]; then
-        sed -i.bak "/PagKitAndroid/d;/core\.pag\./d" "$AND_BOOTSTRAP" && rm -f "$AND_BOOTSTRAP.bak"
-    else
-        sed -i.bak "/Android${PASCAL}Delegate/d;/core\.${KIT}\./d" "$AND_BOOTSTRAP" && rm -f "$AND_BOOTSTRAP.bak"
-    fi
     rm -f "$AND_DELEGATE"
 
     local IOS_APP="iosApp/Sources/iOSApp.swift"

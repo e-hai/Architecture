@@ -31,6 +31,10 @@ public final class NativeKitBootstrap: Sendable {
      */
     public static func initKits(
         admobAppId: String = "",
+        admobBannerId: String = "",
+        admobInterstitialId: String = "",
+        admobRewardedId: String = "",
+        admobAppOpenId: String = "",
         appsFlyerKey: String = "",
         appsFlyerAppId: String = "",
         paySubsIds: String = "",
@@ -77,7 +81,15 @@ public final class NativeKitBootstrap: Sendable {
         // [KIT:mmp:END]
 
         // [KIT:ads:START]
-        CoreAds.shared.install(delegate: IosAdsDelegate(debug: debug))
+        CoreAds.shared.install(
+            delegate: IosAdsDelegate(
+                defaultBannerUnitId: admobBannerId,
+                defaultInterstitialUnitId: admobInterstitialId,
+                defaultRewardedUnitId: admobRewardedId,
+                defaultAppOpenUnitId: admobAppOpenId,
+                debug: debug
+            )
+        )
         CoreAds.shared.doInit(apiKey: admobAppId)
         // [KIT:ads:END]
 

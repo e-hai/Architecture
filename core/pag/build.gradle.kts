@@ -1,9 +1,12 @@
+import project.LIBPAG_IOS_VERSION
+import project.configureLibpagNativeLinking
+
 plugins {
     alias(libs.plugins.myproject.kmp.library)
     alias(libs.plugins.myproject.kmp.compose)
 }
 
-val libpagCacheDir = rootProject.file(".gradle/libpag-ios/4.5.102")
+val libpagCacheDir = rootProject.file(".gradle/libpag-ios/$LIBPAG_IOS_VERSION")
 val xcframeworkPath = libpagCacheDir.resolve("libpag.xcframework")
 val ensureScript = rootProject.file("scripts/ensure_libpag_xcframework.sh")
 
@@ -24,28 +27,11 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
-    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
-        val sliceDir =
-            if (name.contains("Simulator", ignoreCase = true)) {
-                "ios-arm64_x86_64-simulator"
-            } else {
-                "ios-arm64"
-            }
-        val frameworkDir = xcframeworkPath.resolve(sliceDir)
-        binaries.all {
-            linkTaskProvider.configure {
-                dependsOn(ensureLibpagXcframework)
-            }
-            linkerOpts(
-                "-F${frameworkDir.absolutePath}",
-                "-framework",
-                "libpag",
-                "-lc++",
-                "-rpath",
-                frameworkDir.absolutePath,
-            )
-        }
-    }
+    configureLibpagNativeLinking(
+        project = project,
+        includeLinkLibraries = true,
+        ensureTask = ensureLibpagXcframework,
+    )
 
     sourceSets {
         commonMain.dependencies {

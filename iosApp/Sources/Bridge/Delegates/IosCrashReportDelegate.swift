@@ -10,6 +10,8 @@ internal final class IosCrashReportDelegate: NSObject, CrashReportDelegate {
         CrashReport.initialize(config: CrashReportConfig(enabled: true))
     }
 
+    // Kotlin/Native ObjC 导出为避免方法签名冲突生成 userId_ 参数名，必须保留以匹配 CrashReportDelegate 协议
+    // swiftlint:disable:next identifier_name
     func setUserId(userId_: String) {
         CrashReport.setUserId(userId_)
     }

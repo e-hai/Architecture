@@ -1,8 +1,20 @@
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.spotless)
 }
 
 group = "xxx.yyy.zzz.buildlogic"
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint()
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
+}
 
 dependencies {
     compileOnly(libs.android.gradlePlugin)

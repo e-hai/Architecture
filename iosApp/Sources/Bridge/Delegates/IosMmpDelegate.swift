@@ -67,18 +67,16 @@ internal final class IosMmpDelegate: NSObject, MmpDelegate, @unchecked Sendable 
         )
         Mmp.setAttributionListener { [weak self] data in
             let mapped = Self.mapAttribution(data)
-            CoreLog.shared.i(
-                tag: LogTags.shared.MMP,
-                message: "[Mmp-iOS] Attribution arrived: isOrganic=\(mapped.isOrganic), network=\(mapped.network ?? "nil"), campaign=\(mapped.campaign ?? "nil")"
-            )
+            let network = mapped.network ?? "nil"
+            let campaign = mapped.campaign ?? "nil"
+            let summary = "isOrganic=\(mapped.isOrganic), network=\(network), campaign=\(campaign)"
+            CoreLog.shared.i(tag: LogTags.shared.MMP, message: "[Mmp-iOS] Attribution arrived: \(summary)")
             self?.deliverAttribution(mapped)
         }
         Mmp.setDeepLinkListener { [weak self] result in
             let mapped = Self.mapDeepLink(result)
-            CoreLog.shared.i(
-                tag: LogTags.shared.MMP,
-                message: "[Mmp-iOS] DeepLink resolved: value=\(mapped.deepLinkValue ?? "nil"), isDeferred=\(mapped.isDeferred)"
-            )
+            let summary = "value=\(mapped.deepLinkValue ?? "nil"), isDeferred=\(mapped.isDeferred)"
+            CoreLog.shared.i(tag: LogTags.shared.MMP, message: "[Mmp-iOS] DeepLink resolved: \(summary)")
             self?.deliverDeepLink(mapped)
         }
         #else

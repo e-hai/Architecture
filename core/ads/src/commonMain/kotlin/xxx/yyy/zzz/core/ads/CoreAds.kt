@@ -12,9 +12,17 @@ interface AdsDelegate {
      */
     fun doInit(apiKey: String)
 
+    /**
+     * 按触发点与广告格式加载广告单元。
+     *
+     * @param triggerId 广告触发点 ID（参见 [AdsKeys.Trigger]）
+     * @param adUnitId 显式广告单元 ID；传空字符串时由各端委托按 [format] 自动回退至默认配置单元
+     * @param format 广告格式类型，默认根据 [triggerId] 自动推断
+     */
     fun loadAd(
         triggerId: String,
-        adUnitId: String,
+        adUnitId: String = "",
+        format: AdFormat = AdsKeys.defaultFormatFor(triggerId),
     )
 
     fun isReady(triggerId: String): Boolean
@@ -36,8 +44,9 @@ object DefaultAdsDelegate : AdsDelegate {
     override fun loadAd(
         triggerId: String,
         adUnitId: String,
+        format: AdFormat,
     ) {
-        println("[Ads] LoadAd: triggerId=$triggerId, unitId=$adUnitId")
+        println("[Ads] LoadAd: triggerId=$triggerId, unitId=$adUnitId, format=$format")
     }
 
     override fun isReady(triggerId: String): Boolean = false
@@ -71,7 +80,8 @@ object CoreAds : AdsDelegate {
     override fun loadAd(
         triggerId: String,
         adUnitId: String,
-    ) = delegate.loadAd(triggerId, adUnitId)
+        format: AdFormat,
+    ) = delegate.loadAd(triggerId, adUnitId, format)
 
     override fun isReady(triggerId: String): Boolean = delegate.isReady(triggerId)
 
