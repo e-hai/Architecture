@@ -25,6 +25,9 @@ import xxx.yyy.zzz.core.pag.rememberPagState
 import xxx.yyy.zzz.feature.debug.api.DebugCategory
 import xxx.yyy.zzz.feature.debug.api.DebugSection
 
+private const val PERCENT_SCALE = 100
+private const val SEEK_STEP_FRACTION = 0.25
+
 /**
  * CorePag 跨平台动效调试区块（严格仅通过 `:core:pag` 门面导出组件调用）。
  */
@@ -42,55 +45,57 @@ internal class PagDebugSection : DebugSection {
                 autoPlay = true,
                 repeatCount = 0,
             )
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            PagView(
-                state = pagState,
-                modifier =
-                    Modifier
-                        .size(72.dp)
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp)),
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "动效状态: ${if (pagState.isPlaying) "播放中" else "暂停"} (${if (pagState.isLoaded) "已装载" else "加载中"})",
-                    style = MaterialTheme.typography.bodySmall,
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                PagView(
+                    state = pagState,
+                    modifier =
+                        Modifier
+                            .size(72.dp)
+                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp)),
                 )
-                Text(
-                    text = "播放进度: ${(pagState.progress * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "动效状态: ${if (pagState.isPlaying) "播放中" else "暂停"} (${if (pagState.isLoaded) "已装载" else "加载中"})",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        text = "播放进度: ${(pagState.progress * PERCENT_SCALE).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ElevatedButton(onClick = {
-                pagState.play()
-                emitLog(LogTags.PAG, "PAG动效: 播放 (like.pag)", "I")
-            }) { Text("播放") }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ElevatedButton(onClick = {
+                    pagState.play()
+                    emitLog(LogTags.PAG, "PAG动效: 播放 (like.pag)", "I")
+                }) { Text("播放") }
 
-            ElevatedButton(onClick = {
-                pagState.pause()
-                emitLog(LogTags.PAG, "PAG动效: 暂停", "I")
-            }) { Text("暂停") }
+                ElevatedButton(onClick = {
+                    pagState.pause()
+                    emitLog(LogTags.PAG, "PAG动效: 暂停", "I")
+                }) { Text("暂停") }
 
-            ElevatedButton(onClick = {
-                pagState.stop()
-                emitLog(LogTags.PAG, "PAG动效: 停止重置", "I")
-            }) { Text("停止") }
+                ElevatedButton(onClick = {
+                    pagState.stop()
+                    emitLog(LogTags.PAG, "PAG动效: 停止重置", "I")
+                }) { Text("停止") }
 
-            ElevatedButton(onClick = {
-                val next = (pagState.progress + 0.25).let { if (it > 1.0) 0.0 else it }
-                pagState.seekTo(next)
-                emitLog(LogTags.PAG, "PAG动效: 跳转进度 ${(next * 100).toInt()}%", "I")
-            }) { Text("+25%") }
+                ElevatedButton(onClick = {
+                    val next = (pagState.progress + SEEK_STEP_FRACTION).let { if (it > 1.0) 0.0 else it }
+                    pagState.seekTo(next)
+                    emitLog(LogTags.PAG, "PAG动效: 跳转进度 ${(next * PERCENT_SCALE).toInt()}%", "I")
+                }) { Text("+25%") }
 
-            ElevatedButton(onClick = {
-                CorePag.clearCache()
-                emitLog(LogTags.PAG, "已清空 PAG 磁盘缓存", "W")
-            }) { Text("清空缓存") }
+                ElevatedButton(onClick = {
+                    CorePag.clearCache()
+                    emitLog(LogTags.PAG, "已清空 PAG 磁盘缓存", "W")
+                }) { Text("清空缓存") }
+            }
         }
     }
 }

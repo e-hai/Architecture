@@ -1,8 +1,10 @@
 package xxx.yyy.zzz.feature.debug.impl.sections
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import xxx.yyy.zzz.core.ads.AdFormat
 import xxx.yyy.zzz.core.ads.AdsKeys
@@ -47,45 +50,47 @@ internal class AdsDebugSection : DebugSection {
     override fun Content(emitLog: (tag: String, message: String, level: String) -> Unit) {
         var selectedPreset by remember { mutableStateOf(adDebugPresets.first()) }
 
-        Text("商业化广告组件 (CoreAds):", style = MaterialTheme.typography.labelMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            adDebugPresets.forEach { preset ->
-                FilterChip(
-                    selected = selectedPreset == preset,
-                    onClick = { selectedPreset = preset },
-                    label = { Text(preset.label) },
-                )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text("商业化广告组件 (CoreAds):", style = MaterialTheme.typography.labelMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                adDebugPresets.forEach { preset ->
+                    FilterChip(
+                        selected = selectedPreset == preset,
+                        onClick = { selectedPreset = preset },
+                        label = { Text(preset.label) },
+                    )
+                }
             }
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ElevatedButton(onClick = {
-                CoreAds.loadAd(selectedPreset.triggerId, "", selectedPreset.format)
-                emitLog(
-                    LogTags.ADS,
-                    "发起广告加载: trigger=${selectedPreset.triggerId}, format=${selectedPreset.format}",
-                    "I",
-                )
-            }) { Text("请求广告") }
-            ElevatedButton(onClick = {
-                val ready = CoreAds.isReady(selectedPreset.triggerId)
-                emitLog(
-                    LogTags.ADS,
-                    "广告是否就绪 (${selectedPreset.format}): $ready",
-                    "I",
-                )
-            }) { Text("检查就绪") }
-            ElevatedButton(onClick = {
-                CoreAds.showAd(selectedPreset.triggerId)
-                emitLog(
-                    LogTags.ADS,
-                    "发起广告展示: trigger=${selectedPreset.triggerId}, format=${selectedPreset.format}",
-                    "I",
-                )
-            }) { Text("展示广告") }
-            ElevatedButton(onClick = {
-                CoreAds.openDebug()
-                emitLog(LogTags.ADS, "打开广告 SDK 调试面板", "I")
-            }) { Text("广告 Debug 面板") }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ElevatedButton(onClick = {
+                    CoreAds.loadAd(selectedPreset.triggerId, "", selectedPreset.format)
+                    emitLog(
+                        LogTags.ADS,
+                        "发起广告加载: trigger=${selectedPreset.triggerId}, format=${selectedPreset.format}",
+                        "I",
+                    )
+                }) { Text("请求广告") }
+                ElevatedButton(onClick = {
+                    val ready = CoreAds.isReady(selectedPreset.triggerId)
+                    emitLog(
+                        LogTags.ADS,
+                        "广告是否就绪 (${selectedPreset.format}): $ready",
+                        "I",
+                    )
+                }) { Text("检查就绪") }
+                ElevatedButton(onClick = {
+                    CoreAds.showAd(selectedPreset.triggerId)
+                    emitLog(
+                        LogTags.ADS,
+                        "发起广告展示: trigger=${selectedPreset.triggerId}, format=${selectedPreset.format}",
+                        "I",
+                    )
+                }) { Text("展示广告") }
+                ElevatedButton(onClick = {
+                    CoreAds.openDebug()
+                    emitLog(LogTags.ADS, "打开广告 SDK 调试面板", "I")
+                }) { Text("广告 Debug 面板") }
+            }
         }
     }
 }

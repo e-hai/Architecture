@@ -24,6 +24,8 @@ import xxx.yyy.zzz.feature.home.impl.homeModule
  */
 object AppBootstrap {
     private var isInitialized = false
+    private var isDeferredInitialized = false
+    private var deferredKitInitializer: (() -> Unit)? = null
 
     /**
      * 启动纯 KMP 跨平台依赖注入容器（带防重复启动保护）。
@@ -66,4 +68,43 @@ object AppBootstrap {
      * 供 iOS 等宿主传入配置启动。
      */
     fun doInitKoin(appConfig: AppConfig) = doInitKoin(appConfig) {}
+
+    /**
+     * 注册宿主 Stage 2 延迟初始化回调（商业化、统计、推送与归因等三方 Kit），
+     * 供 Compose 首帧完成或隐私合规弹窗同意后跨平台统一触发。
+     */
+    fun registerDeferredKitInitializer(initializer: () -> Unit) {
+        deferredKitInitializer = initializer
+        if (isDeferredInitialized) {
+            initializer()
+        }
+    }
+
+    /**
+     * 触发 Stage 2 延迟 Kit 初始化（幂等保护，最多执行一次；显式以 `doInit*` 命名规避 K/N Obj-C 构造器改名）。
+     *
+     * @return 若本次实际执行了初始化回调则返回 true，已初始化或尚未注册回调则返回 false
+     */
+    fun doInitDeferredKits(): Boolean {
+        val initializer = deferredKitInitializer
+        return if (!isDeferredInitialized && initializer != null) {
+            isDeferredInitialized = true
+            initializer()
+            CoreLog.i(LogTags.APP, "Stage 2 deferred kits triggered from KMP AppBootstrap.")
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * 查询 Stage 2 延迟 Kit 是否已触发激活。
+     */
+    fun isDeferredKitsInitialized(): Boolean = isDeferredInitialized
+
+    internal fun resetForTesting() {
+        isInitialized = false
+        isDeferredInitialized = false
+        deferredKitInitializer = null
+    }
 }

@@ -2,6 +2,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import project.configureDetekt
 import project.configureKotlinAndroid
 import project.libsCatalog
 
@@ -18,6 +19,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 apply("myproject.spotless")
                 apply("myproject.koin")
             }
+
+            configureDetekt()
 
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)

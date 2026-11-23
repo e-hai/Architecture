@@ -57,6 +57,27 @@ class AppBootstrapTest {
             }
         } finally {
             stopKoin()
+            AppBootstrap.resetForTesting()
+        }
+    }
+
+    @Test
+    fun testDeferredKitInitializerIdempotency() {
+        var triggerCount = 0
+        try {
+            AppBootstrap.resetForTesting()
+            assertFalse(AppBootstrap.isDeferredKitsInitialized())
+            assertFalse(AppBootstrap.doInitDeferredKits())
+
+            AppBootstrap.registerDeferredKitInitializer {
+                triggerCount += 1
+            }
+            assertTrue(AppBootstrap.doInitDeferredKits())
+            assertTrue(AppBootstrap.isDeferredKitsInitialized())
+            assertFalse(AppBootstrap.doInitDeferredKits())
+            assertEquals(1, triggerCount)
+        } finally {
+            AppBootstrap.resetForTesting()
         }
     }
 

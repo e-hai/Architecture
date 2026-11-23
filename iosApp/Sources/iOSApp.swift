@@ -76,8 +76,8 @@ public struct iOSApp: App {
         let fetchIntervalRaw = info?["REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS"] as? String ?? ""
         let remoteConfigMinFetchInterval = Double(fetchIntervalRaw)
 
-        // 1. 初始化十大基础设施与商业化 Kit (9 大 Swift SPM 委托 + PagKit)
-        NativeKitBootstrap.initKits(
+        // 1. Stage 1: 冷启动全量装配 9 大 Swift Delegate + 仅激活本地轻量必需 Kit
+        let bootstrapConfig = IosKitBootstrapConfig(
             admobAppId: admobAppId,
             admobBannerId: admobBannerId,
             admobInterstitialId: admobInterstitialId,
@@ -92,8 +92,9 @@ public struct iOSApp: App {
             remoteConfigMinFetchIntervalSeconds: remoteConfigMinFetchInterval,
             debug: isDebug
         )
+        NativeKitBootstrap.initEssentialKits(config: bootstrapConfig)
 
-        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并注入宿主 AppConfig
+        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并绑定 Stage 2 延迟初始化器
         let config = AppConfig(
             env: appEnv,
             isDebug: isDebug,
@@ -102,6 +103,9 @@ public struct iOSApp: App {
             versionCode: Int32(info?["CFBundleVersion"] as? String ?? "1") ?? 1
         )
         AppBootstrap.shared.doInitKoin(appConfig: config)
+        AppBootstrap.shared.registerDeferredKitInitializer {
+            _ = NativeKitBootstrap.initDeferredKits()
+        }
     }
 
     public var body: some Scene {
@@ -109,9 +113,11 @@ public struct iOSApp: App {
             ContentView()
                 // [KIT:mmp:START]
                 .onOpenURL { url in
+                    _ = AppBootstrap.shared.doInitDeferredKits()
                     IosMmpBridge.handleOpenUrl(url)
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                    _ = AppBootstrap.shared.doInitDeferredKits()
                     IosMmpBridge.continueUserActivity(userActivity)
                 }
                 // [KIT:mmp:END]

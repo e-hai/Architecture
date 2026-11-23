@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 // [KIT:mmp:START]
 import xxx.yyy.zzz.android.bridge.delegates.AndroidMmpBridge
+import xxx.yyy.zzz.shared.di.AppBootstrap
 // [KIT:mmp:END]
 // [KIT:push:START]
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,6 +36,9 @@ class MainActivity : ComponentActivity() {
         AndroidPushBridge.handleNotificationIntent(intent)
         // [KIT:push:END]
         // [KIT:mmp:START]
+        if (intent?.data != null) {
+            AppBootstrap.doInitDeferredKits()
+        }
         AndroidMmpBridge.handleDeepLink(this, intent)
         // [KIT:mmp:END]
         setContent {
@@ -49,6 +53,9 @@ class MainActivity : ComponentActivity() {
         AndroidPushBridge.handleNotificationIntent(intent)
         // [KIT:push:END]
         // [KIT:mmp:START]
+        if (intent.data != null) {
+            AppBootstrap.doInitDeferredKits()
+        }
         AndroidMmpBridge.handleDeepLink(this, intent)
         // [KIT:mmp:END]
     }

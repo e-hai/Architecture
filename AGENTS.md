@@ -64,10 +64,18 @@
 - **全面下线 JitPack**：所有 Kit 制品统一发布至 GitHub Packages (`https://maven.pkg.github.com/e-hai/<repoName>`)，双端依赖版本格式标准化，去除 `v` 前缀；
 - **凭证安全隔离**：Gradle 从 `~/.gradle/gradle.properties`（本地开发）或环境变量（CI/CD）安全读取 `GITHUB_TOKEN`，严禁明文入库。
 
-### 6. 双段式冷启动与依赖注入 (Two-Phase Initialization & DI)
-- **Phase 1（原生 Kit 宿主层）**：在各自宿主启动入口（`MyApplication.onCreate()` / `iOSApp.init()`）第一步调用 `NativeKitBootstrap.initKits(...)`，完成 9 大原生 SDK 的私有 `*Delegate` 注入、门面初始化与 PagKit 原生运行时初始化；
-- **Phase 2（纯 KMP 跨端层）**：在宿主启动入口第二步调用 `AppBootstrap.doInitKoin(...)`，启动纯 KMP 依赖注入容器（Room、DataStore、Ktor），Android 端在此注入 `androidContext`。
+### 6. 双阶段冷启动、延迟合规激活与依赖注入 (Staged Initialization & DI)
+- **Stage 1（冷启动宿主基础层）**：在各自宿主启动入口（`MyApplication.onCreate()` / `iOSApp.init()`）第一步调用 `NativeKitBootstrap.initEssentialKits(...)`，幂等完成全部 9 大 `*Delegate` 装配并仅激活纯本地轻量与基础必需 Kit（`Log`、`Pag`、`Video` 及非延迟模式 `CrashReport`）；
+- **Phase 2（纯 KMP 跨端层与 Stage 2 回调绑定）**：在宿主启动入口第二步调用 `AppBootstrap.doInitKoin(...)` 启动纯 KMP 依赖注入容器（Room、DataStore、Ktor），并通过 `AppBootstrap.registerDeferredKitInitializer { ... }` 绑定 `NativeKitBootstrap.initDeferredKits()`；
+- **Stage 2（首帧完成 / 隐私合规同意后激活）**：于 `App` 根 Composable（`autoInitDeferredKits = true`）首帧进入或隐私合规同意弹窗确认后调用 `AppBootstrap.doInitDeferredKits()`，幂等激活商业化、归因、远程配置与推送等三方 Kit（`Analytics`、`AbTesting`、`Mmp`、`Ads`、`Pay`、`Push`）。
 
 ### 7. 代码质量与规范
 - 所有新增类、函数与方法必须包含详尽的中文注释，阐明其职责与关键逻辑；
 - 统一使用 `xxx.yyy.zzz` 作为包名骨架占位符，支持 `init_project.sh` 一键初始化重命名。
+
+### 8. 单元测试与变更同步铁律 (Testing Discipline & Sync)
+- **逻辑与契约优先测试 (Test-First for Core & Logic)**：新增或重构 `core:*` 门面、`Repository`、路由/解析、状态机及 `ViewModel` 时，优先编写或补齐手写 `Fake*` 与 `commonTest` 契约用例再实现业务；纯 Compose / SwiftUI 视图排版与 1:1 原生透传 Delegate 不强制机械前置单测，改由 `Detekt Compose Rules`、`SwiftLint`、编译器零告警与冒烟测试兜底；
+- **变更必同步更新测试 (Sync Tests on Change)**：任何逻辑修改、能力扩展或 Bug 修复，必须同步新增/更新对应单测；修 Bug 原则上先补充复现失败用例再修复源码；
+- **禁止降级与空断言 (No Weakened Assertions)**：严禁引入运行时 Mock 框架（坚持 `Fake over Mock`），严禁通过删除用例、跳过测试或放宽断言来换取门禁通过；
+- **收口实测门禁**：所有改动完成后必须在最终代码上实跑 `./scripts/check_quality.sh --fast`（覆盖 `shellcheck`、`verifyArchitecture`、`spotlessCheck`、`detekt`、`swiftlint --strict`）；涉及发版、编译、Kit 装配与跨端接口变更时必须完整通过 `./scripts/check_quality.sh --full`（含 Android `lintDevDebug`/`lintProdRelease`/R8 与 iOS `xcodebuild test`/`build`）。
+- **质量体系文档**：完整 L1~L6 门禁边界与排障见 `docs/sop/0002-code-quality-and-static-analysis.md`。

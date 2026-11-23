@@ -1,0 +1,89 @@
+# ==============================================================================
+# Detekt 2.0 + Compose Rules 全局静态分析基线
+# 与 Spotless/ktlint 分工：Spotless 负责排版格式化，Detekt 负责复杂度、潜在缺陷与 Compose 规范。
+# 配合 buildUponDefaultConfig = true 与 failOnSeverity = Warning 生效。
+# ==============================================================================
+
+Compose:
+  ComposableAnnotationNaming:
+    active: true
+  ComposableNaming:
+    active: true
+    # 若项目存在返回值的特定 Composable 惯例，可按需在此放行
+  ComposableParamOrder:
+    active: true
+  CompositionLocalAllowlist:
+    active: true
+  CompositionLocalNaming:
+    active: true
+  ContentEmitterReturningValues:
+    active: true
+  DefaultsVisibility:
+    active: true
+  ModifierClickableOrder:
+    active: true
+  ModifierComposed:
+    active: true
+  ModifierMissing:
+    active: true
+  ModifierNaming:
+    active: true
+  ModifierNotUsedAtRoot:
+    active: true
+  ModifierReused:
+    active: true
+  ModifierWithoutDefault:
+    active: true
+  MultipleEmitters:
+    active: true
+  MutableParams:
+    active: true
+  MutableStateAutoboxing:
+    active: true
+  MutableStateParam:
+    active: true
+  ParameterNaming:
+    active: true
+  PreviewAnnotationNaming:
+    active: true
+  PreviewNaming:
+    active: false
+  PreviewPublic:
+    active: true
+  RememberMissing:
+    active: true
+  RememberContentMissing:
+    active: true
+  UnstableCollections:
+    active: false
+  ViewModelForwarding:
+    active: true
+  ViewModelInjection:
+    active: true
+
+complexity:
+  TooManyFunctions:
+    # CoreLog / LogDelegate 等门面天然涵盖多级日志方法，放宽类/接口/对象方法数上限
+    allowedFunctionsPerClass: 16
+    allowedFunctionsPerInterface: 16
+    allowedFunctionsPerObject: 16
+
+empty-blocks:
+  EmptyFunctionBlock:
+    # 放行 Android ActivityLifecycleCallbacks / SDK 监听器的接口空实现重写方法
+    ignoreOverridden: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated:
+      - Composable
+
+style:
+  MagicNumber:
+    ignoreEnums: true
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  MaxLineLength:
+    active: false # 由 Spotless + ktlint 统一管控行宽
+  WildcardImport:
+    active: false # 由 Spotless + ktlint 统一管控通配符导入

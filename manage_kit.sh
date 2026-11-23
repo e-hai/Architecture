@@ -56,7 +56,16 @@ strip_kit_block() {
         awk -v start="[KIT:${kit}:START]" -v end="[KIT:${kit}:END]" '
             index($0, start) { skip=1; next }
             index($0, end) { skip=0; next }
-            !skip { print }
+            !skip {
+                if ($0 ~ /^[[:space:]]*$/) {
+                    blank++
+                    if (printed && blank <= 1) print ""
+                } else {
+                    printed=1
+                    blank=0
+                    print
+                }
+            }
         ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
     fi
 }

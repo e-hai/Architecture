@@ -27,8 +27,8 @@ import xxx.yyy.zzz.core.ui.generated.resources.welcome_message
  */
 @Composable
 fun HomeScreen(
-    onNavigateToDebug: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onNavigateToDebug: (() -> Unit)? = null,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

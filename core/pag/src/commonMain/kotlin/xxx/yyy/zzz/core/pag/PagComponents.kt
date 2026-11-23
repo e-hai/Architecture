@@ -86,6 +86,8 @@ fun PagView(
     videoEnabled: Boolean = true,
     cacheEnabled: Boolean = true,
     cacheScale: Float = 1.0f,
+    // 与上游 PagKit SDK 参数命名保持一致，便于平滑透传回调
+    @Suppress("ParameterNaming")
     onCompositionLoaded: ((PagFile) -> Unit)? = null,
     onAnimationStart: (() -> Unit)? = null,
     onAnimationEnd: (() -> Unit)? = null,
@@ -118,6 +120,8 @@ fun PagImageView(
     modifier: Modifier = Modifier,
     cacheAllFramesInMemory: Boolean = false,
     renderScale: Float = 1.0f,
+    // 与上游 PagKit SDK 参数命名保持一致，便于平滑透传回调
+    @Suppress("ParameterNaming")
     onCompositionLoaded: ((PagFile) -> Unit)? = null,
     onAnimationStart: (() -> Unit)? = null,
     onAnimationEnd: (() -> Unit)? = null,

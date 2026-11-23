@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.spotless)
@@ -24,6 +26,13 @@ dependencies {
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
     compileOnly(libs.spotless.gradlePlugin)
+    compileOnly(libs.detekt.gradlePlugin)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        allWarningsAsErrors.set(true)
+    }
 }
 
 gradlePlugin {
@@ -59,6 +68,10 @@ gradlePlugin {
         register("spotless") {
             id = "myproject.spotless"
             implementationClass = "SpotlessConventionPlugin"
+        }
+        register("architectureVerification") {
+            id = "myproject.architecture"
+            implementationClass = "ArchitectureVerificationPlugin"
         }
     }
 }

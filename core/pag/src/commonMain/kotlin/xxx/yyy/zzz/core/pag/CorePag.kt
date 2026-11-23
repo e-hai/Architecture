@@ -11,13 +11,14 @@ import kotlinx.coroutines.launch
  * 集中管理全局缓存池、字体注册与异步预加载。
  */
 object CorePag {
+    private const val DEFAULT_DISK_CACHE_BYTES = 256L * 1024L * 1024L
     private var isInitialized = false
 
     /**
      * 初始化 PAG 动效引擎与全局缓存（使用默认 256MB 磁盘缓存）。
      */
     fun doInit() {
-        doInit(256L * 1024 * 1024)
+        doInit(DEFAULT_DISK_CACHE_BYTES)
     }
 
     /**

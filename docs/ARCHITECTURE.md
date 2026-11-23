@@ -150,9 +150,9 @@ flowchart LR
 
 ---
 
-## 3. 双段式冷启动时序 (Two-Phase Cold Boot)
+## 3. 分阶段冷启动与延迟合规激活时序 (Staged Boot & Deferred Activation)
 
-工程严格执行两阶段冷启动，确保原生基础设施先行就绪，KMP 容器随后安全注入：
+工程执行**“基础即时装配 + 三方延迟激活”**双阶段冷启动，既保障跨端门面零空窗期，又兼顾首帧性能与隐私合规前置：
 
 ```mermaid
 sequenceDiagram
@@ -160,17 +160,22 @@ sequenceDiagram
     participant HostBootstrap as NativeKitBootstrap (宿主壳层)
     participant CoreKits as Core* 门面契约 (纯 KMP 层)
     participant AppBootstrap as AppBootstrap (纯 KMP Koin 容器)
+    participant UI as App() 首帧 / 隐私同意回调
 
-    Note over OS,HostBootstrap: 【Phase 1：原生基础设施初始化】
-    OS->>HostBootstrap: initKits(context / windowScene)
-    HostBootstrap->>CoreKits: Core*.install(Android*Delegate / Ios*Delegate)
-    HostBootstrap->>CoreKits: Core*.doInit*(...) (初始化底层原生 SDK)
+    Note over OS,HostBootstrap: 【Stage 1：冷启动全量装配 Delegate + 激活本地必需 Kit】
+    OS->>HostBootstrap: initEssentialKits(...)
+    HostBootstrap->>CoreKits: Core*.install(Android*Delegate / Ios*Delegate) (幂等)
+    HostBootstrap->>CoreKits: CoreLog / CorePag / CoreVideo / CoreCrashReport.doInit()
     HostBootstrap->>HostBootstrap: PagKitAndroid.init(context) (若为 Android)
 
-    Note over OS,AppBootstrap: 【Phase 2：纯 KMP 容器与数据层初始化】
-    OS->>AppBootstrap: doInitKoin(appConfig) { androidContext(...) }
-    AppBootstrap->>AppBootstrap: 组装 Database(Room) / DataStore / Network(Ktor)
-    AppBootstrap->>AppBootstrap: 装配业务 Feature Modules
+    Note over OS,AppBootstrap: 【Phase 2：纯 KMP 容器与 Stage 2 回调注册】
+    OS->>AppBootstrap: doInitKoin(appConfig) & registerDeferredKitInitializer(...)
+    AppBootstrap->>AppBootstrap: 组装 Database(Room) / DataStore / Network(Ktor) / Features
+
+    Note over UI,HostBootstrap: 【Stage 2：首帧完成或隐私同意后幂等激活三方商业化 Kit】
+    UI->>AppBootstrap: doInitDeferredKits()
+    AppBootstrap->>HostBootstrap: NativeKitBootstrap.initDeferredKits()
+    HostBootstrap->>CoreKits: CoreAnalytics / CoreAbTesting / CoreMmp / CoreAds / CorePay / CorePush.doInit()
 ```
 
 ---

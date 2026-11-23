@@ -7,6 +7,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /**
@@ -79,6 +80,13 @@ fun Project.configureKotlinAndroid(commonExtension: Any) {
                 }
                 configureAndroidLint(lint, checkDependencies = false)
             }
+        }
+    }
+
+    tasks.withType<KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            allWarningsAsErrors.set(true)
+            freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
 

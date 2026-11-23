@@ -10,6 +10,8 @@ androidGradlePlugin = "9.3.1"
 kotlin = "2.3.21"
 ksp = "2.3.8"
 spotless = "8.5.1"
+detekt = "2.0.0-alpha.3"
+detektCompose = "0.6.8"
 googleServices = "4.4.4"
 composeMultiplatform = "1.9.3"
 
@@ -120,6 +122,8 @@ compose-compiler-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compos
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 spotless-gradlePlugin = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
+detekt-gradlePlugin = { group = "dev.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+detekt-compose = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "detektCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -131,6 +135,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 
 # Custom Convention Plugins
@@ -142,3 +147,4 @@ myproject-kmp-feature-impl = { id = "myproject.kmp.feature.impl" }
 myproject-kmp-room = { id = "myproject.kmp.room" }
 myproject-koin = { id = "myproject.koin" }
 myproject-spotless = { id = "myproject.spotless" }
+myproject-architecture = { id = "myproject.architecture" }

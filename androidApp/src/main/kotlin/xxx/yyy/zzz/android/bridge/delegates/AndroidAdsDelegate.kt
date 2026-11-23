@@ -182,7 +182,11 @@ internal class AndroidAdsDelegate(
                             ?: activity.window.decorView as ViewGroup
                     entry.entity.show(activity, container)
                 }
-            } catch (t: Throwable) {
+            } catch (
+                // 第三方广告聚合 SDK 在复杂 Activity 生命周期下可能抛出多种运行时异常，统一兜底为降级弹窗
+                @Suppress("TooGenericExceptionCaught")
+                t: Throwable,
+            ) {
                 CoreLog.w(LogTags.APP, "[Ads-Android] showAd failed ($format): ${t.message}")
                 showFallbackAdDialog(activity, triggerId, format)
             }

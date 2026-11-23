@@ -45,12 +45,18 @@ internal object AndroidPushBridge {
         permissionCallback?.invoke(granted)
     }
 
-    fun requestNotificationPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
-        val launcher = launcherRef?.get() ?: return false
-        launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        return true
-    }
+    fun requestNotificationPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val launcher = launcherRef?.get()
+            if (launcher != null) {
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
 
     fun handleNotificationIntent(intent: Intent?) {
         val extras = intent?.extras ?: return

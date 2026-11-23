@@ -1,6 +1,7 @@
 package xxx.yyy.zzz.feature.debug.impl.sections
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,9 @@ import xxx.yyy.zzz.core.network.NetworkDataSource
 import xxx.yyy.zzz.feature.debug.api.DebugCategory
 import xxx.yyy.zzz.feature.debug.api.DebugSection
 
+private const val TIMESTAMP_MIN = 1000
+private const val TIMESTAMP_MAX = 9999
+
 /**
  * 基础数据与网络沙盒调试区块（Fake 网络故障注入、DataStore 读写、Room KMP CRUD）。
  */
@@ -42,7 +46,6 @@ internal class InfraDebugSection : DebugSection {
     override val category: DebugCategory = DebugCategory.SANDBOX
     override val order: Int = 10
 
-    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun Content(emitLog: (tag: String, message: String, level: String) -> Unit) {
         val scope = rememberCoroutineScope()
@@ -50,13 +53,53 @@ internal class InfraDebugSection : DebugSection {
         val storage: KeyValueStorage = koinInject()
         val dummyDao: DummyDao = koinInject()
 
-        val storedValue by storage.stringFlow("debug_sample_key").collectAsState(initial = null)
-        val dummyList by dummyDao.getAllDummies().collectAsState(initial = emptyList())
-        var fakeErrorEnabled by remember {
-            mutableStateOf((networkDataSource as? FakeNetworkDataSource)?.shouldReturnError ?: false)
-        }
+        Column(modifier = Modifier.fillMaxWidth()) {
+            NetworkSandboxSection(
+                networkDataSource = networkDataSource,
+                onFetchClick = {
+                    scope.launch {
+                        emitLog(LogTags.NETWORK, "正在发起模拟数据请求...", "I")
+                        when (val result = networkDataSource.fetchDummyData()) {
+                            is NetworkResult.Success -> {
+                                emitLog(
+                                    LogTags.NETWORK,
+                                    "收到 ${result.data.size} 条数据: ${result.data.map { it.title }}",
+                                    "I",
+                                )
+                            }
 
-        // Fake 网络故障开关
+                            is NetworkResult.Error -> {
+                                emitLog(LogTags.NETWORK, "错误信息=${result.message}", "E")
+                            }
+
+                            is NetworkResult.Loading -> {
+                                emitLog(LogTags.NETWORK, "数据请求处理中...", "I")
+                            }
+                        }
+                    }
+                },
+                emitLog = emitLog,
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            DataStoreSandboxSection(storage = storage, emitLog = emitLog)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            RoomSandboxSection(dummyDao = dummyDao, emitLog = emitLog)
+        }
+    }
+}
+
+@Composable
+private fun NetworkSandboxSection(
+    networkDataSource: NetworkDataSource,
+    onFetchClick: () -> Unit,
+    emitLog: (tag: String, message: String, level: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var fakeErrorEnabled by remember {
+        mutableStateOf((networkDataSource as? FakeNetworkDataSource)?.shouldReturnError ?: false)
+    }
+
+    Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -72,37 +115,29 @@ internal class InfraDebugSection : DebugSection {
                 },
             )
         }
-
-        ElevatedButton(onClick = {
-            scope.launch {
-                emitLog(LogTags.NETWORK, "正在发起模拟数据请求...", "I")
-                when (val result = networkDataSource.fetchDummyData()) {
-                    is NetworkResult.Success -> {
-                        emitLog(LogTags.NETWORK, "收到 ${result.data.size} 条数据: ${result.data.map { it.title }}", "I")
-                    }
-
-                    is NetworkResult.Error -> {
-                        emitLog(LogTags.NETWORK, "错误信息=${result.message}", "E")
-                    }
-
-                    is NetworkResult.Loading -> {
-                        emitLog(LogTags.NETWORK, "数据请求处理中...", "I")
-                    }
-                }
-            }
-        }) {
+        ElevatedButton(onClick = onFetchClick) {
             Text("执行模拟数据请求 (fetchDummyData)")
         }
+    }
+}
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DataStoreSandboxSection(
+    storage: KeyValueStorage,
+    emitLog: (tag: String, message: String, level: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+    val storedValue by storage.stringFlow("debug_sample_key").collectAsState(initial = null)
 
-        // DataStore 沙盒
+    Column(modifier = modifier.fillMaxWidth()) {
         Text("DataStore 键值偏好存储:", style = MaterialTheme.typography.labelMedium)
         Text("• 当前 debug_sample_key: ${storedValue ?: "(空)"}", style = MaterialTheme.typography.bodySmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilledTonalButton(onClick = {
                 scope.launch {
-                    val timestamp = "ts_${kotlin.random.Random.nextInt(1000, 9999)}"
+                    val timestamp = "ts_${kotlin.random.Random.nextInt(TIMESTAMP_MIN, TIMESTAMP_MAX)}"
                     storage.putString("debug_sample_key", timestamp)
                     emitLog(LogTags.DATA, "写入 debug_sample_key = $timestamp", "I")
                 }
@@ -114,10 +149,20 @@ internal class InfraDebugSection : DebugSection {
                 }
             }) { Text("清除 Key") }
         }
+    }
+}
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RoomSandboxSection(
+    dummyDao: DummyDao,
+    emitLog: (tag: String, message: String, level: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scope = rememberCoroutineScope()
+    val dummyList by dummyDao.getAllDummies().collectAsState(initial = emptyList())
 
-        // Room 数据库沙盒
+    Column(modifier = modifier.fillMaxWidth()) {
         Text("Room KMP 本地数据库:", style = MaterialTheme.typography.labelMedium)
         Text("• 当前 dummy_table 记录条数: ${dummyList.size}", style = MaterialTheme.typography.bodySmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

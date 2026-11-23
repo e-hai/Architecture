@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
@@ -37,59 +38,61 @@ internal class PayDebugSection : DebugSection {
         var products by remember { mutableStateOf<List<PayProductInfo>>(emptyList()) }
         val catalog = remember { CorePay.getCatalog() }
 
-        Text(
-            "应用内购支付 (CorePay, 已配 ${catalog.allProductIds.size} 个商品):",
-            style = MaterialTheme.typography.labelMedium,
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ElevatedButton(onClick = {
-                val ids = CorePay.getCatalog().allProductIds
-                emitLog(LogTags.PAY, "正在向商店拉取商品: $ids", "I")
-                CorePay.fetchProducts(ids) { fetched, error ->
-                    products = fetched
-                    if (error != null) {
-                        emitLog(LogTags.PAY, "拉取商品失败: $error", "E")
-                    } else {
-                        emitLog(LogTags.PAY, "成功拉取 ${fetched.size} 个商品", "I")
-                    }
-                }
-            }) { Text("拉取商店商品") }
-
-            ElevatedButton(onClick = {
-                val subsIds = CorePay.getCatalog().subsProductIds
-                if (subsIds.isEmpty()) {
-                    emitLog(LogTags.PAY, "未配置任何订阅商品 ID", "W")
-                } else {
-                    subsIds.forEach { id ->
-                        val sub = CorePay.isSubscribed(id)
-                        emitLog(LogTags.PAY, "订阅状态($id): $sub", "I")
-                    }
-                }
-            }) { Text("查询订阅状态") }
-
-            ElevatedButton(onClick = {
-                emitLog(LogTags.PAY, "发起恢复购买...", "I")
-                CorePay.restorePurchases { success, error ->
-                    emitLog(LogTags.PAY, "恢复购买结果: 成功=$success, 错误=$error", if (success) "I" else "E")
-                }
-            }) { Text("恢复购买") }
-        }
-
-        if (products.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                products.forEach { product ->
-                    ElevatedButton(onClick = {
-                        emitLog(LogTags.PAY, "发起购买 ${product.productId} (${product.formattedPrice})...", "I")
-                        CorePay.purchase(product.productId) { success, error ->
-                            emitLog(
-                                LogTags.PAY,
-                                "购买结果(${product.productId}): 成功=$success, 错误=$error",
-                                if (success) "I" else "E",
-                            )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "应用内购支付 (CorePay, 已配 ${catalog.allProductIds.size} 个商品):",
+                style = MaterialTheme.typography.labelMedium,
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ElevatedButton(onClick = {
+                    val ids = CorePay.getCatalog().allProductIds
+                    emitLog(LogTags.PAY, "正在向商店拉取商品: $ids", "I")
+                    CorePay.fetchProducts(ids) { fetched, error ->
+                        products = fetched
+                        if (error != null) {
+                            emitLog(LogTags.PAY, "拉取商品失败: $error", "E")
+                        } else {
+                            emitLog(LogTags.PAY, "成功拉取 ${fetched.size} 个商品", "I")
                         }
-                    }) {
-                        Text("购买 ${product.title} (${product.formattedPrice})")
+                    }
+                }) { Text("拉取商店商品") }
+
+                ElevatedButton(onClick = {
+                    val subsIds = CorePay.getCatalog().subsProductIds
+                    if (subsIds.isEmpty()) {
+                        emitLog(LogTags.PAY, "未配置任何订阅商品 ID", "W")
+                    } else {
+                        subsIds.forEach { id ->
+                            val sub = CorePay.isSubscribed(id)
+                            emitLog(LogTags.PAY, "订阅状态($id): $sub", "I")
+                        }
+                    }
+                }) { Text("查询订阅状态") }
+
+                ElevatedButton(onClick = {
+                    emitLog(LogTags.PAY, "发起恢复购买...", "I")
+                    CorePay.restorePurchases { success, error ->
+                        emitLog(LogTags.PAY, "恢复购买结果: 成功=$success, 错误=$error", if (success) "I" else "E")
+                    }
+                }) { Text("恢复购买") }
+            }
+
+            if (products.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    products.forEach { product ->
+                        ElevatedButton(onClick = {
+                            emitLog(LogTags.PAY, "发起购买 ${product.productId} (${product.formattedPrice})...", "I")
+                            CorePay.purchase(product.productId) { success, error ->
+                                emitLog(
+                                    LogTags.PAY,
+                                    "购买结果(${product.productId}): 成功=$success, 错误=$error",
+                                    if (success) "I" else "E",
+                                )
+                            }
+                        }) {
+                            Text("购买 ${product.title} (${product.formattedPrice})")
+                        }
                     }
                 }
             }

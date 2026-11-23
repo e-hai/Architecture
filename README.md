@@ -79,8 +79,13 @@
 | **编译链接 iOS 框架** | `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` | 验证 `Shared.framework` 导出与链接 |
 | **构建无 Debug 面板 Prod 包** | `./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false` | 构建期物理裁剪 `:features:debug` 与 `like.pag`（iOS `Release` 构建由 `project.yml` 自动传入） |
 | **运行全模块单元测试** | `./gradlew allTests` | 运行全跨平台 `commonTest`、Android 单元测试与 iOS Simulator 测试 |
-| **格式化代码风格** | `./gradlew spotlessApply` | 依据官方 ktlint 规范自动格式化全工程代码 |
-| **代码规范静态检查** | `./gradlew spotlessCheck` | CI 门禁检查代码格式 |
+| **秒级静态质量门禁** | `./scripts/check_quality.sh --fast` | 运行 `ShellCheck` + `verifyArchitecture` + `Spotless` + `Detekt` + `SwiftLint` |
+| **全量发布态质量门禁** | `./scripts/check_quality.sh --full` | 全套静态门禁 + KMP 全测 + Android Dev/Prod Lint & R8 + iOS Dev 测试 & Prod 构建 |
+| **一键激活提交前 Hook** | `./scripts/check_quality.sh --install-hooks` | 绑定 `.githooks/pre-commit`，每次 `git commit` 自动执行 `--fast` 检查 |
+| **格式化代码风格** | `./gradlew spotlessApply` 或 `--fix` | 依据 ktlint / SwiftLint 规范自动格式化全工程代码 |
+| **代码规范静态检查** | `./gradlew spotlessCheck detekt verifyArchitecture` | CI 门禁检查代码格式、Detekt 坏味道与架构红线 |
+
+> 💡 **质量规范手册**：关于六维代码质量防御体系（L1~L6）、配置文件职责、豁免原则与常见排障，请参阅 [docs/sop/0002-code-quality-and-static-analysis.md](docs/sop/0002-code-quality-and-static-analysis.md)。
 
 ---
 
@@ -200,7 +205,9 @@ Architecture/
 ├── docs/                                        # 项目工程文档库
 │   ├── ARCHITECTURE.md                          # 架构设计与技术全景指南
 │   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0009 - 记录 Why)
-│   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0001 - 记录 How)
+│   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0002 - 记录 How)
+├── .githooks/pre-commit                         # Git 提交前快速静态质量拦截钩子
+├── scripts/check_quality.sh                     # 六维代码质量统一门禁 CLI (--fast / --full / --fix)
 ├── init_project.sh                              # 一键极简项目初始化脚本
 ├── create_feature.sh                            # 一键业务特性创建与自动挂载脚本
 ├── remove_feature.sh                            # 一键业务特性安全移除脚本

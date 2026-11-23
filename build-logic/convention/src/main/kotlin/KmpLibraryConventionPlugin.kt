@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import project.configureDetekt
 import project.configureKotlinAndroid
 import project.configureLibpagNativeLinking
 import project.libsCatalog
@@ -20,6 +21,8 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                 apply("com.android.kotlin.multiplatform.library")
                 apply("myproject.spotless")
             }
+
+            configureDetekt()
 
             extensions.configure<KotlinMultiplatformExtension> {
                 // 使用 AGP 9.0 原生 KMP 库扩展配置单变体 Android Target，并开启 JVM 单元测试支持

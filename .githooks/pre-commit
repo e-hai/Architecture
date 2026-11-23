@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if ! ./scripts/check_quality.sh --fast; then
+    echo ""
+    echo "[pre-commit] 质量门禁拦截了本次提交。"
+    echo "如仅涉及格式问题，可运行 ./scripts/check_quality.sh --fix 自动修复后再暂存提交。"
+    exit 1
+fi

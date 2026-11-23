@@ -1,3 +1,6 @@
+// 裁剪分支桩实现需与 debugEnabled 保持完全相同的函数签名并返回固定值，故意忽略参数
+@file:Suppress("FunctionOnlyReturningConstant", "UnusedParameter")
+
 package xxx.yyy.zzz.shared.debug
 
 import androidx.compose.runtime.Composable

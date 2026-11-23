@@ -285,8 +285,8 @@ import ${PKG_PREFIX}.core.ui.generated.resources.back
  */
 @Composable
 fun ${CLASS_PREFIX}Screen(
-    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
     viewModel: ${CLASS_PREFIX}ViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -402,6 +402,18 @@ class ${CLASS_PREFIX}ViewModelTest {
             assertTrue(result is NetworkResult.Success)
             assertEquals(2, repository.observeItems().first().size)
         }
+
+    @Test
+    fun testRepositoryRefreshErrorPreservesEmptyCache() =
+        runTest {
+            val fakeDao = FakeDummyDao()
+            val fakeNetwork = FakeNetworkDataSource().apply { shouldReturnError = true }
+            val repository = ${CLASS_PREFIX}Repository(fakeNetwork, fakeDao)
+
+            val result = repository.refresh()
+            assertTrue(result is NetworkResult.Error)
+            assertTrue(repository.observeItems().first().isEmpty())
+        }
 }
 EOF
 else
@@ -481,8 +493,8 @@ import ${PKG_PREFIX}.core.ui.generated.resources.back
  */
 @Composable
 fun ${CLASS_PREFIX}Screen(
-    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
     viewModel: ${CLASS_PREFIX}ViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

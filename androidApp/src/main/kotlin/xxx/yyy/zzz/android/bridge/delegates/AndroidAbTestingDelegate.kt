@@ -17,7 +17,7 @@ import xxx.yyy.zzz.core.log.CoreLog
 internal class AndroidAbTestingDelegate(
     private val context: Context,
     private val debug: Boolean,
-    private val minFetchIntervalSeconds: Long = if (debug) 0L else 3600L,
+    private val minFetchIntervalSeconds: Long = if (debug) 0L else AbTestingKeys.DEFAULT_FETCH_INTERVAL_SECONDS,
 ) : AbTestingDelegate {
     override fun doInit() {
         val installed =

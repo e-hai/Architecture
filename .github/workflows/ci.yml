@@ -34,8 +34,21 @@ jobs:
       - name: Make scripts and Gradle Wrapper executable
         run: chmod +x gradlew scripts/*.sh
 
+      - name: Run ShellCheck on Automation Scripts
+        run: |
+          if ! command -v shellcheck &> /dev/null; then
+            brew install shellcheck
+          fi
+          shellcheck *.sh scripts/*.sh .githooks/pre-commit
+
+      - name: Run Architecture Redline Verification
+        run: ./gradlew verifyArchitecture
+
       - name: Run Spotless Code Style Check
         run: ./gradlew spotlessCheck
+
+      - name: Run Detekt & Compose Rules Static Analysis
+        run: ./gradlew detekt
 
       - name: Run KMP Unit Tests (Fake over Mock)
         run: ./gradlew allTests
@@ -64,7 +77,7 @@ jobs:
           PROD_STORE_PASSWORD=ci_keystore_pass_123 \
           PROD_KEY_ALIAS=ci_release_key \
           PROD_KEY_PASSWORD=ci_keystore_pass_123 \
-          ./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false
+          ./gradlew :androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false
 
       - name: Run SwiftLint, Generate Xcode Project, Run iOS Simulator Tests & Build Prod
         run: |

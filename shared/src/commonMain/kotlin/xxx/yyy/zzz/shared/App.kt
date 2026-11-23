@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 // [KIT:mmp:START]
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,6 +25,7 @@ import xxx.yyy.zzz.core.navigation.NavKey
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.ui.MyProjectTheme
+import xxx.yyy.zzz.shared.di.AppBootstrap
 import xxx.yyy.zzz.shared.navigation.AppNavGraph
 import xxx.yyy.zzz.shared.navigation.defaultStartKey
 import xxx.yyy.zzz.shared.navigation.defaultTopLevelKeys
@@ -34,12 +36,19 @@ import xxx.yyy.zzz.shared.navigation.defaultTopLevelKeys
  */
 @Composable
 fun App(
+    modifier: Modifier = Modifier,
     startKey: NavKey = defaultStartKey,
     topLevelKeys: Set<NavKey> = defaultTopLevelKeys,
+    autoInitDeferredKits: Boolean = true,
 ) {
+    if (autoInitDeferredKits) {
+        LaunchedEffect(Unit) {
+            AppBootstrap.doInitDeferredKits()
+        }
+    }
     MyProjectTheme {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets.safeDrawing,
         ) { innerPadding ->
             val navState =

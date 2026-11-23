@@ -22,6 +22,8 @@ class KtorNetworkDataSource(
     private val httpClient: HttpClient,
     private val endpointPath: String = "dummies",
 ) : NetworkDataSource {
+    // Ktor 多平台网络引擎与 JSON 解析在各平台会抛出异构异常，已显式放行 CancellationException，其余统一兜底为 NetworkResult.Error
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun fetchDummyData(): NetworkResult<List<DummyModel>> =
         try {
             val response: List<DummyModel> = httpClient.get(endpointPath).body()
@@ -43,7 +45,7 @@ class FakeNetworkDataSource : NetworkDataSource {
     var shouldReturnError: Boolean = false
 
     override suspend fun fetchDummyData(): NetworkResult<List<DummyModel>> {
-        delay(10)
+        delay(SIMULATED_DELAY_MS)
         return if (shouldReturnError) {
             NetworkResult.Error(message = "网络请求失败（模拟故障）")
         } else {
@@ -54,5 +56,9 @@ class FakeNetworkDataSource : NetworkDataSource {
                 ),
             )
         }
+    }
+
+    private companion object {
+        const val SIMULATED_DELAY_MS = 10L
     }
 }

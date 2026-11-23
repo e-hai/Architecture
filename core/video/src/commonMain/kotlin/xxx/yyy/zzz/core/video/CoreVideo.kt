@@ -1,5 +1,8 @@
 package xxx.yyy.zzz.core.video
 
+/** 默认单次预加载字节数阈值（2MB）。 */
+private const val DEFAULT_PRELOAD_BYTES = 2L * 1024L * 1024L
+
 /**
  * 跨平台视频播放与缓存委托协议。
  * 约束：仅允许在该接口的各端宿主 Delegate 内部调用原生 VideoKit SDK。
@@ -18,7 +21,7 @@ interface VideoDelegate {
      */
     fun preload(
         url: String,
-        bytes: Long = 2L * 1024 * 1024,
+        bytes: Long = DEFAULT_PRELOAD_BYTES,
     )
 
     /**
@@ -31,7 +34,7 @@ interface VideoDelegate {
     fun preloadBidirectional(
         prevUrl: String?,
         nextUrl: String?,
-        bytes: Long = 2L * 1024 * 1024,
+        bytes: Long = DEFAULT_PRELOAD_BYTES,
     )
 
     /**

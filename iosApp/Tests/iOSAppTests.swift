@@ -10,9 +10,12 @@ struct IOSAppTests {
     /**
      * 验证 NativeKitBootstrap.initKits 与真实 Shared.framework 核心门面（Core* + Ios*Delegate）可安全协同执行。
      */
-    @Test("Bootstrapper initKits integrates with Shared Core facades")
+    @Test("Bootstrapper two-stage init integrates with Shared Core facades")
     func testBootstrapInitKitsWithSharedFramework() {
-        NativeKitBootstrap.initKits(debug: true)
+        NativeKitBootstrap.initEssentialKits(config: IosKitBootstrapConfig(debug: true))
+        _ = NativeKitBootstrap.initDeferredKits()
+        // 验证 Stage 2 重复调用幂等安全（不会重复激活）
+        #expect(!NativeKitBootstrap.initDeferredKits())
 
         CoreLog.shared.i(tag: LogTags.shared.APP, message: "[iOSAppTests] CoreLog delegate active")
         let fallbackMessage = CoreAbTesting.shared.getString(

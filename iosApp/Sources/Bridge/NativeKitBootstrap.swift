@@ -7,11 +7,78 @@ import FirebaseCore
 #endif
 
 /**
+ * iOS 宿主原生 Kit 分阶段初始化参数配置（与 Android `AndroidKitBootstrapConfig` 1:1 对称）。
+ */
+public struct IosKitBootstrapConfig: Sendable {
+    public let admobAppId: String
+    public let admobBannerId: String
+    public let admobInterstitialId: String
+    public let admobRewardedId: String
+    public let admobAppOpenId: String
+    public let appsFlyerKey: String
+    public let appsFlyerAppId: String
+    public let paySubsIds: String
+    public let payConsumableIds: String
+    public let payNonConsumableIds: String
+    public let analyticsDebug: Bool?
+    public let remoteConfigMinFetchIntervalSeconds: TimeInterval?
+    public let registerPushAtLaunch: Bool?
+    public let deferCrashReport: Bool
+    public let debug: Bool
+
+    public init(
+        admobAppId: String = "",
+        admobBannerId: String = "",
+        admobInterstitialId: String = "",
+        admobRewardedId: String = "",
+        admobAppOpenId: String = "",
+        appsFlyerKey: String = "",
+        appsFlyerAppId: String = "",
+        paySubsIds: String = "",
+        payConsumableIds: String = "",
+        payNonConsumableIds: String = "",
+        analyticsDebug: Bool? = nil,
+        remoteConfigMinFetchIntervalSeconds: TimeInterval? = nil,
+        registerPushAtLaunch: Bool? = nil,
+        deferCrashReport: Bool = false,
+        debug: Bool = true
+    ) {
+        self.admobAppId = admobAppId
+        self.admobBannerId = admobBannerId
+        self.admobInterstitialId = admobInterstitialId
+        self.admobRewardedId = admobRewardedId
+        self.admobAppOpenId = admobAppOpenId
+        self.appsFlyerKey = appsFlyerKey
+        self.appsFlyerAppId = appsFlyerAppId
+        self.paySubsIds = paySubsIds
+        self.payConsumableIds = payConsumableIds
+        self.payNonConsumableIds = payNonConsumableIds
+        self.analyticsDebug = analyticsDebug
+        self.remoteConfigMinFetchIntervalSeconds = remoteConfigMinFetchIntervalSeconds
+        self.registerPushAtLaunch = registerPushAtLaunch
+        self.deferCrashReport = deferCrashReport
+        self.debug = debug
+    }
+}
+
+private final class BootstrapState: @unchecked Sendable {
+    let lock = NSLock()
+    var delegatesInstalled = false
+    var essentialInitialized = false
+    var deferredInitialized = false
+    var pendingConfig: IosKitBootstrapConfig?
+}
+
+/**
  * iOS 原生商业化与基础设施 Kit 引导器（NativeKitBootstrap）。
- * 专职负责十大 Kit 的 Swift 委托装配与跨平台门面挂载（委托实现均独立拆分在 Delegates 目录），
- * 与 Android 端的 NativeKitBootstrap 保持 1:1 对称与相同设计范式。
+ *
+ * 采用 **方案 B（双阶段分级初始化）**，与 Android 端 `NativeKitBootstrap` 保持 1:1 对称：
+ * - **Stage 1 (`initEssentialKits`)**：冷启动仅幂等装配全量 9 大 Swift Delegate 并立即激活本地轻量必需 Kit；
+ * - **Stage 2 (`initDeferredKits`)**：于 Compose 首帧完成或隐私合规弹窗同意后幂等激活三方/商业化/网络敏感 Kit。
  */
 public final class NativeKitBootstrap: Sendable {
+    private static let state = BootstrapState()
+
     private static func configureFirebaseIfAvailable() -> Bool {
         guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else {
             return false
@@ -27,7 +94,81 @@ public final class NativeKitBootstrap: Sendable {
     }
 
     /**
-     * 批量初始化并注册所有 iOS 原生 Kit 的 Swift SPM 委托实现至 Core 跨平台门面。
+     * Stage 1（冷启动阶段）：幂等装配全部 Swift Delegate，并仅激活纯本地轻量与基础必需 Kit。
+     */
+    public static func initEssentialKits(config: IosKitBootstrapConfig = IosKitBootstrapConfig()) {
+        state.lock.lock()
+        defer { state.lock.unlock() }
+
+        state.pendingConfig = config
+        if !state.delegatesInstalled {
+            installDelegatesLocked(config: config)
+            state.delegatesInstalled = true
+        }
+        if !state.essentialInitialized {
+            initEssentialLocked(deferCrashReport: config.deferCrashReport)
+            state.essentialInitialized = true
+            print("[KMP-iOS] Stage 1 essential kits initialized.")
+        }
+    }
+
+    /**
+     * Stage 2（首帧完成 / 隐私合规同意后）：幂等激活商业化、归因、远程配置与推送等三方 Kit。
+     */
+    @discardableResult
+    public static func initDeferredKits() -> Bool {
+        state.lock.lock()
+        defer { state.lock.unlock() }
+
+        guard !state.deferredInitialized, state.delegatesInstalled, let config = state.pendingConfig else {
+            return false
+        }
+
+        let firebaseConfigured = configureFirebaseIfAvailable()
+
+        // [KIT:crashreport:START]
+        if config.deferCrashReport {
+            CoreCrashReport.shared.doInit()
+        }
+        // [KIT:crashreport:END]
+
+        // [KIT:analytics:START]
+        CoreAnalytics.shared.doInit()
+        // [KIT:analytics:END]
+
+        // [KIT:abtesting:START]
+        CoreAbTesting.shared.doInit()
+        // [KIT:abtesting:END]
+
+        // [KIT:mmp:START]
+        CoreMmp.shared.doInit(appToken: config.appsFlyerKey)
+        // [KIT:mmp:END]
+
+        // [KIT:ads:START]
+        CoreAds.shared.doInit(apiKey: config.admobAppId)
+        // [KIT:ads:END]
+
+        // [KIT:pay:START]
+        CorePay.shared.doInit(
+            catalog: PayProductCatalog.companion.fromCsv(
+                subsCsv: config.paySubsIds,
+                consumableCsv: config.payConsumableIds,
+                nonConsumableCsv: config.payNonConsumableIds
+            )
+        )
+        // [KIT:pay:END]
+
+        // [KIT:push:START]
+        CorePush.shared.doInit(registerFcm: config.registerPushAtLaunch ?? firebaseConfigured)
+        // [KIT:push:END]
+
+        state.deferredInitialized = true
+        print("[KMP-iOS] Stage 2 deferred kits initialized.")
+        return true
+    }
+
+    /**
+     * 兼容一站式入口：依次完成 Stage 1 基础装配激活与 Stage 2 延迟 Kit 激活（常用于单测或无需延迟场景）。
      */
     public static func initKits(
         admobAppId: String = "",
@@ -45,80 +186,99 @@ public final class NativeKitBootstrap: Sendable {
         registerPushAtLaunch: Bool? = nil,
         debug: Bool = true
     ) {
-        print("[KMP-iOS] Initializing native Kit SPM SDKs & Delegates...")
-        let firebaseConfigured = configureFirebaseIfAvailable()
-        let effectiveAnalyticsDebug = analyticsDebug ?? debug
+        let config = IosKitBootstrapConfig(
+            admobAppId: admobAppId,
+            admobBannerId: admobBannerId,
+            admobInterstitialId: admobInterstitialId,
+            admobRewardedId: admobRewardedId,
+            admobAppOpenId: admobAppOpenId,
+            appsFlyerKey: appsFlyerKey,
+            appsFlyerAppId: appsFlyerAppId,
+            paySubsIds: paySubsIds,
+            payConsumableIds: payConsumableIds,
+            payNonConsumableIds: payNonConsumableIds,
+            analyticsDebug: analyticsDebug,
+            remoteConfigMinFetchIntervalSeconds: remoteConfigMinFetchIntervalSeconds,
+            registerPushAtLaunch: registerPushAtLaunch,
+            debug: debug
+        )
+        initEssentialKits(config: config)
+        _ = initDeferredKits()
+    }
+
+    private static func installDelegatesLocked(config: IosKitBootstrapConfig) {
+        let effectiveAnalyticsDebug = config.analyticsDebug ?? config.debug
 
         // [KIT_INSTALL_START]
         // [KIT:log:START]
         CoreLog.shared.install(delegate: IosLogDelegate())
-        CoreLog.shared.doInitAllLog()
         // [KIT:log:END]
 
         // [KIT:crashreport:START]
         CoreCrashReport.shared.install(delegate: IosCrashReportDelegate())
-        CoreCrashReport.shared.doInit()
         // [KIT:crashreport:END]
 
         // [KIT:analytics:START]
         CoreAnalytics.shared.install(delegate: IosAnalyticsDelegate(debug: effectiveAnalyticsDebug))
-        CoreAnalytics.shared.doInit()
         // [KIT:analytics:END]
 
         // [KIT:abtesting:START]
         CoreAbTesting.shared.install(
             delegate: IosAbTestingDelegate(
-                debug: debug,
-                minimumFetchIntervalInSeconds: remoteConfigMinFetchIntervalSeconds
+                debug: config.debug,
+                minimumFetchIntervalInSeconds: config.remoteConfigMinFetchIntervalSeconds
             )
         )
-        CoreAbTesting.shared.doInit()
         // [KIT:abtesting:END]
 
         // [KIT:mmp:START]
-        CoreMmp.shared.install(delegate: IosMmpDelegate(debug: debug, appId: appsFlyerAppId))
-        CoreMmp.shared.doInit(appToken: appsFlyerKey)
+        CoreMmp.shared.install(delegate: IosMmpDelegate(debug: config.debug, appId: config.appsFlyerAppId))
         // [KIT:mmp:END]
 
         // [KIT:ads:START]
         CoreAds.shared.install(
             delegate: IosAdsDelegate(
-                defaultBannerUnitId: admobBannerId,
-                defaultInterstitialUnitId: admobInterstitialId,
-                defaultRewardedUnitId: admobRewardedId,
-                defaultAppOpenUnitId: admobAppOpenId,
-                debug: debug
+                defaultBannerUnitId: config.admobBannerId,
+                defaultInterstitialUnitId: config.admobInterstitialId,
+                defaultRewardedUnitId: config.admobRewardedId,
+                defaultAppOpenUnitId: config.admobAppOpenId,
+                debug: config.debug
             )
         )
-        CoreAds.shared.doInit(apiKey: admobAppId)
         // [KIT:ads:END]
 
         // [KIT:pay:START]
         CorePay.shared.install(delegate: IosPayDelegate())
-        CorePay.shared.doInit(
-            catalog: PayProductCatalog.companion.fromCsv(
-                subsCsv: paySubsIds,
-                consumableCsv: payConsumableIds,
-                nonConsumableCsv: payNonConsumableIds
-            )
-        )
         // [KIT:pay:END]
 
         // [KIT:push:START]
         CorePush.shared.install(delegate: IosPushDelegate())
-        CorePush.shared.doInit(registerFcm: registerPushAtLaunch ?? firebaseConfigured)
         // [KIT:push:END]
 
         // [KIT:video:START]
         CoreVideo.shared.install(delegate: IosVideoDelegate())
+        // [KIT:video:END]
+        // [KIT_INSTALL_END]
+    }
+
+    private static func initEssentialLocked(deferCrashReport: Bool) {
+        // [KIT:log:START]
+        CoreLog.shared.doInitAllLog()
+        // [KIT:log:END]
+
+        // [KIT:crashreport:START]
+        if !deferCrashReport {
+            _ = configureFirebaseIfAvailable()
+            CoreCrashReport.shared.doInit()
+        }
+        // [KIT:crashreport:END]
+
+        // [KIT:video:START]
         CoreVideo.shared.doInit()
         // [KIT:video:END]
 
         // [KIT:pag:START]
         CorePag.shared.doInit()
         // [KIT:pag:END]
-        // [KIT_INSTALL_END]
-
-        print("[KMP-iOS] Native Kit delegates successfully installed and initialized.")
     }
 }
