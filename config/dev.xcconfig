@@ -1,0 +1,75 @@
+// ===================================================================
+// 全工程测试环境唯一真源配置 (Dev SSOT - Android & iOS 共用)
+// 职责：日常本地联调、CI 自动化测试、Xcode Debug / Simulator 与 Android devDebug/devRelease
+// 说明：由 Android Gradle 与 iOS Xcode 原生双端直读，无需任何中间脚本转换！
+//       域名拆分为 API_SCHEME + API_HOST，彻底避免 xcconfig 将 // 识别为注释的问题。
+// ===================================================================
+
+// -------------------------------------------------------------------
+// 1. 应用身份与版本信息 (Application Identity & Versions)
+// -------------------------------------------------------------------
+APP_ID = xxx.yyy.zzz.dev
+APP_NAME = Architecture (Dev)
+VERSION_NAME = 1.0.0
+VERSION_CODE = 1
+
+// Xcode 原生派生变量（自动映射上方双端统一字段）
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_ID)
+INFOPLIST_KEY_CFBundleDisplayName = $(APP_NAME)
+MARKETING_VERSION = $(VERSION_NAME)
+CURRENT_PROJECT_VERSION = $(VERSION_CODE)
+
+// -------------------------------------------------------------------
+// 2. 双端测试签名配置 (Code Signing - Test)
+// iOS 使用 Xcode 自动签名；Android 若 ANDROID_STORE_FILE 留空则回退 ~/.android/debug.keystore
+// -------------------------------------------------------------------
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
+DEVELOPMENT_TEAM = 
+
+ANDROID_STORE_FILE = 
+ANDROID_STORE_PASSWORD = android
+ANDROID_KEY_ALIAS = androiddebugkey
+ANDROID_KEY_PASSWORD = android
+
+// -------------------------------------------------------------------
+// 3. 基础网络与 API 环境 (Network & Dev API Gateway)
+// 注：纯单机 / 无自建业务服务器可将 API_HOST 留空
+// -------------------------------------------------------------------
+API_SCHEME = https
+API_HOST = dev-api.example.com
+ENABLE_HTTP_LOG = YES
+
+// -------------------------------------------------------------------
+// 4. Google AdMob 官方公开测试 ID 全集 (永不封号，按平台分键)
+// Android: https://developers.google.com/admob/android/test-ads
+// iOS:     https://developers.google.com/admob/ios/test-ads
+// -------------------------------------------------------------------
+ANDROID_ADMOB_APP_ID = ca-app-pub-3940256099942544~3347511713
+ANDROID_ADMOB_BANNER_ID = ca-app-pub-3940256099942544/9214589741
+ANDROID_ADMOB_INTERSTITIAL_ID = ca-app-pub-3940256099942544/1033173712
+ANDROID_ADMOB_REWARDED_ID = ca-app-pub-3940256099942544/5224354917
+ANDROID_ADMOB_APP_OPEN_ID = ca-app-pub-3940256099942544/9257395921
+
+IOS_ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+IOS_ADMOB_BANNER_ID = ca-app-pub-3940256099942544/2934735716
+IOS_ADMOB_INTERSTITIAL_ID = ca-app-pub-3940256099942544/4411468910
+IOS_ADMOB_REWARDED_ID = ca-app-pub-3940256099942544/1712485313
+IOS_ADMOB_APP_OPEN_ID = ca-app-pub-3940256099942544/5575463023
+
+// -------------------------------------------------------------------
+// 5. 商业化与基础设施 Kit 测试凭证 (Kits Test Credentials)
+// -------------------------------------------------------------------
+APPSFLYER_KEY = dummy_appsflyer_dev_key
+IOS_APPSFLYER_APP_ID = 1234567890
+ANALYTICS_DEBUG_MODE = YES
+REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS = 0
+
+PAY_SUBS_IDS = subs_plus,subs_pro
+PAY_CONSUMABLE_IDS = consumable_product_01
+PAY_NON_CONSUMABLE_IDS = one_time_product_01
+
+// -------------------------------------------------------------------
+// 6. 开发者个人本地调试覆写（已纳入 .gitignore，可选创建，仅覆盖个人 Team / 本机联调地址等）
+// -------------------------------------------------------------------
+#include? "dev.local.xcconfig"

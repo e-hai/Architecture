@@ -26,10 +26,13 @@ xcuserdata/
 # Secrets & Local Configs
 local.properties
 keystore.properties
+config/dev.local.xcconfig
+config/prod.local.xcconfig
 config/prod.properties
+*-config-bundle.zip
 Secrets.swift
 google-services.json
-GoogleService-Info.plist
+GoogleService-Info*.plist
 *.p8
 *.mobileprovision
 *.cer
@@ -39,6 +42,10 @@ GoogleService-Info.plist
 
 # Kotlin Multiplatform
 .kotlin/
+
+# Python cache
+__pycache__/
+*.py[cod]
 
 # Native Binaries & Frameworks (managed via SPM / Gradle cache)
 iosApp/Frameworks/

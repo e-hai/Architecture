@@ -1,0 +1,72 @@
+// ===================================================================
+// 全工程正式环境默认骨架 (Prod SSOT Template - Android & iOS 共用)
+// 职责：声明正式环境公开占位结构与派生映射；真实正式参数与密钥严禁提交本文件，
+//       统一写入已被 .gitignore 忽略的 config/prod.local.xcconfig（双端自动加载覆写）！
+// ===================================================================
+
+// -------------------------------------------------------------------
+// 1. 应用身份与版本信息 (Application Identity & Versions)
+// -------------------------------------------------------------------
+APP_ID = xxx.yyy.zzz
+APP_NAME = Architecture
+VERSION_NAME = 1.0.0
+VERSION_CODE = 1
+
+// Xcode 原生派生变量（自动映射上方双端统一字段或 prod.local.xcconfig 覆写值）
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_ID)
+INFOPLIST_KEY_CFBundleDisplayName = $(APP_NAME)
+MARKETING_VERSION = $(VERSION_NAME)
+CURRENT_PROJECT_VERSION = $(VERSION_CODE)
+
+// -------------------------------------------------------------------
+// 2. 双端正式签名配置 (Code Signing - Release)
+// iOS DEVELOPMENT_TEAM 可由 ./scripts/config_studio.sh --env prod 或 prod.local.xcconfig 提供；
+// Android 签名库与密码由研发使用 ./scripts/gen_keystore.sh 或 CI 环境变量 (PROD_STORE_*) 注入。
+// -------------------------------------------------------------------
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Distribution
+DEVELOPMENT_TEAM = 
+
+ANDROID_STORE_FILE = 
+ANDROID_STORE_PASSWORD = 
+ANDROID_KEY_ALIAS = 
+ANDROID_KEY_PASSWORD = 
+
+// -------------------------------------------------------------------
+// 3. 基础网络与 API 环境 (Network & Production API Gateway)
+// -------------------------------------------------------------------
+API_SCHEME = https
+API_HOST = api.example.com
+ENABLE_HTTP_LOG = NO
+
+// -------------------------------------------------------------------
+// 4. Google AdMob 正式广告 ID（严禁填写 3940256099942544 测试 ID）
+// -------------------------------------------------------------------
+ANDROID_ADMOB_APP_ID = 
+ANDROID_ADMOB_BANNER_ID = 
+ANDROID_ADMOB_INTERSTITIAL_ID = 
+ANDROID_ADMOB_REWARDED_ID = 
+ANDROID_ADMOB_APP_OPEN_ID = 
+
+IOS_ADMOB_APP_ID = 
+IOS_ADMOB_BANNER_ID = 
+IOS_ADMOB_INTERSTITIAL_ID = 
+IOS_ADMOB_REWARDED_ID = 
+IOS_ADMOB_APP_OPEN_ID = 
+
+// -------------------------------------------------------------------
+// 5. 商业化与基础设施 Kit 正式凭证 (Kits Production Credentials)
+// -------------------------------------------------------------------
+APPSFLYER_KEY = 
+IOS_APPSFLYER_APP_ID = 
+ANALYTICS_DEBUG_MODE = NO
+REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS = 3600
+
+PAY_SUBS_IDS = 
+PAY_CONSUMABLE_IDS = 
+PAY_NON_CONSUMABLE_IDS = 
+
+// -------------------------------------------------------------------
+// 6. 本地正式环境私有覆写（已纳入 .gitignore，双端共享，研发/测试侧不可见）
+// -------------------------------------------------------------------
+#include? "prod.local.xcconfig"

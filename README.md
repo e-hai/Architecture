@@ -17,11 +17,19 @@
 
 ## 1. 30 秒极速上手 (Quick Start)
 
-### 1.1 一键极简项目立项初始化 (`init_project.sh`)
-本脚手架支持一键全自动重命名命名空间、应用 ID、插件前缀、App 名称与 iOS 工程配置，并**直接将默认的 `:features:home` 转换为新项目的首页模块**（零示例代码清理负担）：
+### 1.1 一键极简项目立项与双端配置向导 (`config_studio.sh` / `init_project.sh`)
+本脚手架支持**零依赖 Web 配置向导 (Config Studio)** 与**命令行一键初始化**，统一读写双端单一真源（[`config/dev.xcconfig`](config/dev.xcconfig) 与 [`config/prod.xcconfig`](config/prod.xcconfig)），自动重命名命名空间、应用 ID、插件前缀、App 名称、按需裁剪 10 大 Kit、校验并放置双端 Firebase 文件，并**直接将默认的 `:features:home` 转换为新项目的首页模块**：
 
 ```bash
-# 方式 A：交互式向导（自动推导默认值，按回车即可完成）：
+# 方式 0（推荐，Web 可视化向导，Dev/Prod 物理隔离且原生支持 Firebase 包名校验）：
+#   1) 本地直写服务（研发在开发机执行，--env 锁定对应环境）：
+./scripts/config_studio.sh --env dev                 # 首次立项 + Kit 裁剪 + Dev 测试配置
+./scripts/config_studio.sh --env prod                # 上线前录入 Prod 正式配置（仅写入 gitignored 的 prod.local.xcconfig）
+#   2) 无环境静态页面离线填报 + 一键导入（非技术人员直接双击 tools/config-studio/index.html 导出 zip 后交付研发）：
+./scripts/config_studio.sh --import dev-config-bundle.zip --env dev
+./scripts/config_studio.sh --import prod-config-bundle.zip --env prod
+
+# 方式 A：交互式命令行向导（自动推导默认值，按回车即可完成）：
 ./init_project.sh
 
 # 方式 B：单行命令行参数极速立项（支持独立指定正式与测试应用 ID；加 `--yes` 自动采用其余默认值）：
@@ -33,7 +41,7 @@
   --features "news,favorites,profile" \
   --yes
 ```
-> **提示**：通过 `--features` 参数可同时批量生成并自动挂载多个初始业务特性模块；`--app-id` 与 `--test-app-id` 自动写入双端工程配置。
+> **提示**：零依赖离线配置页面见 [`tools/config-studio/index.html`](tools/config-studio/index.html)，Config Studio 启动脚本见 [`scripts/config_studio.sh`](scripts/config_studio.sh)，完整初始化操作与安全隔离规范详见 [SOP 0003](docs/sop/0003-project-init-and-dev-environment.md)（Android Keystore 路径与密码严禁进入 Web 向导，仍按 [SOP 0001](docs/sop/0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 管理）；命令行亦支持 `--features`、`--exclude-kits` 与 `--no-debug` 参数。
 
 ### 1.2 业务模块与 Kit 热插拔管理 (`create_feature.sh` / `remove_feature.sh` / `manage_kit.sh`)
 当需要为项目添加新的业务特性时，运行：
@@ -55,18 +63,14 @@
 ./manage_kit.sh remove video         # 一键双端全链路裁剪指定 Kit（含 Delegate 与 DebugSection）
 ```
 
-### 1.3 双端应用 ID 与测试/正式签名隔离规范
+### 1.3 双端应用 ID 与测试/正式统一单一真源 (`config/`)
 
-为支持测试环境（Firebase / 广告 / 归因测试工程）与正式上架环境彻底隔离，工程预置了双端隔离机制：
+为消除 Android/iOS 双份重复配置与转换环节，工程由 [`config/`](config/dev.xcconfig) 统一托管双端环境参数，[`androidApp/build.gradle.kts`](androidApp/build.gradle.kts) 与 [`iosApp/project.yml`](iosApp/project.yml) 直接原生读取同一套文件，同时彻底隔离测试与正式环境：
 
-- **Android 端 (`androidApp/build.gradle.kts`)**：
-  - **测试环境唯一入口 (`config/dev.properties`)**：开箱即跑，包含测试包名（`${package}.dev`）、桌面名称（`xxx (Dev)`）、API 域名及 Google 官方测试广告 ID，默认锁定 `devDebug` 构建变体；若未配置签名自动回退到系统 debug 签名；
-  - **正式环境唯一入口 (`config/prod.properties`)**：日常开发无需理会，发版前从 `config/prod.properties.example` 复制创建并填写真实生产凭证；
-- **iOS 端 (`iosApp/Config/`)**：
-  - **测试环境唯一入口 (`iosApp/Config/Dev.xcconfig`)**：Debug 绑定测试 Bundle ID、桌面名称 `xxx (Dev)`、测试 AdMob ID 与 `Apple Development` 证书；
-  - **正式环境唯一入口 (`iosApp/Config/Prod.xcconfig`)**：Release 绑定正式 Bundle ID、正式桌面名称与 `Apple Distribution` 证书。
+- **测试环境单一真源 ([`config/dev.xcconfig`](config/dev.xcconfig))**：纳入仓库跟踪，开箱即跑，包含测试包名（`${package}.dev`）、桌面名称（`xxx (Dev)`）、`API_SCHEME` / `API_HOST`、Google 官方测试 `ANDROID_ADMOB_*` / `IOS_ADMOB_*` ID 与调试开关；Android 未配置签名自动回退到系统 debug 签名，iOS `Debug` 配置自动绑定；
+- **正式环境模板与本地隔离 ([`config/prod.xcconfig`](config/prod.xcconfig) + `config/prod.local.xcconfig`)**：仓库内 `config/prod.xcconfig` 仅保留公开占位骨架与 `Prod` 默认结构，并在末尾通过 `#include? "prod.local.xcconfig"` 引入被 `.gitignore` 忽略的本地 `config/prod.local.xcconfig`（正式包名 / iOS Team / `ANDROID_STORE_*` 签名 / 商业化正式 ID 均留在本机或 CI Secret，克隆仓库拿不到正式凭证）。
 
-> 💡 **标准作业程序 (SOP)**：有关 Android `keytool` 双证书生成、SHA-1 指纹提取、iOS Apple 开发者后台 CSR / `.p12` / 描述文件配置的完整操作步骤，请参阅 [docs/sop/0001-app-signing-and-certificates.md](docs/sop/0001-app-signing-and-certificates.md)。
+> 💡 **标准作业程序 (SOP)**：有关 Android `keytool` 双证书生成、SHA-1 指纹提取、`./scripts/gen_keystore.sh --write-prod-config` 写入本地签名及 iOS Apple 开发者后台配置，请参阅 [docs/sop/0001-app-signing-and-certificates.md](docs/sop/0001-app-signing-and-certificates.md)。
 
 ### 1.4 常用构建、单测与检查命令
 
@@ -85,7 +89,7 @@
 | **格式化代码风格** | `./gradlew spotlessApply` 或 `--fix` | 依据 ktlint / SwiftLint 规范自动格式化全工程代码 |
 | **代码规范静态检查** | `./gradlew spotlessCheck detekt verifyArchitecture` | CI 门禁检查代码格式、Detekt 坏味道与架构红线 |
 
-> 💡 **质量规范手册**：关于六维代码质量防御体系（L1~L6）、配置文件职责、豁免原则与常见排障，请参阅 [docs/sop/0002-code-quality-and-static-analysis.md](docs/sop/0002-code-quality-and-static-analysis.md)。
+> 💡 **质量规范手册**：关于六维代码质量防御体系（L1~L6）、配置文件职责、豁免原则与常见排障，请参阅 [docs/sop/0002-code-quality-and-static-analysis.md](docs/sop/0002-code-quality-and-static-analysis.md)；完整 **SOP 0001 ~ 0006** 索引请参阅 [docs/sop/README.md](docs/sop/README.md)。
 
 ---
 
@@ -205,7 +209,7 @@ Architecture/
 ├── docs/                                        # 项目工程文档库
 │   ├── ARCHITECTURE.md                          # 架构设计与技术全景指南
 │   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0009 - 记录 Why)
-│   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0002 - 记录 How)
+│   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0006 - 见 docs/sop/README.md)
 ├── .githooks/pre-commit                         # Git 提交前快速静态质量拦截钩子
 ├── scripts/check_quality.sh                     # 六维代码质量统一门禁 CLI (--fast / --full / --fix)
 ├── init_project.sh                              # 一键极简项目初始化脚本

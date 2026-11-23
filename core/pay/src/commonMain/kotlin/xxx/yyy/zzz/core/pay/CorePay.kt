@@ -2,7 +2,7 @@ package xxx.yyy.zzz.core.pay
 
 /**
  * 应用内购买与订阅商品目录配置。
- * 建议由宿主配置文件（如 dev.properties / xcconfig）或远端配置下发后在初始化阶段注入。
+ * 建议由宿主配置文件（`config/dev.xcconfig` / `config/prod.local.xcconfig`）或远端配置下发后在初始化阶段注入。
  */
 data class PayProductCatalog(
     val subsProductIds: Set<String> = emptySet(),

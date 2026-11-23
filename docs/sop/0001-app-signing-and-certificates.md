@@ -180,19 +180,19 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 
 | 所属端 | 通用标准步骤 | 本项目已预置的工程化实现 | 对应源码路径 |
 | :--- | :--- | :--- | :--- |
-| **Android** | 1. 密钥文件安全忽略 | `.gitignore` 已默认忽略 `config/prod.properties`、`*.jks`、`*.keystore`。 | [.gitignore](file:///Users/a/Develop/project/android/Architecture/.gitignore) |
-| **Android** | 2. 环境配置与密钥模版 | 提供开箱测试配置与生产模板文件，并配套 `./scripts/gen_keystore.sh` 一键生成脚本。 | [dev.properties](file:///Users/a/Develop/project/android/Architecture/config/dev.properties) / [prod.properties.example](file:///Users/a/Develop/project/android/Architecture/config/prod.properties.example) |
-| **Android** | 3. Gradle 环境维度声明 | Android 宿主中统一注册 `environment` 维度与 `dev`、`prod` 两个 flavor。 | [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts#L137-L151) |
-| **Android** | 4. Gradle 签名逻辑与变体绑定 | 宿主已实现**文件/环境变量双源读取**、`dev` 自动回退调试签名及 **`ProdRelease` 缺失正式证书强制阻断**机制。 | [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts#L25-L135) |
-| **iOS** | 5. Xcode 多环境 Bundle ID 隔离 | `iosApp/project.yml` 与 `.xcconfig` 已配置 `Debug` 对应测试 ID、`Release` 对应正式 ID。 | [iosApp/project.yml](file:///Users/a/Develop/project/android/Architecture/iosApp/project.yml#L168-L180) |
-| **双端** | 6. 一键全局包名替换 | `./init_project.sh` 可一键将双端默认包名重命名为业务正式包名与测试包名。 | [init_project.sh](file:///Users/a/Develop/project/android/Architecture/init_project.sh) |
+| **Android** | 1. 密钥文件安全忽略 | `.gitignore` 已默认忽略 `config/prod.local.xcconfig`、`*.jks`、`*.keystore`。 | [.gitignore](../../.gitignore) |
+| **Android** | 2. 双端单一真源与密钥脚本 | `dev.xcconfig`（测试）与 `prod.xcconfig` + 本地 `prod.local.xcconfig`（正式）由 Android & iOS 原生直读，配套 `./scripts/gen_keystore.sh`。 | [dev.xcconfig](../../config/dev.xcconfig) / [prod.xcconfig](../../config/prod.xcconfig) |
+| **Android** | 3. Gradle 环境维度声明 | Android 宿主中统一注册 `environment` 维度与 `dev`、`prod` 两个 flavor。 | [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts) |
+| **Android** | 4. Gradle 签名逻辑与变体绑定 | 宿主已实现**`.xcconfig` 直读 + `#include?` 合并 + 环境变量回退**、`dev` 自动回退调试签名及 **`ProdRelease` 缺失正式证书强制阻断**机制。 | [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts) |
+| **iOS** | 5. Xcode 多环境 Bundle ID 隔离 | `iosApp/project.yml` 直连 `../config/{dev,prod}.xcconfig` 实现 `Debug` 与 `Release` 完全隔离。 | [iosApp/project.yml](../../iosApp/project.yml) |
+| **双端** | 6. 一键全局包名替换 | `./init_project.sh`（或 Web 配置台 `--env dev`）可一键重命名双端包名。 | [init_project.sh](../../init_project.sh) |
 
 > [!NOTE]
 > **关于 Android 端配置读取与正式发版安全隔离：**
-> 在 [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts) 中：
-> 1. 测试环境读取 `config/dev.properties`（优先）或 `DEV_*` 环境变量；正式环境读取 `config/prod.properties`（回退 `config/prod.properties.example`）或 `PROD_*` 环境变量；
+> 在 [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts) 中：
+> 1. 测试环境读取 `config/dev.xcconfig`（支持 `DEV_*` 环境变量回退）；正式环境读取 `config/prod.xcconfig` 并自动 `#include? "prod.local.xcconfig"`（支持 `PROD_*` 环境变量回退）；
 > 2. 当 `dev` 测试证书未配置时自动回退系统 `~/.android/debug.keystore`，确保新克隆即可编译运行 `devDebug`；
-> 3. **严禁混用测试签名**：当打包 `ProdRelease` 任务且未配置有效 `STORE_FILE` 时，Gradle 将直接抛出 `GradleException` 安全拦截。
+> 3. **严禁混用测试签名**：当打包 `ProdRelease` 任务且未配置有效 `ANDROID_STORE_FILE` 时，Gradle 将直接抛出 `GradleException` 安全拦截。
 
 ---
 
@@ -202,10 +202,10 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 
 | 构建变体 (Build Variant) | 触发打包命令 | 生效 `applicationId` | 生效签名配置 | 证书缺失时的策略 | R8 混淆与资源压缩 | 适用场景 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`devDebug`** | `./gradlew :androidApp:assembleDevDebug` | `config/dev.properties` (`*.dev`) | `test` | 回退到系统 `debug.keystore` | ❌ 关闭 | **日常开发与断点联调**（Android Studio 默认选择） |
-| **`devRelease`** | `./gradlew :androidApp:assembleDevRelease` | `config/dev.properties` (`*.dev`) | `test` | 回退到系统 `debug.keystore` | ✅ 开启 | **测试环境混淆验证**（验证 ProGuard 规则是否误杀反射/序列化类） |
-| **`prodDebug`** | `./gradlew :androidApp:assembleProdDebug` | `config/prod.properties` (正式) | `test` | 回退到系统 `debug.keystore` | ❌ 关闭 | **正式包名本地调试**（需要正式包名测试特定三方回调时使用） |
-| **`prodRelease`** | `./gradlew :androidApp:assembleProdRelease`<br/>或 `bundleProdRelease` | `config/prod.properties` (正式) | `prod` (`release.jks`) | **强制抛出 `GradleException` 阻断** | ✅ 开启 | **生产环境发版与上架 Google Play** |
+| **`devDebug`** | `./gradlew :androidApp:assembleDevDebug` | `config/dev.xcconfig` (`*.dev`) | `test` | 回退到系统 `debug.keystore` | ❌ 关闭 | **日常开发与断点联调**（Android Studio 默认选择） |
+| **`devRelease`** | `./gradlew :androidApp:assembleDevRelease` | `config/dev.xcconfig` (`*.dev`) | `test` | 回退到系统 `debug.keystore` | ✅ 开启 | **测试环境混淆验证**（验证 ProGuard 规则是否误杀反射/序列化类） |
+| **`prodDebug`** | `./gradlew :androidApp:assembleProdDebug` | `config/prod.xcconfig` + `prod.local.xcconfig` | `test` | 回退到系统 `debug.keystore` | ❌ 关闭 | **正式包名本地调试**（需要正式包名测试特定三方回调时使用） |
+| **`prodRelease`** | `./gradlew :androidApp:assembleProdRelease`<br/>或 `bundleProdRelease` | `config/prod.xcconfig` + `prod.local.xcconfig` | `prod` (`release.jks`) | **强制抛出 `GradleException` 阻断** | ✅ 开启 | **生产环境发版与上架 Google Play** |
 
 ---
 
@@ -215,29 +215,29 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 
 ### 3.1 Android 端开发者实操步骤（仅需 2 步，无需修改 Gradle）
 
-#### 第一步：使用脚本生成正式签名证书并写入 `config/prod.properties`
-在项目根目录运行 [gen_keystore.sh](file:///Users/a/Develop/project/android/Architecture/scripts/gen_keystore.sh)（自动生成 PKCS12 证书至 `config/keystore/`、打印 `SHA-1`/`SHA-256` 指纹，并同步写入 `config/prod.properties`）：
+#### 第一步：使用脚本生成正式签名证书并写入 `config/prod.local.xcconfig`
+在项目根目录运行 [gen_keystore.sh](../../scripts/gen_keystore.sh)（自动生成 PKCS12 证书至 `config/keystore/`、打印 `SHA-1`/`SHA-256` 指纹，并同步写入已被 `.gitignore` 忽略的 `config/prod.local.xcconfig`；注意 Web 配置台全程不接触任何签名密码）：
 ```bash
-# 生成正式证书并自动写入 config/prod.properties（已由 .gitignore 忽略）
-./scripts/gen_keystore.sh --type release --write-prod-props
+# 生成正式证书并自动写入 config/prod.local.xcconfig（已由 .gitignore 忽略）
+./scripts/gen_keystore.sh --type release --write-prod-config
 
 # 如需团队统一测试证书（可选）：
 ./scripts/gen_keystore.sh --type test
 ```
 
-#### 第二步：核对 `config/prod.properties` 中的商店参数与指纹
-`config/prod.properties` 中的正式签名参数如下（CI/CD 流水线亦可直接通过 `PROD_STORE_FILE`、`PROD_STORE_PASSWORD`、`PROD_KEY_ALIAS`、`PROD_KEY_PASSWORD` 环境变量注入）：
-```properties
-STORE_FILE=config/keystore/release.jks
-STORE_PASSWORD=YOUR_PROD_STORE_PASSWORD
-KEY_ALIAS=release_key
-KEY_PASSWORD=YOUR_PROD_KEY_PASSWORD
+#### 第二步：核对 `config/prod.local.xcconfig` 中的商店参数与指纹
+`config/prod.local.xcconfig` 中的正式签名参数如下（CI/CD 流水线亦可通过 `PROD_STORE_FILE`、`PROD_STORE_PASSWORD`、`PROD_KEY_ALIAS`、`PROD_KEY_PASSWORD` 或 `PROD_ANDROID_STORE_*` 环境变量注入）：
+```xcconfig
+ANDROID_STORE_FILE = config/keystore/release.jks
+ANDROID_STORE_PASSWORD = YOUR_PROD_STORE_PASSWORD
+ANDROID_KEY_ALIAS = release_key
+ANDROID_KEY_PASSWORD = YOUR_PROD_KEY_PASSWORD
 ```
 > 若后续需要再次查看证书 `SHA-1` / `SHA-256` 指纹：
 > `keytool -list -v -keystore config/keystore/release.jks -alias release_key -storepass YOUR_PROD_STORE_PASSWORD`
 
 > [!IMPORTANT]
-> **什么时候才需要开发者手动修改 [androidApp/build.gradle.kts](file:///Users/a/Develop/project/android/Architecture/androidApp/build.gradle.kts)？**
+> **什么时候才需要开发者手动修改 [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts)？**
 > 仅在以下 3 种进阶扩展场景下才需要改动：
 > 1. **定制测试版本名后缀**：例如希望测试包在系统应用信息中显示 `1.0.0-dev`，在 `productFlavors.getByName("dev")` / `create("dev")` 中增加 `versionNameSuffix = "-dev"`；
 > 2. **增加第三个环境**：需要新增预发（`staging`）环境时，只需在 `androidApp/build.gradle.kts` 的 `productFlavors` 中新增 `create("staging") { dimension = "environment"; ... }`；
@@ -248,7 +248,7 @@ KEY_PASSWORD=YOUR_PROD_KEY_PASSWORD
 ### 3.2 iOS 端开发者实操步骤
 
 1. **日常开发联调（Xcode 自动签名）**：
-   - 在 [iosApp/project.yml](file:///Users/a/Develop/project/android/Architecture/iosApp/project.yml) 中填入你所属的 10 位 Apple Developer Team ID：
+   - 在 [iosApp/project.yml](../../iosApp/project.yml) 中填入你所属的 10 位 Apple Developer Team ID：
      ```yaml
      DEVELOPMENT_TEAM: "YOUR_10_DIGIT_TEAM_ID"
      ```
@@ -271,7 +271,7 @@ KEY_PASSWORD=YOUR_PROD_KEY_PASSWORD
   - 在 Android 应用设置中录入 `test.jks` 与 `release.jks` 的 **`SHA-1` 指纹**；
   - 下载配置文件放置在对应位置：
     - Android: `androidApp/src/dev/google-services.json` 与 `androidApp/src/prod/google-services.json`
-    - iOS: `iosApp/iosApp/GoogleService-Info-Dev.plist` 与 `GoogleService-Info-Prod.plist`
+    - iOS: `iosApp/Config/Firebase/Dev/GoogleService-Info.plist` 与 `iosApp/Config/Firebase/Prod/GoogleService-Info.plist`（免重跑 `xcodegen`）
 - [ ] **AppsFlyer / 广告归因后台**：
   - 分别登记测试包名与正式包名，记录分配的 Dev Key；
 - [ ] **Google Play Console / App Store Connect**：
@@ -286,7 +286,7 @@ KEY_PASSWORD=YOUR_PROD_KEY_PASSWORD
 - [ ] **Android 测试包构建**：`./gradlew :androidApp:assembleDevDebug` 成功输出 APK；
 - [ ] **Android 混淆包构建**：`./gradlew :androidApp:assembleDevRelease` 成功构建并使用测试签名；
 - [ ] **Android 正式包构建**：配置了 `release.jks` 后运行 `./gradlew :androidApp:assembleProdRelease` 成功构建；
-- [ ] **安全隔离校验**：运行 `git status` 确认 `config/prod.properties`、`*.jks`、`*.p12`、`*.mobileprovision` 均未出现在 Git 跟踪列表中；
+- [ ] **安全隔离校验**：运行 `git status` 确认 `config/prod.local.xcconfig`、`*.jks`、`*.p12`、`*.mobileprovision` 均未出现在 Git 跟踪列表中；
 - [ ] **iOS 工程校验**：运行 `(cd iosApp && xcodegen generate --spec project.yml)` 成功生成并在 Xcode 中验证 `Debug` 与 `Release` 的 Bundle ID 正确隔离。
 
 ---

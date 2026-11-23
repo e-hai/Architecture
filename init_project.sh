@@ -21,6 +21,31 @@ echo -e "${BLUE}====================================================${NC}"
 echo -e "${BLUE}    Kotlin Multiplatform (KMP) Architecture Init    ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
+print_usage() {
+    echo -e "用法: ./init_project.sh [选项]"
+    echo -e "  --package, -p <pkg>     新的命名空间 / 包名（如 com.example.myapp）"
+    echo -e "  --name, -n <app_name>   应用显示名称"
+    echo -e "  --app-id <formal_id>    正式版 ApplicationId / Bundle ID"
+    echo -e "  --test-app-id <test_id> 测试版 ApplicationId / Bundle ID"
+    echo -e "  --prefix <prefix>       Gradle 约定插件前缀"
+    echo -e "  --features, -f <list>   批量创建的初始业务特性模块（逗号分隔）"
+    echo -e "  --exclude-kits <list>   初始化时裁剪移除的 Kit 列表（逗号分隔，如 ads,video）"
+    echo -e "  --no-debug              裁剪移除 :features:debug 调试控制台"
+    echo -e "  --yes, -y               非交互模式，缺失可选项自动采用默认值"
+    echo -e "  --dry-run               仅预览将要应用的变更，不实际修改文件"
+    echo -e "  --force                 强制执行（即使当前工程未包含 xxx/yyy/zzz 模板目录）"
+    echo -e ""
+    echo -e "提示：如需通过网页可视化向导完成立项与参数配置，可运行 ./scripts/config_studio.sh --env dev"
+}
+
+require_arg_val() {
+    if [ "$2" -lt 2 ] || [ -z "$3" ]; then
+        echo -e "${RED}[错误] 选项 $1 需要一个参数值！${NC}"
+        print_usage
+        exit 1
+    fi
+}
+
 # 解析命令行参数
 NEW_NAMESPACE=""
 NEW_APP_NAME=""
@@ -28,6 +53,7 @@ NEW_APP_ID=""
 NEW_TEST_APP_ID=""
 NEW_PREFIX=""
 INITIAL_FEATURES=""
+EXCLUDE_KITS=""
 DRY_RUN=false
 FORCE=false
 AUTO_YES=false
@@ -36,27 +62,38 @@ NO_DEBUG=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --package|-p)
+            require_arg_val "$1" "$#" "${2:-}"
             NEW_NAMESPACE="$2"
             shift 2
             ;;
         --name|-n)
+            require_arg_val "$1" "$#" "${2:-}"
             NEW_APP_NAME="$2"
             shift 2
             ;;
         --app-id)
+            require_arg_val "$1" "$#" "${2:-}"
             NEW_APP_ID="$2"
             shift 2
             ;;
         --test-app-id)
+            require_arg_val "$1" "$#" "${2:-}"
             NEW_TEST_APP_ID="$2"
             shift 2
             ;;
         --prefix)
+            require_arg_val "$1" "$#" "${2:-}"
             NEW_PREFIX="$2"
             shift 2
             ;;
         --features|-f)
+            require_arg_val "$1" "$#" "${2:-}"
             INITIAL_FEATURES="$2"
+            shift 2
+            ;;
+        --exclude-kits)
+            require_arg_val "$1" "$#" "${2:-}"
+            EXCLUDE_KITS="$2"
             shift 2
             ;;
         --no-debug)
@@ -75,9 +112,13 @@ while [[ $# -gt 0 ]]; do
             AUTO_YES=true
             shift
             ;;
+        --help|-h)
+            print_usage
+            exit 0
+            ;;
         *)
             echo -e "${RED}[未知选项] $1${NC}"
-            echo -e "用法: ./init_project.sh [--package <pkg>] [--name <app_name>] [--app-id <formal_id>] [--test-app-id <test_id>] [--prefix <prefix>] [--features <feat1,feat2>] [--no-debug] [--yes] [--dry-run] [--force]"
+            print_usage
             exit 1
             ;;
     esac
@@ -159,16 +200,19 @@ if [ -z "$INITIAL_FEATURES" ] && [ "$NON_INTERACTIVE" != true ]; then
 fi
 
 echo -e "\n${YELLOW}[信息] 开始初始化项目...${NC}"
-echo -e "- 新命名空间 (Namespace):    ${GREEN}$NEW_NAMESPACE${NC}"
-echo -e "- 正式应用 ID (Formal App ID): ${GREEN}$NEW_APP_ID${NC}"
+echo -e "- 新命名空间 (Namespace):      ${GREEN}$NEW_NAMESPACE${NC}"
+echo -e "- 正式默认 ID (Default Prod):  ${GREEN}$NEW_APP_ID${NC}"
 echo -e "- 测试应用 ID (Test App ID):   ${GREEN}$NEW_TEST_APP_ID${NC}"
-echo -e "- 约定插件前缀:              ${GREEN}$NEW_PREFIX${NC}"
-echo -e "- 应用名称:                  ${GREEN}$NEW_APP_NAME${NC}"
+echo -e "- 约定插件前缀:                ${GREEN}$NEW_PREFIX${NC}"
+echo -e "- 应用名称:                    ${GREEN}$NEW_APP_NAME${NC}"
 if [ -n "$INITIAL_FEATURES" ]; then
-    echo -e "- 待创建初始业务模块:        ${GREEN}$INITIAL_FEATURES${NC}"
+    echo -e "- 待创建初始业务模块:          ${GREEN}$INITIAL_FEATURES${NC}"
 fi
 if [ "$NO_DEBUG" = true ]; then
-    echo -e "- 调试控制台:                ${YELLOW}已禁用 (--no-debug，将移除 :features:debug)${NC}"
+    echo -e "- 调试控制台:                  ${YELLOW}已禁用 (--no-debug，将移除 :features:debug)${NC}"
+fi
+if [ -n "$EXCLUDE_KITS" ]; then
+    echo -e "- 待裁剪移除的 Kit:            ${YELLOW}$EXCLUDE_KITS${NC}"
 fi
 
 if [ "$DRY_RUN" = true ]; then
@@ -195,18 +239,13 @@ ESCAPED_APP_NAME=$(printf '%s\n' "$NEW_APP_NAME" | sed 's/[&|\\]/\\&/g')
 # 2. 全局文本替换
 echo -e "${YELLOW}[1/6] 正在执行全局文本内容替换...${NC}"
 
-find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" -o -name "remove_feature.sh" -o -name "manage_kit.sh" -o -name "*.example" -o -name "*.properties" -o -name "*.xcconfig" \) \
+find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" -o -name "remove_feature.sh" -o -name "manage_kit.sh" -o -name "*.xcconfig" \) \
     -not -path '*/.git/*' -not -path '*/.gradle/*' -not -path '*/.idea/*' -not -path '*/.kotlin/*' -not -path '*/.swiftpm/*' -not -path '*/.build/*' -not -path '*/xcuserdata/*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './init_project.sh' | while read -r file; do
     "${SED_INPLACE[@]}" "s|xxx\.yyy\.zzz|${NEW_NAMESPACE}|g" "$file"
     "${SED_INPLACE[@]}" "s|myproject|${NEW_PREFIX}|g" "$file"
     "${SED_INPLACE[@]}" "s|MyProjectTheme|${THEME_PREFIX}Theme|g" "$file"
-    "${SED_INPLACE[@]}" "s|INFOPLIST_KEY_CFBundleDisplayName: \"Architecture (Dev)\"|INFOPLIST_KEY_CFBundleDisplayName: \"${ESCAPED_APP_NAME} (Dev)\"|g" "$file"
-    "${SED_INPLACE[@]}" "s|INFOPLIST_KEY_CFBundleDisplayName: \"Architecture\"|INFOPLIST_KEY_CFBundleDisplayName: \"${ESCAPED_APP_NAME}\"|g" "$file"
-    "${SED_INPLACE[@]}" "s|INFOPLIST_KEY_CFBundleDisplayName: Architecture|INFOPLIST_KEY_CFBundleDisplayName: \"${ESCAPED_APP_NAME}\"|g" "$file"
-    "${SED_INPLACE[@]}" "s|Architecture (Dev)|${ESCAPED_APP_NAME} (Dev)|g" "$file"
-    "${SED_INPLACE[@]}" "s|APP_NAME=Architecture$|APP_NAME=${ESCAPED_APP_NAME}|g" "$file"
-    "${SED_INPLACE[@]}" "s|INFOPLIST_KEY_CFBundleDisplayName = Architecture;|INFOPLIST_KEY_CFBundleDisplayName = \"${ESCAPED_APP_NAME}\";|g" "$file"
-    "${SED_INPLACE[@]}" "s|INFOPLIST_KEY_CFBundleDisplayName = Architecture$|INFOPLIST_KEY_CFBundleDisplayName = ${ESCAPED_APP_NAME}|g" "$file"
+    "${SED_INPLACE[@]}" "s|APP_NAME = Architecture (Dev)|APP_NAME = ${ESCAPED_APP_NAME} (Dev)|g" "$file"
+    "${SED_INPLACE[@]}" "s|APP_NAME = Architecture$|APP_NAME = ${ESCAPED_APP_NAME}|g" "$file"
     "${SED_INPLACE[@]}" "s|>Architecture<|>${ESCAPED_APP_NAME}<|g" "$file"
     "${SED_INPLACE[@]}" "s|>Welcome to KMP Architecture<|>Welcome to ${ESCAPED_APP_NAME}<|g" "$file"
     "${SED_INPLACE[@]}" "s|KMP Architecture CI|KMP ${APP_NAME_COMPACT} CI|g" "$file"
@@ -222,27 +261,25 @@ for doc_file in README.md AGENTS.md docs/ARCHITECTURE.md; do
     fi
 done
 
-# 替换正式应用 ID 与测试应用 ID
+# 替换正式应用 ID 与测试应用 ID（统一 SSOT：config/dev.xcconfig 与 config/prod.xcconfig）
 if [ "$NEW_APP_ID" != "$NEW_NAMESPACE" ]; then
-    for prod_file in config/prod.properties.example config/prod.properties; do
+    for prod_file in config/prod.xcconfig config/prod.local.xcconfig; do
         if [ -f "$prod_file" ]; then
-            "${SED_INPLACE[@]}" "s|APP_ID=${NEW_NAMESPACE}$|APP_ID=${NEW_APP_ID}|g" "$prod_file"
+            "${SED_INPLACE[@]}" "s|APP_ID = ${NEW_NAMESPACE}$|APP_ID = ${NEW_APP_ID}|g" "$prod_file"
         fi
     done
     if [ -f "iosApp/iosApp.xcodeproj/project.pbxproj" ]; then
         "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_NAMESPACE};|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_APP_ID};|g" iosApp/iosApp.xcodeproj/project.pbxproj
     fi
-    "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_NAMESPACE}$|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_APP_ID}|g" iosApp/Config/Prod.xcconfig 2>/dev/null || true
-    "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER: ${NEW_NAMESPACE}$|PRODUCT_BUNDLE_IDENTIFIER: ${NEW_APP_ID}|g" iosApp/project.yml 2>/dev/null || true
 fi
 
 if [ "$NEW_TEST_APP_ID" != "${NEW_NAMESPACE}.dev" ]; then
-    "${SED_INPLACE[@]}" "s|APP_ID=${NEW_NAMESPACE}\.dev$|APP_ID=${NEW_TEST_APP_ID}|g" config/dev.properties 2>/dev/null || true
+    if [ -f "config/dev.xcconfig" ]; then
+        "${SED_INPLACE[@]}" "s|APP_ID = ${NEW_NAMESPACE}\.dev$|APP_ID = ${NEW_TEST_APP_ID}|g" config/dev.xcconfig
+    fi
     if [ -f "iosApp/iosApp.xcodeproj/project.pbxproj" ]; then
         "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_NAMESPACE}\.dev;|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_TEST_APP_ID};|g" iosApp/iosApp.xcodeproj/project.pbxproj
     fi
-    "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_NAMESPACE}\.dev$|PRODUCT_BUNDLE_IDENTIFIER = ${NEW_TEST_APP_ID}|g" iosApp/Config/Dev.xcconfig 2>/dev/null || true
-    "${SED_INPLACE[@]}" "s|PRODUCT_BUNDLE_IDENTIFIER: ${NEW_NAMESPACE}\.dev$|PRODUCT_BUNDLE_IDENTIFIER: ${NEW_TEST_APP_ID}|g" iosApp/project.yml 2>/dev/null || true
 fi
 
 echo -e "${GREEN}✔ 文本替换完成。${NC}"
@@ -266,10 +303,45 @@ done
 
 echo -e "${GREEN}✔ 物理路径迁移完成。${NC}"
 
-# 5. 更新 settings.gradle.kts 中的 rootProject.name 与重新生成 Xcode 工程
-echo -e "${YELLOW}[4/6] 正在更新项目名称与 iOS Xcode 工程配置...${NC}"
+# 5. 更新 settings.gradle.kts 中的 rootProject.name
+echo -e "${YELLOW}[4/6] 正在更新 Gradle 根工程名称...${NC}"
 "${SED_INPLACE[@]}" "s/rootProject\.name = \"[^\"]*\"/rootProject.name = \"${APP_NAME_COMPACT}\"/" settings.gradle.kts
+echo -e "${GREEN}✔ rootProject.name 已更新为 ${APP_NAME_COMPACT}。${NC}"
 
+# 6. 结构裁剪（初始业务模块、Debug 面板、Kit 裁剪）
+echo -e "${YELLOW}[5/6] 正在执行业务模块生成与按需模块裁剪...${NC}"
+chmod +x gradlew ./*.sh scripts/*.sh
+
+if [ -n "$INITIAL_FEATURES" ]; then
+    echo -e "- 正在批量创建初始业务模块: ${GREEN}${INITIAL_FEATURES}${NC}"
+    IFS=',' read -ra FEAT_ARRAY <<< "$INITIAL_FEATURES"
+    for feat in "${FEAT_ARRAY[@]}"; do
+        feat_trimmed=$(echo "$feat" | xargs)
+        if [ -n "$feat_trimmed" ] && [ "$feat_trimmed" != "home" ]; then
+            echo -e "  * 创建业务特性模块: ${GREEN}${feat_trimmed}${NC}"
+            ./create_feature.sh "$feat_trimmed"
+        fi
+    done
+fi
+
+if [ "$NO_DEBUG" = true ] && [ -d "features/debug" ]; then
+    echo -e "- 已启用禁用调试台，正在安全卸载 :features:debug 模块..."
+    ./remove_feature.sh debug
+fi
+
+if [ -n "$EXCLUDE_KITS" ]; then
+    echo -e "- 正在裁剪不需要的 Kit 模块: ${YELLOW}${EXCLUDE_KITS}${NC}"
+    IFS=',' read -ra KIT_ARRAY <<< "$EXCLUDE_KITS"
+    for kit in "${KIT_ARRAY[@]}"; do
+        kit_trimmed=$(echo "$kit" | xargs)
+        if [ -n "$kit_trimmed" ]; then
+            ./manage_kit.sh remove "$kit_trimmed"
+        fi
+    done
+fi
+
+# 7. 重新生成 Xcode 工程、激活 Git Hook 并统一格式化
+echo -e "${YELLOW}[6/6] 正在生成 iOS Xcode 工程、激活本地质量 Hook 并统一格式化代码...${NC}"
 if command -v xcodegen &> /dev/null; then
     echo -e "- 检测到 xcodegen，正在生成 iosApp.xcodeproj..."
     (cd iosApp && xcodegen generate --spec project.yml > /dev/null)
@@ -278,11 +350,6 @@ else
     echo -e "${YELLOW}[提示] 未检测到 xcodegen（iosApp.xcodeproj 已纳入 .gitignore，不随仓库提交）。请先安装 xcodegen（brew install xcodegen）并在 iosApp/ 下执行 xcodegen generate --spec project.yml 生成 Xcode 工程。${NC}"
 fi
 
-echo -e "${GREEN}✔ 项目名称与 iOS 配置更新完成。${NC}"
-
-# 6. 格式化代码与激活本地 Git 质量 Hook
-echo -e "${YELLOW}[5/6] 正在自动触发 Spotless 代码格式化...${NC}"
-chmod +x gradlew ./*.sh scripts/*.sh
 if [ -d ".githooks" ]; then
     chmod +x .githooks/*
     if [ -d ".git" ]; then
@@ -291,39 +358,22 @@ if [ -d ".githooks" ]; then
 fi
 ./gradlew spotlessApply || echo -e "${YELLOW}[警告] Spotless 格式化失败，可能需要手动修复语法。${NC}"
 
-# 7. 按需创建初始业务特性模块与可选裁剪 Debug 面板
-if [ -n "$INITIAL_FEATURES" ]; then
-    echo -e "\n${YELLOW}[6/6] 正在自动批量创建初始业务模块: ${INITIAL_FEATURES}...${NC}"
-    chmod +x create_feature.sh
-    IFS=',' read -ra FEAT_ARRAY <<< "$INITIAL_FEATURES"
-    for feat in "${FEAT_ARRAY[@]}"; do
-        feat_trimmed=$(echo "$feat" | xargs)
-        if [ -n "$feat_trimmed" ] && [ "$feat_trimmed" != "home" ]; then
-            echo -e "- 正在创建业务特性模块: ${GREEN}${feat_trimmed}${NC}"
-            ./create_feature.sh "$feat_trimmed"
-        fi
-    done
-fi
-
-if [ "$NO_DEBUG" = true ] && [ -d "features/debug" ]; then
-    echo -e "\n${YELLOW}[额外裁剪] 已指定 --no-debug，正在安全卸载 :features:debug 模块...${NC}"
-    chmod +x remove_feature.sh
-    ./remove_feature.sh debug
-fi
-
 echo -e "\n${GREEN}====================================================${NC}"
 echo -e "${GREEN}🎉 KMP 项目初始化成功！${NC}"
 echo -e "已应用的配置："
 echo -e "  命名空间:        ${NEW_NAMESPACE}"
-echo -e "  正式应用 ID:     ${NEW_APP_ID}"
 echo -e "  测试应用 ID:     ${NEW_TEST_APP_ID}"
+echo -e "  正式默认 ID:     ${NEW_APP_ID}"
 echo -e "  插件前缀:        ${NEW_PREFIX}"
 echo -e "  应用名称:        ${NEW_APP_NAME}"
 if [ -n "$INITIAL_FEATURES" ]; then
     echo -e "  初始业务模块:    ${INITIAL_FEATURES}"
 fi
+if [ -n "$EXCLUDE_KITS" ]; then
+    echo -e "  已裁剪 Kit:      ${EXCLUDE_KITS}"
+fi
 echo -e "\n${YELLOW}📋 上手前就绪检查清单 (Next Steps)：${NC}"
-echo -e "  1. iOS 签名团队：在 iosApp/Config/Dev.xcconfig 与 Prod.xcconfig 填入您的 DEVELOPMENT_TEAM"
-echo -e "  2. Android 发版配置：正式发版前复制 config/prod.properties.example 为 config/prod.properties 并填写真实签名库（详见 docs/sop/0001-app-signing-and-certificates.md）"
-echo -e "  3. Firebase（按需启用 Analytics/ABTesting/CrashReport/Push）：确保 Firebase 后台注册包名为 ${NEW_TEST_APP_ID} / ${NEW_APP_ID}，再放入 androidApp/src/{dev,prod}/google-services.json 与 iosApp/Sources/GoogleService-Info.plist（随后执行 xcodegen generate）"
+echo -e "  1. 测试环境配置与 Firebase（Web 可视化面板）：运行 './scripts/config_studio.sh --env dev' 或直接编辑 config/dev.xcconfig（唯一真源，改完直读生效）"
+echo -e "  2. 正式环境 (Prod) 隔离接入：由发版负责人运行 './scripts/config_studio.sh --env prod'（或导入离线导出 zip），参数写入本地忽略的 config/prod.local.xcconfig"
+echo -e "  3. Android 正式签名证书：运行 './scripts/gen_keystore.sh --type release --write-prod-config' 生成 keystore 并写入 config/prod.local.xcconfig（详见 docs/sop/0001-app-signing-and-certificates.md）"
 echo -e "====================================================${NC}"

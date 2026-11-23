@@ -12,7 +12,7 @@ enum class AdFormat {
 
 /**
  * 广告位触发 ID 常量与默认格式映射定义。
- * 具体测试与正式 AdMob 广告单元 ID 统一外置在宿主配置中管理（Android: `config/dev.properties`；iOS: `iosApp/Config/Dev.xcconfig`）。
+ * 具体测试与正式 AdMob 广告单元 ID 统一外置在宿主配置中管理（唯一真源：`config/dev.xcconfig` 与 `config/prod.xcconfig` / `config/prod.local.xcconfig`）。
  */
 object AdsKeys {
     object Trigger {

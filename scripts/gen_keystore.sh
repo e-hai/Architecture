@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Android 签名证书生成脚本（对齐 androidApp/build.gradle.kts 的 config/prod.properties 与 config/dev.properties）
+# Android 签名证书生成脚本（对齐 androidApp/build.gradle.kts 的 config/prod.local.xcconfig 与 config/dev.xcconfig）
 # 用法:
 #   ./scripts/gen_keystore.sh [--type release|test] [--output <path>] [--alias <alias>]
 #                             [--store-pass <pwd>] [--key-pass <pwd>] [--dname <dname>]
-#                             [--write-prod-props] [--force]
+#                             [--write-prod-config] [--force]
 # 示例:
 #   ./scripts/gen_keystore.sh
-#   ./scripts/gen_keystore.sh --type release --write-prod-props
+#   ./scripts/gen_keystore.sh --type release --write-prod-config
 #   ./scripts/gen_keystore.sh --type release --output /tmp/ci-release.jks --alias ci_key --store-pass changeit --key-pass changeit --force
 # ==============================================================================
 set -euo pipefail
@@ -39,7 +39,8 @@ print_usage() {
   --store-pass <pwd>      Keystore 密码（交互模式未传时会提示输入；test 默认 android）
   --key-pass <pwd>        Key 密码（默认同 store-pass；test 默认 android）
   --dname <distinguished> 证书 DN 信息（默认 CN=App,OU=Mobile,O=Company,L=City,S=State,C=CN）
-  --write-prod-props      生成 release 证书后自动同步写入 config/prod.properties（已由 .gitignore 忽略）
+  --write-prod-config     生成 release 证书后自动同步写入 config/prod.local.xcconfig（已由 .gitignore 忽略）
+  --write-prod-props      --write-prod-config 的兼容别名
   --force                 覆盖已存在的目标 .jks 文件
   -h, --help              显示此帮助信息
 EOF
@@ -71,7 +72,7 @@ while [[ $# -gt 0 ]]; do
             DNAME="$2"
             shift 2
             ;;
-        --write-prod-props)
+        --write-prod-config|--write-prod-props)
             WRITE_PROD_PROPS=true
             shift
             ;;
@@ -188,48 +189,54 @@ upsert_prop() {
     local file="$1"
     local key="$2"
     local value="$3"
-    if grep -qE "^${key}=" "$file"; then
+    if grep -qE "^${key}[[:space:]]*=" "$file"; then
         python3 - "$file" "$key" "$value" <<'PY'
+import re
 import sys
 path, key, val = sys.argv[1], sys.argv[2], sys.argv[3]
 lines = open(path, encoding="utf-8").read().splitlines(True)
 out = []
 replaced = False
+pattern = re.compile(rf"^{re.escape(key)}\s*=")
 for line in lines:
-    if line.startswith(f"{key}=") and not replaced:
-        out.append(f"{key}={val}\n")
+    if pattern.match(line) and not replaced:
+        out.append(f"{key} = {val}\n")
         replaced = True
     else:
         out.append(line)
 open(path, "w", encoding="utf-8").writelines(out)
 PY
     else
-        printf '%s=%s\n' "$key" "$value" >> "$file"
+        printf '%s = %s\n' "$key" "$value" >> "$file"
     fi
 }
 
 if [[ "$WRITE_PROD_PROPS" == true ]]; then
     if [[ "$TYPE" != "release" ]]; then
-        echo -e "${YELLOW}[提示] --write-prod-props 仅对 release 证书生效，已忽略。${NC}"
+        echo -e "${YELLOW}[提示] --write-prod-config 仅对 release 证书生效，已忽略。${NC}"
     else
-        if [[ ! -f "config/prod.properties" && -f "config/prod.properties.example" ]]; then
-            cp config/prod.properties.example config/prod.properties
+        if [[ ! -f "config/prod.local.xcconfig" ]]; then
+            cat > "config/prod.local.xcconfig" <<'EOF'
+// ===================================================================
+// 本地正式环境私有覆写 (已纳入 .gitignore，Android & iOS 共用 SSOT)
+// ===================================================================
+EOF
         fi
-        touch config/prod.properties
-        upsert_prop "config/prod.properties" "STORE_FILE" "$OUTPUT_PATH"
-        upsert_prop "config/prod.properties" "STORE_PASSWORD" "$STORE_PASSWORD"
-        upsert_prop "config/prod.properties" "KEY_ALIAS" "$KEY_ALIAS"
-        upsert_prop "config/prod.properties" "KEY_PASSWORD" "$KEY_PASSWORD"
-        echo -e "${GREEN}✔ 已将签名配置写入 config/prod.properties（已由 .gitignore 忽略，切勿提交到仓库）。${NC}"
+        upsert_prop "config/prod.local.xcconfig" "ANDROID_STORE_FILE" "$OUTPUT_PATH"
+        upsert_prop "config/prod.local.xcconfig" "ANDROID_STORE_PASSWORD" "$STORE_PASSWORD"
+        upsert_prop "config/prod.local.xcconfig" "ANDROID_KEY_ALIAS" "$KEY_ALIAS"
+        upsert_prop "config/prod.local.xcconfig" "ANDROID_KEY_PASSWORD" "$KEY_PASSWORD"
+        echo -e "${GREEN}✔ 已将签名配置写入 config/prod.local.xcconfig（已由 .gitignore 忽略，切勿提交到仓库）。${NC}"
     fi
 else
     echo ""
-    echo -e "${YELLOW}下一步（详见 config/prod.properties 或环境变量）：${NC}"
+    echo -e "${YELLOW}下一步（写入 config/prod.local.xcconfig 或 CI 环境变量）：${NC}"
     if [[ "$TYPE" == "release" ]]; then
-        echo "  cp -n config/prod.properties.example config/prod.properties"
-        echo "  STORE_FILE=${OUTPUT_PATH}"
-        echo "  KEY_ALIAS=${KEY_ALIAS}"
+        echo "  ./scripts/gen_keystore.sh --type release --write-prod-config"
+        echo "  或手动在 config/prod.local.xcconfig 追加："
+        echo "  ANDROID_STORE_FILE = ${OUTPUT_PATH}"
+        echo "  ANDROID_KEY_ALIAS = ${KEY_ALIAS}"
     else
-        echo "  在 config/dev.properties 中设置 STORE_FILE=${OUTPUT_PATH} 即可启用团队统一测试证书。"
+        echo "  在 config/dev.xcconfig 中设置 ANDROID_STORE_FILE = ${OUTPUT_PATH} 即可启用团队统一测试证书。"
     fi
 fi

@@ -65,8 +65,8 @@ targets:
       - path: DebugResources/like.pag
         optional: true
     configFiles:
-      Debug: Config/Dev.xcconfig
-      Release: Config/Prod.xcconfig
+      Debug: ../config/dev.xcconfig
+      Release: ../config/prod.xcconfig
     info:
       path: Sources/Info.plist
       properties:
@@ -74,16 +74,17 @@ targets:
         CFBundleDisplayName: "$(INFOPLIST_KEY_CFBundleDisplayName)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        GADApplicationIdentifier: "$(ADMOB_APP_ID)"
-        BASE_URL: "$(BASE_URL)"
+        GADApplicationIdentifier: "$(IOS_ADMOB_APP_ID)"
+        API_SCHEME: "$(API_SCHEME)"
+        API_HOST: "$(API_HOST)"
         APPSFLYER_KEY: "$(APPSFLYER_KEY)"
-        APPSFLYER_APP_ID: "$(APPSFLYER_APP_ID)"
+        APPSFLYER_APP_ID: "$(IOS_APPSFLYER_APP_ID)"
         ANALYTICS_DEBUG_MODE: "$(ANALYTICS_DEBUG_MODE)"
         REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS: "$(REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS)"
-        ADMOB_BANNER_ID: "$(ADMOB_BANNER_ID)"
-        ADMOB_INTERSTITIAL_ID: "$(ADMOB_INTERSTITIAL_ID)"
-        ADMOB_REWARDED_ID: "$(ADMOB_REWARDED_ID)"
-        ADMOB_APP_OPEN_ID: "$(ADMOB_APP_OPEN_ID)"
+        ADMOB_BANNER_ID: "$(IOS_ADMOB_BANNER_ID)"
+        ADMOB_INTERSTITIAL_ID: "$(IOS_ADMOB_INTERSTITIAL_ID)"
+        ADMOB_REWARDED_ID: "$(IOS_ADMOB_REWARDED_ID)"
+        ADMOB_APP_OPEN_ID: "$(IOS_ADMOB_APP_OPEN_ID)"
         PAY_SUBS_IDS: "$(PAY_SUBS_IDS)"
         PAY_CONSUMABLE_IDS: "$(PAY_CONSUMABLE_IDS)"
         PAY_NON_CONSUMABLE_IDS: "$(PAY_NON_CONSUMABLE_IDS)"
@@ -181,6 +182,11 @@ targets:
           fi
           ./gradlew :shared:embedAndSignAppleFrameworkForXcode -PenableDebugPanel="$ENABLE_DEBUG_FLAG"
         basedOnDependencyAnalysis: false
+    postBuildScripts:
+      - name: Copy Environment Firebase Plist
+        script: |
+          "${SRCROOT}/../scripts/copy_ios_firebase_plist.sh"
+        basedOnDependencyAnalysis: false
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -198,13 +204,9 @@ targets:
           - Shared
       configs:
         Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz.dev
-          INFOPLIST_KEY_CFBundleDisplayName: "Architecture (Dev)"
           CODE_SIGN_IDENTITY: "Apple Development"
           ENABLE_TESTABILITY: YES
         Release:
-          PRODUCT_BUNDLE_IDENTIFIER: xxx.yyy.zzz
-          INFOPLIST_KEY_CFBundleDisplayName: "Architecture"
           CODE_SIGN_IDENTITY: "Apple Distribution"
           EXCLUDED_SOURCE_FILE_NAMES: like.pag
 

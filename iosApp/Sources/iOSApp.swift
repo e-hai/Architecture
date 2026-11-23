@@ -63,7 +63,7 @@ public struct iOSApp: App {
         let admobInterstitialId = info?["ADMOB_INTERSTITIAL_ID"] as? String ?? ""
         let admobRewardedId = info?["ADMOB_REWARDED_ID"] as? String ?? ""
         let admobAppOpenId = info?["ADMOB_APP_OPEN_ID"] as? String ?? ""
-        let baseUrl = info?["BASE_URL"] as? String ?? ""
+        let baseUrl = Self.resolveBaseUrl(from: info)
         let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
         let appsFlyerAppId = info?["APPSFLYER_APP_ID"] as? String ?? ""
         let paySubsIds = info?["PAY_SUBS_IDS"] as? String ?? ""
@@ -106,6 +106,19 @@ public struct iOSApp: App {
         AppBootstrap.shared.registerDeferredKitInitializer {
             _ = NativeKitBootstrap.initDeferredKits()
         }
+    }
+
+    private static func resolveBaseUrl(from info: [String: Any]?) -> String {
+        let rawHost = (info?["API_HOST"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if rawHost.isEmpty {
+            return ""
+        }
+        if rawHost.hasPrefix("http://") || rawHost.hasPrefix("https://") {
+            return rawHost
+        }
+        let rawScheme = (info?["API_SCHEME"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let scheme = rawScheme.isEmpty ? "https" : rawScheme
+        return "\(scheme)://\(rawHost)"
     }
 
     public var body: some Scene {
