@@ -87,6 +87,19 @@
 
 > 💡 **质量规范手册**：关于六维代码质量防御体系（L1~L6）、配置文件职责、豁免原则与常见排障，请参阅 [docs/sop/0002-code-quality-and-static-analysis.md](docs/sop/0002-code-quality-and-static-analysis.md)；完整 **SOP 0001 ~ 0006** 索引请参阅 [docs/sop/README.md](docs/sop/README.md)。
 
+### 1.5 已验证工具链与基线版本矩阵
+
+| 组件 | 基线版本 / 要求 | 来源 / 说明 |
+| :--- | :--- | :--- |
+| **JDK / Gradle** | `JDK 17` (Zulu 17) / `Gradle 9.5.1` | [`gradle.properties`](gradle.properties) 默认开启 Configuration Cache |
+| **AGP / Android SDK** | `AGP 9.3.1` (`compileSdk 37.1`, `targetSdk 36`, `minSdk 26`) | Built-in Kotlin + New DSL ([`gradle/libs.versions.toml`](gradle/libs.versions.toml)) |
+| **Kotlin / KSP / CMP** | `Kotlin 2.3.21` / `KSP 2.3.8` / `Compose Multiplatform 1.9.3` | 全量 KMP + CMP 跨端基线 |
+| **KMP 核心库** | `Koin 4.2.1` / `Room 2.8.4` / `Ktor 3.1.1` / `DataStore 1.2.1` | Offline-First 与跨端 DI 骨架 |
+| **iOS / macOS 工具链** | `macOS 14+`、`Xcode 16+`、`xcodegen`、`swiftlint` | `iosApp` 原生工程生成与 SwiftLint `--strict` |
+| **质量与脚本工具** | `Spotless 8.5.1`、`Detekt 2.0.0-alpha.3`、`detektCompose 0.6.8`、`shellcheck`、`python3`、`node` | 前置拦截 + Config Studio JS 校验 |
+
+> **⚠️ 关于 `detekt = 2.0.0-alpha.3`**：为适配 `Kotlin 2.3.21` 与 `AGP 9.3.1`，当前版本目录锁定了 `2.0.0-alpha.3`（属预览版）；待 Detekt `2.0.0` GA 正式版发布后，仅需在 [`gradle/libs.versions.toml`](gradle/libs.versions.toml) 替换 `detekt` 版本号即可平滑升级。
+
 ---
 
 ## 2. 架构全景图与每一层的作用

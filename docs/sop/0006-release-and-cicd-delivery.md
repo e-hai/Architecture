@@ -80,11 +80,28 @@ flowchart TD
    - 在 Xcode Organizer 右侧点击 **`Generate Privacy Report`**，核对合并所有 SPM 包后的隐私清单无遗漏；
    - 点击 **`Distribute App -> App Store Connect -> Upload`** 上传至 TestFlight 进行真机回归后提交 App Store 审核（同时保留归档内的 `.dSYM` 上传 Crashlytics）。
 
-### 步骤五：GitHub Actions CI/CD 流水线核对
-参考 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)，仓库内置 CI 已在 `macos-14` 自动执行双端构建与测试验证：
-- **基础读取权限**：工作流声明 `packages: read` 与 `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`，用于拉取 GitHub Packages 中的 `e-hai/*` Kit 制品；
-- **CI 正式签名验证**：当前 CI 使用 `scripts/gen_keystore.sh` 生成一次性临时 Keystore 校验 `:androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false` R8 可打包性，不会外泄真实生产证书；
-- **接入自动发版**：若后续扩展自动上传 Play/TestFlight 的 CD Workflow，须将正式 `.jks`（Base64）、密钥口令与 App Store Connect API Key 托管在 GitHub Environment Secrets 中。
+### 步骤五：GitHub Actions CI/CD 流水线与 Release Secrets 核对
+1. **双端拆分布局 CI（[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)）**：
+   - 采用 **Linux + macOS 3-Job 并行拆分架构**，并默认开启 Gradle Configuration Cache（`org.gradle.configuration-cache=true`）：
+     1. `fast-static-checks`（`ubuntu-latest`）：执行 `ShellCheck`、`scripts/` Python 单测、Config Studio JS 语法检查、`verifyArchitecture`、`spotlessCheck`、`detekt`；
+     2. `android-build-and-test`（`ubuntu-latest`，依赖 `fast-static-checks`）：执行 `testAndroidHostTest`、`:shared:testAndroidHostTest -PenableDebugPanel=false`、`lintDevDebug`/`assembleDevDebug` 以及临时 Keystore 校验 `:androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false`；
+     3. `ios-build-and-test`（`macos-14`，依赖 `fast-static-checks`）：执行 `iosSimulatorArm64Test`、`swiftlint --strict`、`xcodegen generate`、`xcodebuild` `iosApp-Dev` 单测与 `iosApp-Prod` 构建验证。
+   - **基础读取权限**：所有 Job 均声明 `packages: read` 与 `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`，用于拉取 GitHub Packages 中的 `e-hai/*` Kit 制品；
+   - **CI 正式签名验证**：CI 使用 `scripts/gen_keystore.sh` 生成一次性临时 Keystore 校验 Prod R8 可打包性，不会外泄真实生产证书。
+2. **Release CD 发版工作流模板（[`.github/workflows/release.yml`](../../.github/workflows/release.yml)）**：
+   - **触发条件**：推送 `v*` 标签自动触发正式构建，或通过 `workflow_dispatch`（默认 `dry_run: true`）进行无 Secrets 演练验证（演练模式下若未配置正式签名，自动回退至临时 Keystore 生成 `.aab` + `mapping.txt` 验证链路）；
+   - **产物流水线**：`release-gate` 通过后，`android-release-bundle` 输出 `:androidApp:bundleProdRelease -PenableDebugPanel=false` 的 `.aab` 与 R8 `mapping.txt`（保留 90 天，含可选 Google Play Internal Track 上传注释模板）；`ios-release-verify` 校验 SwiftLint 与 `iosApp-Prod` 构建（含可选签名 Archive / App Store Connect 上传注释模板）。
+   - **建议配置的 GitHub Repository / Environment Secrets**：
+
+| Secret 名称 | 用途与解码位置 | 必填说明 |
+| :--- | :--- | :--- |
+| `PROD_KEYSTORE_BASE64` | Base64 编码的正式 `.jks`，解码至 Runner 临时目录 | `v*` 标签正式发版必填（`dry_run` 可选） |
+| `PROD_STORE_PASSWORD` | 正式 Keystore 密码 (`PROD_STORE_PASSWORD`) | 配置 `PROD_KEYSTORE_BASE64` 时必填 |
+| `PROD_KEY_ALIAS` | 正式密钥别名 (`PROD_KEY_ALIAS`) | 配置 `PROD_KEYSTORE_BASE64` 时必填 |
+| `PROD_KEY_PASSWORD` | 正式密钥密码 (`PROD_KEY_PASSWORD`) | 配置 `PROD_KEYSTORE_BASE64` 时必填 |
+| `PROD_LOCAL_XCCONFIG_BASE64` | Base64 编码的 `config/prod.local.xcconfig` | 可选（用于注入正式包名 / Team ID / 商业化 ID） |
+| `PROD_GOOGLE_SERVICES_JSON_BASE64` | Base64 编码的 `androidApp/src/prod/google-services.json` | 可选（接入 Firebase Android 时建议配置） |
+| `PROD_IOS_GOOGLE_SERVICE_PLIST_BASE64` | Base64 编码的 `iosApp/Config/Firebase/Prod/GoogleService-Info.plist` | 可选（接入 Firebase iOS 时建议配置） |
 
 ---
 
@@ -100,7 +117,7 @@ flowchart TD
 
 ### Q1: 本地打包报错 `【安全隔离拦截】检测到正在打包正式 Release 应用，但未配置有效正式证书 (ANDROID_STORE_FILE)`？
 - **原因**：`config/prod.local.xcconfig` 不存在或 `ANDROID_STORE_FILE` 指向的 `.jks` 文件不存在，触发了 [`androidApp/build.gradle.kts`](../../androidApp/build.gradle.kts) 强制签名保护。
-- **解决方法**：按 [SOP 0001](./0001-app-signing-and-certificates.md) 生成正式签名库并写入未入库的 `config/prod.properties`。
+- **解决方法**：按 [SOP 0001](./0001-app-signing-and-certificates.md) 生成正式签名库并写入未入库的 `config/prod.local.xcconfig`。
 
 ### Q2: 正式包 R8 混淆后运行时出现 `ClassNotFoundException` 或序列化/反序列化崩溃？
 - **原因**：新增了带反射、Kotlin Serialization 或第三方原生 SDK 需要的模型类/回调类未保留混淆规则。

@@ -1,0 +1,262 @@
+name: KMP Architecture Release CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run release verification (allows temporary keystore when Secrets are unset)'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-gate:
+    name: Release Quality Gate (Ubuntu)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew *.sh scripts/*.sh
+
+      - name: Run ShellCheck on Automation Scripts
+        run: |
+          if ! command -v shellcheck &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y shellcheck
+          fi
+          shellcheck *.sh scripts/*.sh .githooks/pre-commit
+
+      - name: Run Python Script Unit Tests & Config Studio JS Syntax Check
+        run: |
+          python3 -B -m unittest -v scripts/test_config_studio.py scripts/test_copy_ios_firebase_plist.py
+          if command -v node &> /dev/null && [ -f tools/config-studio/index.html ]; then
+            python3 -c 'import pathlib, re, subprocess, tempfile; html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8"); m = re.search(r"<script type=\"module\">(.*)</script>", html, flags=re.S); assert m; tf = tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8"); tf.write(m.group(1)); tf.flush(); subprocess.run(["node", "--check", tf.name], check=True); tf.close()'
+          fi
+
+      - name: Run Architecture, Style & Static Analysis Gates
+        run: ./gradlew verifyArchitecture spotlessCheck detekt
+
+      - name: Run KMP & Shared Host Unit Tests (Debug Panel Stripped)
+        run: |
+          ./gradlew testAndroidHostTest
+          ./gradlew :shared:testAndroidHostTest -PenableDebugPanel=false
+
+  android-release-bundle:
+    name: Android Prod AAB & R8 Mapping (Ubuntu)
+    needs: release-gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew *.sh scripts/*.sh
+
+      - name: Restore Optional Prod Local Config & Firebase JSON
+        env:
+          PROD_LOCAL_XCCONFIG_BASE64: ${{ secrets.PROD_LOCAL_XCCONFIG_BASE64 }}
+          PROD_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.PROD_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          if [ -n "$PROD_LOCAL_XCCONFIG_BASE64" ]; then
+            echo "$PROD_LOCAL_XCCONFIG_BASE64" | base64 --decode > config/prod.local.xcconfig
+          fi
+          if [ -n "$PROD_GOOGLE_SERVICES_JSON_BASE64" ]; then
+            mkdir -p androidApp/src/prod
+            echo "$PROD_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > androidApp/src/prod/google-services.json
+          fi
+
+      - name: Prepare Android Release Signing Keystore
+        env:
+          PROD_KEYSTORE_BASE64: ${{ secrets.PROD_KEYSTORE_BASE64 }}
+          PROD_STORE_PASSWORD_SECRET: ${{ secrets.PROD_STORE_PASSWORD }}
+          PROD_KEY_ALIAS_SECRET: ${{ secrets.PROD_KEY_ALIAS }}
+          PROD_KEY_PASSWORD_SECRET: ${{ secrets.PROD_KEY_PASSWORD }}
+          IS_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ -n "$PROD_KEYSTORE_BASE64" ]; then
+            if [ -z "$PROD_STORE_PASSWORD_SECRET" ] || [ -z "$PROD_KEY_ALIAS_SECRET" ] || [ -z "$PROD_KEY_PASSWORD_SECRET" ]; then
+              echo "::error::PROD_KEYSTORE_BASE64 is set, but PROD_STORE_PASSWORD / PROD_KEY_ALIAS / PROD_KEY_PASSWORD is missing."
+              exit 1
+            fi
+            KEYSTORE_PATH="${RUNNER_TEMP}/release.jks"
+            echo "$PROD_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+            {
+              echo "PROD_STORE_FILE=$KEYSTORE_PATH"
+              echo "PROD_STORE_PASSWORD=$PROD_STORE_PASSWORD_SECRET"
+              echo "PROD_KEY_ALIAS=$PROD_KEY_ALIAS_SECRET"
+              echo "PROD_KEY_PASSWORD=$PROD_KEY_PASSWORD_SECRET"
+            } >> "$GITHUB_ENV"
+          elif [ "$IS_DRY_RUN" = "true" ]; then
+            KEYSTORE_PATH="${RUNNER_TEMP}/dryrun-release.jks"
+            ./scripts/gen_keystore.sh \
+              --type release \
+              --output "$KEYSTORE_PATH" \
+              --alias dryrun_release_key \
+              --store-pass dryrun_pass_123 \
+              --key-pass dryrun_pass_123 \
+              --force
+            {
+              echo "PROD_STORE_FILE=$KEYSTORE_PATH"
+              echo "PROD_STORE_PASSWORD=dryrun_pass_123"
+              echo "PROD_KEY_ALIAS=dryrun_release_key"
+              echo "PROD_KEY_PASSWORD=dryrun_pass_123"
+            } >> "$GITHUB_ENV"
+          else
+            echo "::error::Missing PROD_KEYSTORE_BASE64 / PROD_STORE_* GitHub Secrets for signed release bundle."
+            exit 1
+          fi
+
+      - name: Build Android Prod Release AAB & Run Lint (R8 + Debug Panel Stripped)
+        run: ./gradlew :androidApp:lintProdRelease :androidApp:bundleProdRelease -PenableDebugPanel=false
+
+      - name: Cleanup Decoded Secrets & Temporary Keystore
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/release.jks" "${RUNNER_TEMP}/dryrun-release.jks" config/prod.local.xcconfig androidApp/src/prod/google-services.json
+
+      - name: Upload Android Prod AAB & R8 Mapping Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-prod-release-bundle
+          path: |
+            androidApp/build/outputs/bundle/prodRelease/*.aab
+            androidApp/build/outputs/mapping/prodRelease/mapping.txt
+          retention-days: 90
+          if-no-files-found: error
+
+      # ------------------------------------------------------------------
+      # Optional Google Play Internal Track Upload Template:
+      # Configure PLAY_SERVICE_ACCOUNT_JSON_BASE64 in a protected GitHub
+      # Environment (e.g. `production`), then uncomment the step below.
+      # ------------------------------------------------------------------
+      # - name: Upload AAB to Google Play (Internal Track)
+      #   if: startsWith(github.ref, 'refs/tags/v') && secrets.PLAY_SERVICE_ACCOUNT_JSON != ''
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      #     packageName: xxx.yyy.zzz
+      #     releaseFiles: androidApp/build/outputs/bundle/prodRelease/*.aab
+      #     mappingFile: androidApp/build/outputs/mapping/prodRelease/mapping.txt
+      #     track: internal
+      #     status: draft
+
+  ios-release-verify:
+    name: iOS Prod Release Verification (macOS)
+    needs: release-gate
+    runs-on: macos-14
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew *.sh scripts/*.sh
+
+      - name: Restore Optional Prod Local Config & iOS Firebase Plist
+        env:
+          PROD_LOCAL_XCCONFIG_BASE64: ${{ secrets.PROD_LOCAL_XCCONFIG_BASE64 }}
+          PROD_IOS_GOOGLE_SERVICE_PLIST_BASE64: ${{ secrets.PROD_IOS_GOOGLE_SERVICE_PLIST_BASE64 }}
+        run: |
+          if [ -n "$PROD_LOCAL_XCCONFIG_BASE64" ]; then
+            echo "$PROD_LOCAL_XCCONFIG_BASE64" | base64 --decode > config/prod.local.xcconfig
+          fi
+          if [ -n "$PROD_IOS_GOOGLE_SERVICE_PLIST_BASE64" ]; then
+            mkdir -p iosApp/Config/Firebase/Prod
+            echo "$PROD_IOS_GOOGLE_SERVICE_PLIST_BASE64" | base64 --decode > iosApp/Config/Firebase/Prod/GoogleService-Info.plist
+          fi
+
+      - name: Run KMP iOS Simulator Unit Tests
+        run: ./gradlew iosSimulatorArm64Test
+
+      - name: Run SwiftLint, Generate Xcode Project & Verify Prod Build
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+          if ! command -v swiftlint &> /dev/null; then
+            brew install swiftlint
+          fi
+          cd iosApp
+          swiftlint lint --config .swiftlint.yml --strict
+          xcodegen generate --spec project.yml
+          xcodebuild \
+            -project iosApp.xcodeproj \
+            -scheme iosApp-Prod \
+            -destination 'generic/platform=iOS Simulator' \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      # ------------------------------------------------------------------
+      # Optional Signed Archive & TestFlight / App Store Connect Template:
+      # Import Distribution Certificate (.p12) + Provisioning Profile into
+      # a temporary keychain and upload via App Store Connect API Key.
+      # ------------------------------------------------------------------
+      # - name: Archive & Export Signed IPA (macOS)
+      #   if: startsWith(github.ref, 'refs/tags/v') && secrets.APP_STORE_CONNECT_API_KEY_ID != ''
+      #   run: |
+      #     cd iosApp
+      #     xcodebuild -project iosApp.xcodeproj \
+      #       -scheme iosApp-Prod \
+      #       -configuration Release \
+      #       -destination 'generic/platform=iOS' \
+      #       -archivePath "${RUNNER_TEMP}/iosApp-Prod.xcarchive" \
+      #       archive
+      #     xcodebuild -exportArchive \
+      #       -archivePath "${RUNNER_TEMP}/iosApp-Prod.xcarchive" \
+      #       -exportPath "${RUNNER_TEMP}/ipa" \
+      #       -exportOptionsPlist ExportOptions.plist
+      #     xcrun altool --upload-app --type ios \
+      #       -f "${RUNNER_TEMP}/ipa/"*.ipa \
+      #       --apiKey "${APP_STORE_CONNECT_API_KEY_ID}" \
+      #       --apiIssuer "${APP_STORE_CONNECT_API_ISSUER_ID}"
+
+      - name: Cleanup Decoded Secrets
+        if: always()
+        run: rm -f config/prod.local.xcconfig iosApp/Config/Firebase/Prod/GoogleService-Info.plist

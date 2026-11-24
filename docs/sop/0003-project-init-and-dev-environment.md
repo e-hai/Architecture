@@ -14,12 +14,21 @@
 
 ## 2. 前置准备与权限检查 (Prerequisites)
 - [ ] **基础环境**：macOS 14+、Xcode 16+、JDK 17+（推荐 Zulu 17 或 Android Studio JBR 17）、Android Studio；
-- [ ] **命令行工具**（Homebrew 一键安装）：
+- [ ] **命令行工具**（Homebrew 一键安装，其中 `node` 用于 Config Studio 前端语法校验）：
   ```bash
-  brew install xcodegen swiftlint shellcheck
+  brew install xcodegen swiftlint shellcheck node
   ```
 - [ ] **GitHub Packages 读取权限**：已具备访问 `e-hai/*` Maven 制品库的 GitHub 账号与只读 Personal Access Token (PAT，至少勾选 `read:packages`)；
 - [ ] **Swift Package Git 访问**：已配好 GitHub SSH Key 或 HTTPS Credential，能够拉取 `https://github.com/e-hai/*-iOS.git`。
+
+### 2.1 已验证基线版本矩阵
+
+| 维度 | 当前锁定基线 | 备注 |
+| :--- | :--- | :--- |
+| **构建运行时** | `JDK 17` / `Gradle 9.5.1` | [`gradle.properties`](../../gradle.properties) 默认开启 Gradle Configuration Cache |
+| **Android & KMP** | `AGP 9.3.1` / `Kotlin 2.3.21` / `KSP 2.3.8` / `CMP 1.9.3` | `compileSdk = 37.1`、`targetSdk = 36`、`minSdk = 26` |
+| **核心 KMP 依赖** | `Koin 4.2.1` / `Room 2.8.4` / `Ktor 3.1.1` / `DataStore 1.2.1` | 详见 [`gradle/libs.versions.toml`](../../gradle/libs.versions.toml) |
+| **静态分析与脚本** | `Spotless 8.5.1`、`Detekt 2.0.0-alpha.3`、`detektCompose 0.6.8`、`shellcheck`、`python3`、`node` | `detekt` 当前使用适配 Kotlin 2.3.x / AGP 9.x 的 `2.0.0-alpha.3` 预览版，待 `2.0.0` GA 发布后可在版本目录一键切换 |
 
 ---
 

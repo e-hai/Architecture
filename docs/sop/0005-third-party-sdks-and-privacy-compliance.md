@@ -78,6 +78,58 @@ sequenceDiagram
    - 已内置 `NSPrivacyAccessedAPICategoryUserDefaults` (`CA92.1`) 与 `NSPrivacyAccessedAPICategoryFileTimestamp` (`C617.1`)；
    - **出海正式上架必查**：若生产环境采集设备 ID / IDFA 用于跨应用追踪或个性化广告，需按 Apple ITMS 要求更新 `NSPrivacyTracking` 为 `true` 并在 `NSPrivacyCollectedDataTypes` 如实声明采集数据类型。
 3. **DeepLink 与归因打通**：Android [`MainActivity.kt`](../../androidApp/src/main/kotlin/xxx/yyy/zzz/android/MainActivity.kt) 与 iOS [`iOSApp.swift`](../../iosApp/Sources/iOSApp.swift) 已自动处理冷热拉起 DeepLink（并预先触发 `AppBootstrap.doInitDeferredKits()`），随后由 [`App.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/App.kt) 的 `CoreMmp.setDeepLinkListener` 归一化路由至跨端 `Navigator`。
+4. **海外 GDPR (Google UMP) + iOS ATT 同意时序样板**：若目标市场覆盖 EEA/UK（需要 GDPR UMP 弹窗）或需严格先拿 ATT/UMP 同意再初始化 AdMob 与 AppsFlyer，推荐采用 **“Stage 2 门控 + 宿主 UMP/ATT 编排”** 时序：
+
+```mermaid
+sequenceDiagram
+    participant Host as "Android/iOS 宿主"
+    participant UMP as "Google UMP SDK"
+    participant ATT as "iOS ATTrackingManager"
+    participant KMP as "AppBootstrap (Stage 2)"
+    participant SDK as "AdMob / AppsFlyer / Analytics"
+
+    Host->>KMP: "Stage 1 + App(autoInitDeferredKits = false)"
+    Host->>UMP: "requestConsentInfoUpdate()"
+    UMP-->>Host: "loadAndShowConsentFormIfRequired() 完成"
+    opt "仅 iOS（应用处于 active 且已确认 UMP）"
+        Host->>ATT: "requestTrackingAuthorization()"
+        ATT-->>Host: "返回 ATTrackingManager.AuthorizationStatus"
+    end
+    Host->>KMP: "doInitDeferredKits() (幂等)"
+    KMP->>SDK: "按用户授权状态激活 Stage 2 Kit"
+```
+
+- **Android 宿主参考接入**（在 [`MainActivity.kt`](../../androidApp/src/main/kotlin/xxx/yyy/zzz/android/MainActivity.kt) 首帧后，通过 Google `UserMessagingPlatform` 请求并展示 UMP 表单）：
+  ```kotlin
+  // 1) 关闭 Compose 首帧自动激活：App(autoInitDeferredKits = false)
+  // 2) 在 Activity 首帧后编排 Google UMP（需引入 com.google.android.ump:user-messaging-platform）：
+  val consentInfo = UserMessagingPlatform.getConsentInformation(this)
+  consentInfo.requestConsentInfoUpdate(
+      this,
+      ConsentRequestParameters.Builder().build(),
+      {
+          UserMessagingPlatform.loadAndPresentConsentFormIfRequired(this) { _ ->
+              if (consentInfo.canRequestAds()) {
+                  AppBootstrap.doInitDeferredKits()
+              }
+          }
+      },
+      { AppBootstrap.doInitDeferredKits() } // 弱网兜底按非个性化广告放行，避免阻塞主流程
+  )
+  ```
+- **iOS 宿主参考接入**（在 [`ContentView.swift`](../../iosApp/Sources/ContentView.swift) / `scenePhase == .active` 时串联 UMP 与 ATT，避免被后台态静默拦截）：
+  ```swift
+  // 1) 关闭首帧自动激活：MainViewControllerKt.MainViewController(autoInitDeferredKits: false)
+  // 2) UMP 完成后请求 ATT，再幂等激活 Stage 2（需引入 GoogleUserMessagingPlatform & AppTrackingTransparency）：
+  UMPConsentInformation.sharedInstance.requestConsentInfoUpdate(with: nil) { _ in
+      guard let rootVC = topViewController else { return }
+      UMPConsentForm.loadAndPresentIfRequired(from: rootVC) { _ in
+          ATTrackingManager.requestTrackingAuthorization { _ in
+              AppBootstrap.shared.doInitDeferredKits()
+          }
+      }
+  }
+  ```
 
 ### 步骤四：切换 Stage 2 合规门控模式（首帧默认 vs 国内强隐私阻断）
 - **默认模式（适合海外常规直启 + 首帧后延后初始化）**：[`App.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/App.kt) 默认 `autoInitDeferredKits: Boolean = true`，于 Compose 首帧 `LaunchedEffect(Unit)` 幂等触发 `AppBootstrap.doInitDeferredKits()`，自动激活 `Analytics`/`AbTesting`/`Mmp`/`Ads`/`Pay`/`Push`。
