@@ -21,13 +21,9 @@
 本脚手架支持**零依赖 Web 配置向导 (Config Studio)** 与**命令行一键初始化**，统一读写双端单一真源（[`config/dev.xcconfig`](config/dev.xcconfig) 与 [`config/prod.xcconfig`](config/prod.xcconfig)），自动重命名命名空间、应用 ID、插件前缀、App 名称、按需裁剪 10 大 Kit、校验并放置双端 Firebase 文件，并**直接将默认的 `:features:home` 转换为新项目的首页模块**：
 
 ```bash
-# 方式 0（推荐，Web 可视化向导，Dev/Prod 物理隔离且原生支持 Firebase 包名校验）：
-#   1) 本地直写服务（研发在开发机执行，--env 锁定对应环境）：
+# 方式 0（推荐，本机 Web 可视化配置台，Dev/Prod 物理隔离且原生支持 Firebase 包名校验）：
 ./scripts/config_studio.sh --env dev                 # 首次立项 + Kit 裁剪 + Dev 测试配置
 ./scripts/config_studio.sh --env prod                # 上线前录入 Prod 正式配置（仅写入 gitignored 的 prod.local.xcconfig）
-#   2) 无环境静态页面离线填报 + 一键导入（非技术人员直接双击 tools/config-studio/index.html 导出 zip 后交付研发）：
-./scripts/config_studio.sh --import dev-config-bundle.zip --env dev
-./scripts/config_studio.sh --import prod-config-bundle.zip --env prod
 
 # 方式 A：交互式命令行向导（自动推导默认值，按回车即可完成）：
 ./init_project.sh
@@ -41,7 +37,7 @@
   --features "news,favorites,profile" \
   --yes
 ```
-> **提示**：零依赖离线配置页面见 [`tools/config-studio/index.html`](tools/config-studio/index.html)，Config Studio 启动脚本见 [`scripts/config_studio.sh`](scripts/config_studio.sh)，完整初始化操作与安全隔离规范详见 [SOP 0003](docs/sop/0003-project-init-and-dev-environment.md)（Android Keystore 路径与密码严禁进入 Web 向导，仍按 [SOP 0001](docs/sop/0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 管理）；命令行亦支持 `--features`、`--exclude-kits` 与 `--no-debug` 参数。
+> **提示**：Config Studio 前端页面见 [`tools/config-studio/index.html`](tools/config-studio/index.html)，启动脚本见 [`scripts/config_studio.sh`](scripts/config_studio.sh)，完整初始化操作与安全隔离规范详见 [SOP 0003](docs/sop/0003-project-init-and-dev-environment.md)（Android Keystore 路径与密码严禁进入 Web 向导，仍按 [SOP 0001](docs/sop/0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 管理）；命令行亦支持 `--features`、`--exclude-kits` 与 `--no-debug` 参数。
 
 ### 1.2 业务模块与 Kit 热插拔管理 (`create_feature.sh` / `remove_feature.sh` / `manage_kit.sh`)
 当需要为项目添加新的业务特性时，运行：

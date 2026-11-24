@@ -172,37 +172,41 @@
       font-size: 0.9rem;
     }
 
-    .env-switcher {
-      margin-block-start: 1rem;
+    .anchor-nav {
+      position: sticky;
+      top: 0.5rem;
+      z-index: 30;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      border: 0;
-      padding: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 0.45rem;
+      padding: 0.55rem 0.75rem;
+      margin-block-end: 1.15rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(8px);
+      scrollbar-width: thin;
     }
 
-    .env-switcher legend {
-      font-weight: 600;
-      font-size: 0.95rem;
-      margin-block-end: 0.45rem;
-    }
-
-    .radio-pill {
+    .anchor-pill {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      min-height: 48px;
-      padding: 0.5rem 1rem;
+      white-space: nowrap;
+      min-height: 36px;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
       border: 1px solid var(--border);
-      border-radius: 10px;
       background: var(--surface-alt);
-      cursor: pointer;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.84rem;
       font-weight: 600;
     }
 
-    .radio-pill:has(input:checked) {
+    .anchor-pill:hover {
       border-color: var(--brand);
-      box-shadow: 0 0 0 1px var(--brand);
+      color: var(--brand);
     }
 
     .card {
@@ -210,7 +214,63 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1.25rem 1.5rem;
-      margin-block-end: 1.25rem;
+      margin-block-end: 1.15rem;
+      scroll-margin-top: 4.5rem;
+    }
+
+    .platform-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1rem;
+      margin-block-start: 0.5rem;
+    }
+
+    .platform-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1rem 0.35rem;
+      background: var(--surface-alt);
+    }
+
+    .platform-box-title {
+      margin: 0 0 0.85rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .inline-callout {
+      margin-block-start: 0.25rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      background: var(--surface-alt);
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .sticky-footer {
+      position: sticky;
+      bottom: 0.75rem;
+      z-index: 20;
+      box-shadow: 0 -4px 18px color-mix(in srgb, var(--bg) 80%, transparent);
+    }
+
+    .status-pill {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.22rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .status-pill.configured {
+      border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+      background: var(--ok-bg);
+      color: var(--ok);
     }
 
     fieldset.section-fieldset {
@@ -277,7 +337,8 @@
     input:focus-visible,
     select:focus-visible,
     button:focus-visible,
-    summary:focus-visible {
+    summary:focus-visible,
+    a:focus-visible {
       outline: 3px solid var(--brand);
       outline-offset: 2px;
     }
@@ -438,28 +499,36 @@
       font-size: 0.9rem;
     }
 
-    .code-box {
-      margin-block-start: 0.6rem;
-      padding: 0.65rem 0.85rem;
-      border-radius: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.86rem;
-      overflow-x: auto;
+    details > summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.06rem;
+      min-height: 44px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
+      list-style: none;
     }
 
-    details > summary {
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 1.02rem;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
+    details > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .summary-title::before {
+      content: "▸ ";
+      display: inline-block;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+    }
+
+    details[open] > summary .summary-title::before {
+      content: "▾ ";
+      color: var(--brand);
+    }
+
+    details[open] > summary {
+      margin-block-end: 0.5rem;
     }
 
     .visually-hidden {
@@ -491,45 +560,33 @@
     <header class="header">
       <div class="header-top">
         <h1 class="title">KMP 跨平台统一配置台 (Config Studio)</h1>
-        <span id="mode-badge" class="badge">离线导出模式（双击直开）</span>
+        <span id="mode-badge" class="badge">本机配置台</span>
       </div>
       <div class="notice">
         <strong>安全边界声明：</strong>本工具 100% 在本地运行（零云端上传），且<strong>全程不收集 Android 正式签名私钥 (.jks) 与密码、GitHub Token</strong>；正式签名仍由研发通过 <code>./scripts/gen_keystore.sh --write-prod-config</code> 或 CI 环境变量注入。
       </div>
-
-      <fieldset id="offline-env-switcher" class="env-switcher" hidden>
-        <legend>选择要配置并导出的目标环境（测试与正式严格隔离）：</legend>
-        <label class="radio-pill" for="env-radio-dev">
-          <input type="radio" id="env-radio-dev" name="target_env" value="dev" checked>
-          <span>测试环境 (Dev · 含首次立项骨架)</span>
-        </label>
-        <label class="radio-pill" for="env-radio-prod">
-          <input type="radio" id="env-radio-prod" name="target_env" value="prod">
-          <span>正式环境 (Prod · 仅线上正式参数)</span>
-        </label>
-      </fieldset>
     </header>
+
+    <nav id="anchor-nav" class="anchor-nav" aria-label="配置分类快捷导航">
+      <a class="anchor-pill" data-target="#card-init" href="#card-init">立项与模块</a>
+      <a class="anchor-pill" data-target="#card-identity" href="#card-identity">身份、版本与签名</a>
+      <a class="anchor-pill" data-target="#card-network" href="#card-network">网络与日志</a>
+      <a class="anchor-pill" data-target="#card-firebase" href="#card-firebase">Firebase 平台</a>
+      <a class="anchor-pill" data-target="#card-admob" href="#card-admob">AdMob 广告</a>
+      <a class="anchor-pill" data-target="#card-mmp" href="#card-mmp">AppsFlyer 归因</a>
+      <a class="anchor-pill" data-target="#card-pay" href="#card-pay">应用内购</a>
+    </nav>
 
     <form id="studio-form" method="POST" novalidate aria-labelledby="form-heading">
       <h2 id="form-heading" class="visually-hidden">项目与环境配置表单</h2>
 
-      <!-- Section 1: 首次立项骨架初始化（仅 Dev 且未初始化模板或离线模式可见） -->
-      <section id="section-project-init" class="card">
+      <!-- Card 1: 首次立项与模块裁剪（仅 Dev 且未初始化模板时可见） -->
+      <section id="card-init" class="card">
         <fieldset class="section-fieldset">
-          <legend>1. 项目立项与骨架初始化（仅新建独立项目时使用）</legend>
+          <legend>首次立项与模块裁剪（仅新建独立项目时使用）</legend>
           <p id="init-section-desc" class="section-desc">
-            修改包名（替换 <code>xxx.yyy.zzz</code>）、生成初始业务模块并裁剪不需要的 Kit。若工程已完成改名初始化，留空或跳过即可。
+            修改包名（替换 <code>xxx.yyy.zzz</code>）、生成初始业务模块并裁剪不需要的 Kit。完成首次初始化后此卡片会自动收起隐藏。
           </p>
-
-          <div id="offline-init-toggle-wrap" class="field" hidden>
-            <label class="check-item" for="enable_project_init">
-              <input type="checkbox" id="enable_project_init" name="enable_project_init">
-              <span>
-                <span class="check-item-title">包含“首次立项改包名 / 模块裁剪”动作</span>
-                <span class="check-item-sub">新建项目勾选；若工程已完成立项仅需修改 Dev 测试配置请取消勾选</span>
-              </span>
-            </label>
-          </div>
 
           <div id="project-init-fields">
             <div class="grid-2">
@@ -545,12 +602,6 @@
                 <span id="hint_init_package_name" class="hint">反域名纯小写，例如 com.acme.novahealth</span>
                 <input type="text" id="init_package_name" name="init_package_name" autocorrect="off" autocapitalize="none" spellcheck="false" pattern="[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+" aria-describedby="hint_init_package_name" data-error="err_init_package_name" enterkeyhint="next">
                 <div id="err_init_package_name" class="error-msg">须为多段全小写反域名格式（如 com.acme.app）。</div>
-              </div>
-
-              <div class="field">
-                <label for="init_app_name_zh">应用中文展示名（可选）</label>
-                <span id="hint_init_app_name_zh" class="hint">同步至中文 strings.xml 与欢迎语；留空默认同英文名</span>
-                <input type="text" id="init_app_name_zh" name="init_app_name_zh" aria-describedby="hint_init_app_name_zh" enterkeyhint="next">
               </div>
 
               <div class="field">
@@ -585,12 +636,12 @@
         </fieldset>
       </section>
 
-      <!-- Section 2: 双端基础身份、接口域名与隐私策略 -->
-      <section class="card">
+      <!-- Card 2: 应用身份、版本与签名 -->
+      <section id="card-identity" class="card">
         <fieldset class="section-fieldset">
-          <legend id="env-section-legend">2. 运行环境与双端核心参数（唯一真源直读）</legend>
+          <legend>应用身份、版本与签名</legend>
           <p id="env-section-desc" class="section-desc">
-            修改下方字段将直接写入唯一真源配置文件，Android Gradle 与 iOS Xcode 原生直读，无需任何中间转换。
+            Android Gradle 与 iOS Xcode 原生直读同一份配置文件，管理包名 ID、桌面展示名、版本号及 iOS 签名团队。
           </p>
 
           <div class="grid-2">
@@ -621,6 +672,29 @@
             </div>
 
             <div class="field">
+              <label for="cfg_DEVELOPMENT_TEAM">iOS 签名 Team ID (DEVELOPMENT_TEAM)</label>
+              <span id="hint_DEVELOPMENT_TEAM" class="hint">10 位大写字母/数字（如 A1B2C3D4E5）；仅跑模拟器可留空</span>
+              <input type="text" id="cfg_DEVELOPMENT_TEAM" name="DEVELOPMENT_TEAM" autocorrect="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9]{10}" aria-describedby="hint_DEVELOPMENT_TEAM" data-error="err_cfg_DEVELOPMENT_TEAM">
+              <div id="err_cfg_DEVELOPMENT_TEAM" class="error-msg">Apple Team ID 应为 10 位字母或数字。</div>
+            </div>
+          </div>
+
+          <div class="inline-callout">
+            Android Debug 自动回退系统默认签名；正式签名私钥 (<code>.jks</code>) 与密码不在页面收集，请按 SOP 0001 使用 <code>./scripts/gen_keystore.sh --write-prod-config</code> 或 CI <code>PROD_STORE_*</code> 注入。
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- Card 3: 业务网络与日志 -->
+      <section id="card-network" class="card">
+        <fieldset class="section-fieldset">
+          <legend>业务网络与日志</legend>
+          <p class="section-desc">
+            配置后端接口协议、域名与 Ktor 请求日志开关；纯单机或无自建服务端时可将域名留空。
+          </p>
+
+          <div class="grid-2">
+            <div class="field">
               <label for="cfg_API_SCHEME">业务服务器协议 (API_SCHEME)</label>
               <span id="hint_API_SCHEME" class="hint">与域名分开存储，彻底避免 xcconfig 转义坑</span>
               <select id="cfg_API_SCHEME" name="API_SCHEME" aria-describedby="hint_API_SCHEME">
@@ -631,152 +705,28 @@
 
             <div class="field">
               <label for="cfg_API_HOST">业务服务器接口域名 (API_HOST)</label>
-              <span id="hint_API_HOST" class="hint">填域名即可（如 api.example.com），无自建后端可留空</span>
+              <span id="hint_API_HOST" class="hint">填纯域名（如 api.example.com），无自建后端可留空</span>
               <input type="text" id="cfg_API_HOST" name="API_HOST" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hint_API_HOST">
             </div>
 
             <div class="field">
-              <label for="cfg_DEVELOPMENT_TEAM">iOS 签名 Team ID (DEVELOPMENT_TEAM)</label>
-              <span id="hint_DEVELOPMENT_TEAM" class="hint">10 位大写字母/数字（如 A1B2C3D4E5）；模拟器可留空</span>
-              <input type="text" id="cfg_DEVELOPMENT_TEAM" name="DEVELOPMENT_TEAM" autocorrect="off" autocapitalize="characters" spellcheck="false" pattern="[A-Za-z0-9]{10}" aria-describedby="hint_DEVELOPMENT_TEAM" data-error="err_cfg_DEVELOPMENT_TEAM">
-              <div id="err_cfg_DEVELOPMENT_TEAM" class="error-msg">Apple Team ID 应为 10 位字母或数字。</div>
-            </div>
-
-            <div class="field">
-              <label for="extra_privacy_mode">隐私合规激活模式 (Stage 2)</label>
-              <span id="hint_privacy_mode" class="hint">standard = 首帧自动激活三方 SDK；strict = 隐私弹窗同意后激活且延迟 CrashReport</span>
-              <select id="extra_privacy_mode" name="privacy_mode" aria-describedby="hint_privacy_mode">
-                <option value="">保持代码现状</option>
-                <option value="standard">standard（首帧自动激活，推荐海外常规）</option>
-                <option value="strict">strict（强隐私弹窗门控 + 延迟 CrashReport）</option>
-              </select>
-            </div>
-
-            <div class="field" id="zh-name-field">
-              <label for="extra_app_name_zh">中文资源名称 (values-zh/strings.xml)</label>
-              <span id="hint_extra_app_name_zh" class="hint">仅 Dev/立项时按需更新中文名与首页中文欢迎语</span>
-              <input type="text" id="extra_app_name_zh" name="app_name_zh" aria-describedby="hint_extra_app_name_zh">
-            </div>
-
-            <div class="field">
-              <label for="cfg_REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS">A/B 实验最小拉取间隔（秒）</label>
-              <span id="hint_fetch_interval" class="hint">测试环境建议 0，正式环境建议 3600</span>
-              <input type="text" id="cfg_REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS" name="REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS" inputmode="numeric" pattern="\d+" aria-describedby="hint_fetch_interval">
-            </div>
-
-            <div class="field">
               <label for="cfg_ENABLE_HTTP_LOG">HTTP 网络日志 (ENABLE_HTTP_LOG)</label>
-              <select id="cfg_ENABLE_HTTP_LOG" name="ENABLE_HTTP_LOG">
+              <span id="hint_http_log" class="hint">测试环境建议开启，正式包推荐关闭以免输出请求明细</span>
+              <select id="cfg_ENABLE_HTTP_LOG" name="ENABLE_HTTP_LOG" aria-describedby="hint_http_log">
                 <option value="YES">YES（开启日志）</option>
                 <option value="NO">NO（关闭日志，Prod 推荐）</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANALYTICS_DEBUG_MODE">埋点调试模式 (ANALYTICS_DEBUG_MODE)</label>
-              <select id="cfg_ANALYTICS_DEBUG_MODE" name="ANALYTICS_DEBUG_MODE">
-                <option value="YES">YES（DebugView 调试）</option>
-                <option value="NO">NO（关闭调试，Prod 推荐）</option>
               </select>
             </div>
           </div>
         </fieldset>
       </section>
 
-      <!-- Section 3: 商业化三方 ID -->
-      <section class="card">
-        <details id="commercial-details" open>
-          <summary>3. 商业化与三方平台配置（AdMob / AppsFlyer / 应用内购）</summary>
-          <p class="section-desc" id="commercial-desc">
-            测试环境可直接使用默认官方测试占位；正式环境严禁填入 Google 官方测试广告 ID (<code>3940256099942544</code>)。
-          </p>
-
-          <div class="grid-2">
-            <div class="field">
-              <label for="cfg_APPSFLYER_KEY">AppsFlyer Dev Key（双端共用）</label>
-              <input type="text" id="cfg_APPSFLYER_KEY" name="APPSFLYER_KEY" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_APPSFLYER_APP_ID">AppsFlyer Apple App ID（仅 iOS）</label>
-              <span id="hint_af_app_id" class="hint">纯数字 App Store ID（误填 id123456 将自动提取数字）</span>
-              <input type="text" id="cfg_IOS_APPSFLYER_APP_ID" name="IOS_APPSFLYER_APP_ID" inputmode="numeric" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hint_af_app_id">
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANDROID_ADMOB_APP_ID">Android AdMob App ID (<code>~</code>)</label>
-              <input type="text" id="cfg_ANDROID_ADMOB_APP_ID" name="ANDROID_ADMOB_APP_ID" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_ADMOB_APP_ID">iOS AdMob App ID (<code>~</code>)</label>
-              <input type="text" id="cfg_IOS_ADMOB_APP_ID" name="IOS_ADMOB_APP_ID" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy">
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANDROID_ADMOB_BANNER_ID">Android AdMob 横幅广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_ANDROID_ADMOB_BANNER_ID" name="ANDROID_ADMOB_BANNER_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_ADMOB_BANNER_ID">iOS AdMob 横幅广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_IOS_ADMOB_BANNER_ID" name="IOS_ADMOB_BANNER_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANDROID_ADMOB_INTERSTITIAL_ID">Android AdMob 插屏广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_ANDROID_ADMOB_INTERSTITIAL_ID" name="ANDROID_ADMOB_INTERSTITIAL_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_ADMOB_INTERSTITIAL_ID">iOS AdMob 插屏广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_IOS_ADMOB_INTERSTITIAL_ID" name="IOS_ADMOB_INTERSTITIAL_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANDROID_ADMOB_REWARDED_ID">Android AdMob 激励视频广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_ANDROID_ADMOB_REWARDED_ID" name="ANDROID_ADMOB_REWARDED_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_ADMOB_REWARDED_ID">iOS AdMob 激励视频广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_IOS_ADMOB_REWARDED_ID" name="IOS_ADMOB_REWARDED_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_ANDROID_ADMOB_APP_OPEN_ID">Android AdMob 开屏广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_ANDROID_ADMOB_APP_OPEN_ID" name="ANDROID_ADMOB_APP_OPEN_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_IOS_ADMOB_APP_OPEN_ID">iOS AdMob 开屏广告位 (<code>/</code>)</label>
-              <input type="text" id="cfg_IOS_ADMOB_APP_OPEN_ID" name="IOS_ADMOB_APP_OPEN_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_PAY_SUBS_IDS">内购订阅商品 ID（英文逗号分隔）</label>
-              <input type="text" id="cfg_PAY_SUBS_IDS" name="PAY_SUBS_IDS" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_PAY_CONSUMABLE_IDS">内购消耗型商品 ID（英文逗号分隔）</label>
-              <input type="text" id="cfg_PAY_CONSUMABLE_IDS" name="PAY_CONSUMABLE_IDS" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-
-            <div class="field">
-              <label for="cfg_PAY_NON_CONSUMABLE_IDS">内购非消耗型商品 ID（英文逗号分隔）</label>
-              <input type="text" id="cfg_PAY_NON_CONSUMABLE_IDS" name="PAY_NON_CONSUMABLE_IDS" autocorrect="off" autocapitalize="none" spellcheck="false">
-            </div>
-          </div>
-        </details>
-      </section>
-
-      <!-- Section 4: Firebase 配置文件拖拽上传区 -->
-      <section class="card">
+      <!-- Card 4: Firebase 平台（配置文件 / 埋点 / 远程配置） -->
+      <section id="card-firebase" class="card">
         <fieldset class="section-fieldset">
-          <legend>4. Firebase 配置文件导入（可选，自动校检包名防串环境）</legend>
+          <legend>Firebase 平台（配置文件 · Analytics · Remote Config）</legend>
           <p class="section-desc">
-            支持直接拖入或选择从 Firebase 控制台下载的文件；将自动解析内部的包名并与当前环境 <code>APP_ID</code> 比对核验。
+            拖入或选择从 Firebase 控制台下载的文件（自动核对与当前 <code>APP_ID</code> 一致性），并调整埋点调试及远程配置拉取间隔。
           </p>
 
           <div class="grid-2">
@@ -799,36 +749,161 @@
               </div>
               <div id="status-fb-ios" class="file-status">暂未选择文件（未接 Firebase 可跳过）</div>
             </div>
+
+            <div class="field" id="field-analytics-debug">
+              <label for="cfg_ANALYTICS_DEBUG_MODE">埋点调试模式 (ANALYTICS_DEBUG_MODE)</label>
+              <span id="hint_analytics_debug" class="hint">对应 Firebase Analytics DebugView 开关</span>
+              <select id="cfg_ANALYTICS_DEBUG_MODE" name="ANALYTICS_DEBUG_MODE" aria-describedby="hint_analytics_debug">
+                <option value="YES">YES（DebugView 调试）</option>
+                <option value="NO">NO（关闭调试，Prod 推荐）</option>
+              </select>
+            </div>
+
+            <div class="field" id="field-abtesting-interval">
+              <label for="cfg_REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS">Remote Config 最小拉取间隔（秒）</label>
+              <span id="hint_fetch_interval" class="hint">测试环境建议 0（实时生效），正式环境建议 3600</span>
+              <input type="text" id="cfg_REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS" name="REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS" inputmode="numeric" pattern="\d+" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hint_fetch_interval">
+            </div>
           </div>
         </fieldset>
       </section>
 
-      <!-- 底部提交操作区与离线包导入区 -->
-      <section class="card">
+      <!-- Card 6: 广告变现 · Google AdMob（默认折叠 + 双端子栏） -->
+      <section id="card-admob" class="card">
+        <details id="details-admob">
+          <summary>
+            <span class="summary-title">广告变现 · Google AdMob</span>
+            <span id="badge-admob" class="status-pill">未填写</span>
+          </summary>
+          <p class="section-desc" id="commercial-desc">
+            测试环境可使用 Google 官方测试 ID；正式环境严禁填入测试 ID (<code>3940256099942544</code>)，注意 App ID (<code>~</code>) 与广告位 ID (<code>/</code>) 区分。
+          </p>
+
+          <div class="platform-columns">
+            <div class="platform-box">
+              <h3 class="platform-box-title">Android AdMob ID</h3>
+              <div class="field">
+                <label for="cfg_ANDROID_ADMOB_APP_ID">Android AdMob App ID (<code>~</code>)</label>
+                <input type="text" id="cfg_ANDROID_ADMOB_APP_ID" name="ANDROID_ADMOB_APP_ID" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy">
+              </div>
+              <div class="field">
+                <label for="cfg_ANDROID_ADMOB_BANNER_ID">横幅广告位 Banner (<code>/</code>)</label>
+                <input type="text" id="cfg_ANDROID_ADMOB_BANNER_ID" name="ANDROID_ADMOB_BANNER_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_ANDROID_ADMOB_INTERSTITIAL_ID">插屏广告位 Interstitial (<code>/</code>)</label>
+                <input type="text" id="cfg_ANDROID_ADMOB_INTERSTITIAL_ID" name="ANDROID_ADMOB_INTERSTITIAL_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_ANDROID_ADMOB_REWARDED_ID">激励视频广告位 Rewarded (<code>/</code>)</label>
+                <input type="text" id="cfg_ANDROID_ADMOB_REWARDED_ID" name="ANDROID_ADMOB_REWARDED_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_ANDROID_ADMOB_APP_OPEN_ID">开屏广告位 App Open (<code>/</code>)</label>
+                <input type="text" id="cfg_ANDROID_ADMOB_APP_OPEN_ID" name="ANDROID_ADMOB_APP_OPEN_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+            </div>
+
+            <div class="platform-box">
+              <h3 class="platform-box-title">iOS AdMob ID</h3>
+              <div class="field">
+                <label for="cfg_IOS_ADMOB_APP_ID">iOS AdMob App ID (<code>~</code>)</label>
+                <input type="text" id="cfg_IOS_ADMOB_APP_ID" name="IOS_ADMOB_APP_ID" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy">
+              </div>
+              <div class="field">
+                <label for="cfg_IOS_ADMOB_BANNER_ID">横幅广告位 Banner (<code>/</code>)</label>
+                <input type="text" id="cfg_IOS_ADMOB_BANNER_ID" name="IOS_ADMOB_BANNER_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_IOS_ADMOB_INTERSTITIAL_ID">插屏广告位 Interstitial (<code>/</code>)</label>
+                <input type="text" id="cfg_IOS_ADMOB_INTERSTITIAL_ID" name="IOS_ADMOB_INTERSTITIAL_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_IOS_ADMOB_REWARDED_ID">激励视频广告位 Rewarded (<code>/</code>)</label>
+                <input type="text" id="cfg_IOS_ADMOB_REWARDED_ID" name="IOS_ADMOB_REWARDED_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+              <div class="field">
+                <label for="cfg_IOS_ADMOB_APP_OPEN_ID">开屏广告位 App Open (<code>/</code>)</label>
+                <input type="text" id="cfg_IOS_ADMOB_APP_OPEN_ID" name="IOS_ADMOB_APP_OPEN_ID" autocorrect="off" autocapitalize="none" spellcheck="false">
+              </div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Card 7: 归因分析 · AppsFlyer (MMP) -->
+      <section id="card-mmp" class="card">
+        <details id="details-mmp">
+          <summary>
+            <span class="summary-title">归因分析 · AppsFlyer (MMP)</span>
+            <span id="badge-mmp" class="status-pill">未填写</span>
+          </summary>
+          <p class="section-desc">
+            配置 AppsFlyer 归因 Dev Key（双端共用）与 iOS App Store 数字 ID。
+          </p>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="cfg_APPSFLYER_KEY">AppsFlyer Dev Key（双端共用）</label>
+              <input type="text" id="cfg_APPSFLYER_KEY" name="APPSFLYER_KEY" autocorrect="off" autocapitalize="none" spellcheck="false">
+            </div>
+
+            <div class="field">
+              <label for="cfg_IOS_APPSFLYER_APP_ID">AppsFlyer Apple App ID（仅 iOS）</label>
+              <span id="hint_af_app_id" class="hint">纯数字 App Store ID（误填 id123456 将自动提取数字）</span>
+              <input type="text" id="cfg_IOS_APPSFLYER_APP_ID" name="IOS_APPSFLYER_APP_ID" inputmode="numeric" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hint_af_app_id">
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Card 8: 应用内购 · Pay SKU -->
+      <section id="card-pay" class="card">
+        <details id="details-pay">
+          <summary>
+            <span class="summary-title">应用内购 · Play Billing / StoreKit 2</span>
+            <span id="badge-pay" class="status-pill">未填写</span>
+          </summary>
+          <p class="section-desc">
+            按商品类型填写应用内购商品 SKU（多个 ID 使用英文逗号分隔）。
+          </p>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="cfg_PAY_SUBS_IDS">订阅型商品 ID (PAY_SUBS_IDS)</label>
+              <input type="text" id="cfg_PAY_SUBS_IDS" name="PAY_SUBS_IDS" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="subs_plus,subs_pro">
+            </div>
+
+            <div class="field">
+              <label for="cfg_PAY_CONSUMABLE_IDS">消耗型商品 ID (PAY_CONSUMABLE_IDS)</label>
+              <input type="text" id="cfg_PAY_CONSUMABLE_IDS" name="PAY_CONSUMABLE_IDS" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="consumable_product_01">
+            </div>
+
+            <div class="field">
+              <label for="cfg_PAY_NON_CONSUMABLE_IDS">非消耗型商品 ID (PAY_NON_CONSUMABLE_IDS)</label>
+              <input type="text" id="cfg_PAY_NON_CONSUMABLE_IDS" name="PAY_NON_CONSUMABLE_IDS" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="one_time_product_01">
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- 吸底操作与结果反馈区 -->
+      <section class="card sticky-footer">
         <div class="actions-bar">
           <button type="submit" id="btn-primary-submit" class="btn btn-primary">校验并保存配置</button>
           <button type="button" id="btn-validate-only" class="btn">仅执行格式校验</button>
-
-          <span id="server-import-wrap" hidden>
-            <input type="file" id="file-import-bundle" accept=".zip,application/zip" class="visually-hidden">
-            <button type="button" id="btn-import-bundle" class="btn">导入非技术人员发来的离线包 (.zip)</button>
-          </span>
         </div>
 
         <div id="result-panel" class="result-panel" role="status" aria-live="polite" hidden>
           <strong id="result-title">校验结果</strong>
           <ul id="result-list" class="result-list"></ul>
-          <div id="export-cmd-box" class="code-box" hidden>
-            <code id="export-cmd-text"></code>
-            <button type="button" id="btn-copy-cmd" class="btn">复制研发导入命令</button>
-          </div>
         </div>
       </section>
     </form>
   </main>
 
   <script type="module">
-    const BOOTSTRAP = window.__STUDIO_BOOTSTRAP__ || { mode: "offline", lockedEnv: null, csrfToken: "" };
+    const BOOTSTRAP = window.__STUDIO_BOOTSTRAP__ || { mode: "disconnected", lockedEnv: null, csrfToken: "" };
 
     const ALL_KITS = [
       { id: "log", title: "log · 基础日志", desc: "全工程核心基础设施（必选）", required: true },
@@ -852,65 +927,10 @@
       "PAY_SUBS_IDS", "PAY_CONSUMABLE_IDS", "PAY_NON_CONSUMABLE_IDS",
     ];
 
-    const DEV_DEFAULTS = {
-      APP_ID: "xxx.yyy.zzz.dev",
-      APP_NAME: "Architecture (Dev)",
-      VERSION_NAME: "1.0.0",
-      VERSION_CODE: "1",
-      DEVELOPMENT_TEAM: "",
-      API_SCHEME: "https",
-      API_HOST: "dev-api.example.com",
-      ENABLE_HTTP_LOG: "YES",
-      ANDROID_ADMOB_APP_ID: "ca-app-pub-3940256099942544~3347511713",
-      ANDROID_ADMOB_BANNER_ID: "ca-app-pub-3940256099942544/9214589741",
-      ANDROID_ADMOB_INTERSTITIAL_ID: "ca-app-pub-3940256099942544/1033173712",
-      ANDROID_ADMOB_REWARDED_ID: "ca-app-pub-3940256099942544/5224354917",
-      ANDROID_ADMOB_APP_OPEN_ID: "ca-app-pub-3940256099942544/9257395921",
-      IOS_ADMOB_APP_ID: "ca-app-pub-3940256099942544~1458002511",
-      IOS_ADMOB_BANNER_ID: "ca-app-pub-3940256099942544/2934735716",
-      IOS_ADMOB_INTERSTITIAL_ID: "ca-app-pub-3940256099942544/4411468910",
-      IOS_ADMOB_REWARDED_ID: "ca-app-pub-3940256099942544/1712485313",
-      IOS_ADMOB_APP_OPEN_ID: "ca-app-pub-3940256099942544/5575463023",
-      APPSFLYER_KEY: "dummy_appsflyer_dev_key",
-      IOS_APPSFLYER_APP_ID: "1234567890",
-      ANALYTICS_DEBUG_MODE: "YES",
-      REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS: "0",
-      PAY_SUBS_IDS: "subs_plus,subs_pro",
-      PAY_CONSUMABLE_IDS: "consumable_product_01",
-      PAY_NON_CONSUMABLE_IDS: "one_time_product_01",
-    };
-
-    const PROD_DEFAULTS = {
-      APP_ID: "",
-      APP_NAME: "",
-      VERSION_NAME: "1.0.0",
-      VERSION_CODE: "1",
-      DEVELOPMENT_TEAM: "",
-      API_SCHEME: "https",
-      API_HOST: "",
-      ENABLE_HTTP_LOG: "NO",
-      ANDROID_ADMOB_APP_ID: "",
-      ANDROID_ADMOB_BANNER_ID: "",
-      ANDROID_ADMOB_INTERSTITIAL_ID: "",
-      ANDROID_ADMOB_REWARDED_ID: "",
-      ANDROID_ADMOB_APP_OPEN_ID: "",
-      IOS_ADMOB_APP_ID: "",
-      IOS_ADMOB_BANNER_ID: "",
-      IOS_ADMOB_INTERSTITIAL_ID: "",
-      IOS_ADMOB_REWARDED_ID: "",
-      IOS_ADMOB_APP_OPEN_ID: "",
-      APPSFLYER_KEY: "",
-      IOS_APPSFLYER_APP_ID: "",
-      ANALYTICS_DEBUG_MODE: "NO",
-      REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS: "3600",
-      PAY_SUBS_IDS: "",
-      PAY_CONSUMABLE_IDS: "",
-      PAY_NON_CONSUMABLE_IDS: "",
-    };
-
     const state = {
       env: BOOTSTRAP.mode === "server" ? BOOTSTRAP.lockedEnv : "dev",
       isTemplate: true,
+      enabledKits: new Set(ALL_KITS.map((k) => k.id)),
       firebasePending: { android: null, ios: null }, // { bytes: Uint8Array, meta: {} }
       firebaseServerState: { android: { present: false }, ios: { present: false } },
     };
@@ -944,6 +964,9 @@
 
       label.append(cb, spanWrap);
       kitsGrid.append(label);
+      if (!kit.required) {
+        cb.addEventListener("change", () => updateCardVisibilityAndBadges());
+      }
     });
 
     const linkErrorDescribedBy = (el, shown) => {
@@ -981,98 +1004,6 @@
       dirtyFields.set(e.target, st);
       if (e.target.hasAttribute("aria-invalid")) syncAria(e.target, Boolean(st.blurred));
     });
-
-    // ------------------------------------------------------------------
-    // 2. 纯 JS 无压缩 STORE ZIP 编码器（支持离线零依赖导出标准 .zip 包）
-    // ------------------------------------------------------------------
-    const CRC32_TABLE = (() => {
-      const table = new Uint32Array(256);
-      for (let i = 0; i < 256; i++) {
-        let c = i;
-        for (let j = 0; j < 8; j++) {
-          c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-        }
-        table[i] = c >>> 0;
-      }
-      return table;
-    })();
-
-    const crc32 = (bytes) => {
-      let crc = 0xffffffff;
-      for (let i = 0; i < bytes.length; i++) {
-        crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
-      }
-      return (crc ^ 0xffffffff) >>> 0;
-    };
-
-    const buildZipBlob = (entries) => {
-      const encoder = new TextEncoder();
-      const localParts = [];
-      const centralParts = [];
-      let offset = 0;
-
-      for (const entry of entries) {
-        const nameBytes = encoder.encode(entry.name);
-        const dataBytes = entry.data instanceof Uint8Array ? entry.data : encoder.encode(entry.data);
-        const sum = crc32(dataBytes);
-
-        const localHeader = new ArrayBuffer(30);
-        const lv = new DataView(localHeader);
-        lv.setUint32(0, 0x04034b50, true);
-        lv.setUint16(4, 20, true);
-        lv.setUint16(6, 0x0800, true); // UTF-8
-        lv.setUint16(8, 0, true); // STORE
-        lv.setUint16(10, 0, true);
-        lv.setUint16(12, 0x5421, true);
-        lv.setUint32(14, sum, true);
-        lv.setUint32(18, dataBytes.length, true);
-        lv.setUint32(22, dataBytes.length, true);
-        lv.setUint16(26, nameBytes.length, true);
-        lv.setUint16(28, 0, true);
-
-        const localHeaderBytes = new Uint8Array(localHeader);
-        localParts.push(localHeaderBytes, nameBytes, dataBytes);
-
-        const centralHeader = new ArrayBuffer(46);
-        const cv = new DataView(centralHeader);
-        cv.setUint32(0, 0x02014b50, true);
-        cv.setUint16(4, 20, true);
-        cv.setUint16(6, 20, true);
-        cv.setUint16(8, 0x0800, true);
-        cv.setUint16(10, 0, true);
-        cv.setUint16(12, 0, true);
-        cv.setUint16(14, 0x5421, true);
-        cv.setUint32(16, sum, true);
-        cv.setUint32(20, dataBytes.length, true);
-        cv.setUint32(24, dataBytes.length, true);
-        cv.setUint16(28, nameBytes.length, true);
-        cv.setUint16(30, 0, true);
-        cv.setUint16(32, 0, true);
-        cv.setUint16(34, 0, true);
-        cv.setUint16(36, 0, true);
-        cv.setUint32(38, 0, true);
-        cv.setUint32(42, offset, true);
-
-        centralParts.push(new Uint8Array(centralHeader), nameBytes);
-        offset += localHeaderBytes.length + nameBytes.length + dataBytes.length;
-      }
-
-      let centralSize = 0;
-      for (const p of centralParts) centralSize += p.length;
-
-      const eocd = new ArrayBuffer(22);
-      const ev = new DataView(eocd);
-      ev.setUint32(0, 0x06054b50, true);
-      ev.setUint16(4, 0, true);
-      ev.setUint16(6, 0, true);
-      ev.setUint16(8, entries.length, true);
-      ev.setUint16(10, entries.length, true);
-      ev.setUint32(12, centralSize, true);
-      ev.setUint32(16, offset, true);
-      ev.setUint16(20, 0, true);
-
-      return new Blob([...localParts, ...centralParts, new Uint8Array(eocd)], { type: "application/zip" });
-    };
 
     const bytesToBase64 = (bytes) => {
       let binary = "";
@@ -1239,11 +1170,9 @@
     // ------------------------------------------------------------------
     // 4. 表单读写、视图联动与前端校验规则（对齐后端 config_studio.py）
     // ------------------------------------------------------------------
-    const shouldUseProjectInit = () => {
-      if (state.env !== "dev") return false;
-      if (BOOTSTRAP.mode === "server") return state.isTemplate;
-      return document.getElementById("enable_project_init").checked;
-    };
+    const shouldUseProjectInit = () => (
+      state.env === "dev" && BOOTSTRAP.mode === "server" && state.isTemplate
+    );
 
     const collectConfigMap = () => {
       const out = {};
@@ -1273,7 +1202,6 @@
       if (!shouldUseProjectInit()) return null;
       const pkg = document.getElementById("init_package_name").value.trim();
       const appName = document.getElementById("init_app_name").value.trim();
-      const appNameZh = document.getElementById("init_app_name_zh").value.trim();
       const prefix = document.getElementById("init_plugin_prefix").value.trim() || (pkg ? pkg.split(".").pop() : "");
       const featsRaw = document.getElementById("init_initial_features").value.replace(/，/g, ",");
       const feats = featsRaw.split(",").map((s) => s.trim().toLowerCase().replace(/-/g, "_")).filter((s) => s && s !== "home");
@@ -1282,7 +1210,6 @@
       return {
         app_name: appName,
         package_name: pkg,
-        app_name_zh: appNameZh || appName,
         formal_app_id: pkg,
         test_app_id: (testAppId && testAppId !== "xxx.yyy.zzz.dev") ? testAppId : (pkg ? `${pkg}.dev` : ""),
         plugin_prefix: prefix,
@@ -1292,37 +1219,117 @@
       };
     };
 
+    const isKitEnabled = (kitId) => {
+      if (shouldUseProjectInit()) {
+        const cb = document.getElementById(`kit_${kitId}`);
+        return cb ? cb.checked : true;
+      }
+      return state.enabledKits.has(kitId);
+    };
+
+    const setStatusBadge = (elId, keys) => {
+      const badgeEl = document.getElementById(elId);
+      if (!badgeEl) return;
+      const filled = keys.filter((k) => {
+        const input = document.getElementById(`cfg_${k}`);
+        return input && input.value.trim().length > 0;
+      }).length;
+      if (filled > 0) {
+        badgeEl.textContent = `已配置 ${filled}/${keys.length} 项`;
+        badgeEl.classList.add("configured");
+      } else {
+        badgeEl.textContent = "未填写";
+        badgeEl.classList.remove("configured");
+      }
+    };
+
+    const updateCardVisibilityAndBadges = () => {
+      const serverReady = BOOTSTRAP.mode === "server";
+      document.getElementById("card-init").hidden = !shouldUseProjectInit();
+      document.getElementById("card-admob").hidden = !serverReady || !isKitEnabled("ads");
+      document.getElementById("card-mmp").hidden = !serverReady || !isKitEnabled("mmp");
+      document.getElementById("card-pay").hidden = !serverReady || !isKitEnabled("pay");
+      document.getElementById("field-analytics-debug").hidden = !isKitEnabled("analytics");
+      document.getElementById("field-abtesting-interval").hidden = !isKitEnabled("abtesting");
+
+      document.querySelectorAll("#anchor-nav .anchor-pill").forEach((pill) => {
+        const target = document.querySelector(pill.dataset.target || "");
+        pill.hidden = !serverReady || !target || target.hidden;
+      });
+      document.getElementById("anchor-nav").hidden = !serverReady;
+
+      setStatusBadge("badge-admob", [
+        "ANDROID_ADMOB_APP_ID", "ANDROID_ADMOB_BANNER_ID", "ANDROID_ADMOB_INTERSTITIAL_ID", "ANDROID_ADMOB_REWARDED_ID", "ANDROID_ADMOB_APP_OPEN_ID",
+        "IOS_ADMOB_APP_ID", "IOS_ADMOB_BANNER_ID", "IOS_ADMOB_INTERSTITIAL_ID", "IOS_ADMOB_REWARDED_ID", "IOS_ADMOB_APP_OPEN_ID",
+      ]);
+      setStatusBadge("badge-mmp", ["APPSFLYER_KEY", "IOS_APPSFLYER_APP_ID"]);
+      setStatusBadge("badge-pay", ["PAY_SUBS_IDS", "PAY_CONSUMABLE_IDS", "PAY_NON_CONSUMABLE_IDS"]);
+    };
+
+    document.querySelectorAll("#anchor-nav .anchor-pill").forEach((pill) => {
+      pill.addEventListener("click", (e) => {
+        const target = document.querySelector(pill.dataset.target || "");
+        if (!target) return;
+        const details = target.querySelector("details");
+        if (details) details.open = true;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    const focusFirstError = (el) => {
+      if (!el) return;
+      const details = el.closest("details");
+      if (details) details.open = true;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.focus({ preventScroll: true });
+    };
+
     const validateClient = () => {
       const errors = [];
       const warnings = [];
+      let firstErrorEl = null;
+      const addError = (msg, elId) => {
+        errors.push(msg);
+        if (!firstErrorEl && elId) {
+          firstErrorEl = document.getElementById(elId);
+        }
+      };
+
       const cfg = collectConfigMap();
       const initPayload = collectProjectInit();
 
       const secretRe = /ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----|STORE_PASSWORD|KEY_PASSWORD/;
       for (const [k, v] of Object.entries(cfg)) {
-        if (secretRe.test(v)) errors.push(`字段 ${k} 检测到禁止粘贴的机密内容`);
+        if (secretRe.test(v)) addError(`字段 ${k} 检测到禁止粘贴的机密内容`, `cfg_${k}`);
       }
 
       if (initPayload) {
         if (!initPayload.app_name || initPayload.app_name === "Architecture") {
-          errors.push("第 1 节：应用名称不能为空且不能为 Architecture");
+          addError("立项配置：应用名称不能为空且不能为 Architecture", "init_app_name");
         }
         if (!/^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/.test(initPayload.package_name) || initPayload.package_name === "xxx.yyy.zzz") {
-          errors.push("第 1 节：package_name 须为反域名纯小写格式（如 com.acme.app）");
+          addError("立项配置：package_name 须为反域名纯小写格式（如 com.acme.app）", "init_package_name");
         }
         if (initPayload.plugin_prefix && !/^[a-z][a-z0-9]*$/.test(initPayload.plugin_prefix)) {
-          errors.push("第 1 节：plugin_prefix 仅支持以小写字母开头的字母数字");
+          addError("立项配置：plugin_prefix 仅支持以小写字母开头的字母数字", "init_plugin_prefix");
         }
       }
 
       if (cfg.APP_ID && !/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(cfg.APP_ID)) {
-        errors.push(`APP_ID 格式非法：${cfg.APP_ID}`);
+        addError(`APP_ID 格式非法：${cfg.APP_ID}`, "cfg_APP_ID");
+      }
+      if (cfg.VERSION_CODE && !/^\d+$/.test(cfg.VERSION_CODE)) {
+        addError("VERSION_CODE 必须为非负整数", "cfg_VERSION_CODE");
       }
       if (cfg.DEVELOPMENT_TEAM && !/^[A-Z0-9]{10}$/.test(cfg.DEVELOPMENT_TEAM)) {
-        errors.push("DEVELOPMENT_TEAM 应为 10 位大写字母或数字");
+        addError("DEVELOPMENT_TEAM 应为 10 位大写字母或数字", "cfg_DEVELOPMENT_TEAM");
       }
-      if (cfg.IOS_APPSFLYER_APP_ID && !/^\d+$/.test(cfg.IOS_APPSFLYER_APP_ID)) {
-        errors.push("IOS_APPSFLYER_APP_ID 须为纯数字");
+      if (isKitEnabled("abtesting") && cfg.REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS && !/^\d+$/.test(cfg.REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS)) {
+        addError("Remote Config 最小拉取间隔须为非负整数", "cfg_REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS");
+      }
+      if (isKitEnabled("mmp") && cfg.IOS_APPSFLYER_APP_ID && !/^\d+$/.test(cfg.IOS_APPSFLYER_APP_ID)) {
+        addError("IOS_APPSFLYER_APP_ID 须为纯数字", "cfg_IOS_APPSFLYER_APP_ID");
       }
 
       const admobAppKeys = ["ANDROID_ADMOB_APP_ID", "IOS_ADMOB_APP_ID"];
@@ -1330,46 +1337,45 @@
         "ANDROID_ADMOB_BANNER_ID", "ANDROID_ADMOB_INTERSTITIAL_ID", "ANDROID_ADMOB_REWARDED_ID", "ANDROID_ADMOB_APP_OPEN_ID",
         "IOS_ADMOB_BANNER_ID", "IOS_ADMOB_INTERSTITIAL_ID", "IOS_ADMOB_REWARDED_ID", "IOS_ADMOB_APP_OPEN_ID",
       ];
-      for (const k of admobAppKeys) {
-        if (!cfg[k]) continue;
-        if (state.env === "prod" && cfg[k].includes("3940256099942544")) errors.push(`${k} 正式环境严禁填入 Google 测试广告 ID`);
-        else if (!/^ca-app-pub-\d+~\d+$/.test(cfg[k])) errors.push(`${k} 格式错误（须使用 ~ 分隔）`);
-      }
-      for (const k of admobUnitKeys) {
-        if (!cfg[k]) continue;
-        if (state.env === "prod" && cfg[k].includes("3940256099942544")) errors.push(`${k} 正式环境严禁填入 Google 测试广告 ID`);
-        else if (!/^ca-app-pub-\d+\/\d+$/.test(cfg[k])) errors.push(`${k} 格式错误（须使用 / 分隔）`);
+      if (isKitEnabled("ads")) {
+        for (const k of admobAppKeys) {
+          if (!cfg[k]) continue;
+          if (state.env === "prod" && cfg[k].includes("3940256099942544")) addError(`${k} 正式环境严禁填入 Google 测试广告 ID`, `cfg_${k}`);
+          else if (!/^ca-app-pub-\d+~\d+$/.test(cfg[k])) addError(`${k} 格式错误（须使用 ~ 分隔）`, `cfg_${k}`);
+        }
+        for (const k of admobUnitKeys) {
+          if (!cfg[k]) continue;
+          if (state.env === "prod" && cfg[k].includes("3940256099942544")) addError(`${k} 正式环境严禁填入 Google 测试广告 ID`, `cfg_${k}`);
+          else if (!/^ca-app-pub-\d+\/\d+$/.test(cfg[k])) addError(`${k} 格式错误（须使用 / 分隔）`, `cfg_${k}`);
+        }
       }
 
       const expectedAppId = getEffectiveExpectedAppId();
       if (state.firebasePending.android) {
         const p = state.firebasePending.android;
-        if (p.parseError) errors.push(`google-services.json 无效：${p.parseError}`);
+        if (p.parseError) addError(`google-services.json 无效：${p.parseError}`, "btn-pick-android");
         else if (expectedAppId && !(p.meta.package_names || "").split(",").includes(expectedAppId)) {
-          errors.push(`google-services.json 包名与 ${expectedAppId} 不匹配`);
+          addError(`google-services.json 包名与 ${expectedAppId} 不匹配`, "btn-pick-android");
         }
       }
       if (state.firebasePending.ios) {
         const p = state.firebasePending.ios;
-        if (p.parseError && BOOTSTRAP.mode === "offline") errors.push(`GoogleService-Info.plist 无效：${p.parseError}`);
-        else if (p.meta?.bundle_id && expectedAppId && p.meta.bundle_id !== expectedAppId) {
-          errors.push(`GoogleService-Info.plist 的 BUNDLE_ID (${p.meta.bundle_id}) 与 ${expectedAppId} 不匹配`);
+        if (p.meta?.bundle_id && expectedAppId && p.meta.bundle_id !== expectedAppId) {
+          addError(`GoogleService-Info.plist 的 BUNDLE_ID (${p.meta.bundle_id}) 与 ${expectedAppId} 不匹配`, "btn-pick-ios");
         }
       }
 
       if (state.env === "prod" && !cfg.APP_ID && !cfg.API_HOST && !cfg.DEVELOPMENT_TEAM && !cfg.APPSFLYER_KEY && !state.firebasePending.android && !state.firebasePending.ios) {
-        warnings.push("您尚未在 Prod 模式填入任何修改字段或上传文件（可仅导出待合并项或先填写所需字段）。");
+        warnings.push("您尚未在 Prod 模式填入任何修改字段或上传文件（请填写所需字段或拖入正式 Firebase 文件）。");
       }
 
-      return { errors, warnings, cfg, initPayload };
+      return { errors, warnings, cfg, initPayload, firstErrorEl };
     };
 
-    const showResultPanel = (isOk, title, items, commandText = "") => {
+    const showResultPanel = (isOk, title, items) => {
       const panel = document.getElementById("result-panel");
       const titleEl = document.getElementById("result-title");
       const listEl = document.getElementById("result-list");
-      const cmdBox = document.getElementById("export-cmd-box");
-      const cmdEl = document.getElementById("export-cmd-text");
 
       panel.hidden = false;
       panel.className = `result-panel ${isOk ? "ok" : "err"}`;
@@ -1380,13 +1386,6 @@
         li.textContent = item;
         listEl.append(li);
       });
-
-      if (commandText) {
-        cmdBox.hidden = false;
-        cmdEl.textContent = commandText;
-      } else {
-        cmdBox.hidden = true;
-      }
     };
 
     const fillFormWithValues = (cfg) => {
@@ -1403,43 +1402,39 @@
         badge.className = `badge ${isDev ? "badge-dev" : "badge-prod"}`;
         badge.textContent = isDev ? "本机直写模式 · 已锁定 DEV 测试环境" : "本机直写模式 · 已锁定 PROD 正式环境";
       } else {
-        badge.className = `badge ${isDev ? "badge-dev" : "badge-prod"}`;
-        badge.textContent = isDev ? "离线导出模式 · DEV 测试环境" : "离线导出模式 · PROD 正式环境";
+        badge.className = "badge badge-prod";
+        badge.textContent = "未连接本机配置服务（请通过 config_studio.sh 启动）";
       }
 
-      const initSection = document.getElementById("section-project-init");
-      const zhField = document.getElementById("zh-name-field");
       const submitBtn = document.getElementById("btn-primary-submit");
       const desc = document.getElementById("env-section-desc");
 
+      if (BOOTSTRAP.mode !== "server") {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "请通过 ./scripts/config_studio.sh 启动";
+        desc.textContent = "当前页面未挂载本地服务端，请在工程根目录运行 ./scripts/config_studio.sh --env dev 或 --env prod。";
+        updateCardVisibilityAndBadges();
+        return;
+      }
+
+      submitBtn.disabled = false;
       if (isDev) {
-        initSection.hidden = false;
-        zhField.hidden = false;
-        if (BOOTSTRAP.mode === "server") {
-          document.getElementById("project-init-fields").hidden = !state.isTemplate;
-          document.getElementById("init-section-desc").textContent = state.isTemplate
-            ? "检测到工程尚未改名初始化（仍为 xxx.yyy.zzz 模板），填写后将一键完成包名迁移、模块创建与 Kit 裁剪。"
-            : "工程已完成初始化改名；下方专注管理 Dev 测试环境配置与 Firebase 测试文件。";
-          submitBtn.textContent = state.isTemplate ? "验证并一键立项保存 (Dev)" : "保存 Dev 配置至 config/dev.xcconfig";
-        } else {
-          document.getElementById("offline-init-toggle-wrap").hidden = false;
-          document.getElementById("project-init-fields").hidden = !document.getElementById("enable_project_init").checked;
-          submitBtn.textContent = "校验并导出 dev-config-bundle.zip";
-        }
+        document.getElementById("project-init-fields").hidden = !state.isTemplate;
+        document.getElementById("init-section-desc").textContent = state.isTemplate
+          ? "检测到工程尚未改名初始化（仍为 xxx.yyy.zzz 模板），填写后将一键完成包名迁移、模块创建与 Kit 裁剪。"
+          : "工程已完成初始化改名；下方按细分卡片管理 Dev 测试环境参数。";
+        submitBtn.textContent = state.isTemplate ? "验证并一键立项保存 (Dev)" : "保存 Dev 配置至 config/dev.xcconfig";
         desc.textContent = "配置写入 config/dev.xcconfig（唯一真源，Android & iOS 测试包原生直读，绝不接触 Prod）。";
       } else {
-        initSection.hidden = true;
-        zhField.hidden = true;
         desc.textContent = "配置仅增量写入被 .gitignore 忽略的 config/prod.local.xcconfig（双端正式包直读，研发/测试环境完全不可见）。";
-        submitBtn.textContent = BOOTSTRAP.mode === "server"
-          ? "保存至本地 config/prod.local.xcconfig"
-          : "校验并导出 prod-config-bundle.zip";
+        submitBtn.textContent = "保存至本地 config/prod.local.xcconfig";
       }
 
       document.getElementById("hint-fb-android").textContent = `目标目录：androidApp/src/${isDev ? "dev" : "prod"}/google-services.json`;
       document.getElementById("hint-fb-ios").textContent = `目标目录：iosApp/Config/Firebase/${isDev ? "Dev" : "Prod"}/GoogleService-Info.plist（免重跑 xcodegen）`;
       refreshFirebaseStatusUi("android");
       refreshFirebaseStatusUi("ios");
+      updateCardVisibilityAndBadges();
     };
 
     // Dev 骨架输入时智能联动 APP_ID 与 APP_NAME 建议值（未手改过时）
@@ -1473,12 +1468,10 @@
     });
 
     // ------------------------------------------------------------------
-    // 5. 初始化启动（Server 模式拉取 /api/state；Offline 模式启用切换开关）
+    // 5. 初始化启动（拉取本机 /api/state）
     // ------------------------------------------------------------------
     const initApp = async () => {
       if (BOOTSTRAP.mode === "server") {
-        document.getElementById("offline-env-switcher").hidden = true;
-        document.getElementById("server-import-wrap").hidden = false;
         try {
           const resp = await fetch("/api/state");
           const data = await resp.json();
@@ -1486,10 +1479,9 @@
           state.isTemplate = Boolean(data.isTemplate);
           state.firebaseServerState = data.firebase || state.firebaseServerState;
           fillFormWithValues(data.config || {});
-          document.getElementById("extra_app_name_zh").value = data.extras?.app_name_zh || "";
-          document.getElementById("extra_privacy_mode").value = data.extras?.privacy_mode || "standard";
           document.getElementById("init_debug_panel").checked = Boolean(data.debugPanelEnabled);
           const enabledSet = new Set(data.enabledKits || []);
+          state.enabledKits = enabledSet;
           ALL_KITS.forEach((k) => {
             if (!k.required) document.getElementById(`kit_${k.id}`).checked = enabledSet.has(k.id);
           });
@@ -1497,110 +1489,46 @@
           showResultPanel(false, "无法读取本机服务状态", [String(err)]);
         }
       } else {
-        document.getElementById("offline-env-switcher").hidden = false;
-        document.getElementById("enable_project_init").checked = true;
-        fillFormWithValues(DEV_DEFAULTS);
-        document.querySelectorAll('input[name="target_env"]').forEach((radio) => {
-          radio.addEventListener("change", (e) => {
-            state.env = e.target.value;
-            state.firebasePending = { android: null, ios: null };
-            fillFormWithValues(state.env === "dev" ? DEV_DEFAULTS : PROD_DEFAULTS);
-            document.getElementById("extra_privacy_mode").value = state.env === "dev" ? "standard" : "";
-            document.getElementById("result-panel").hidden = true;
-            updateEnvVisibility();
-          });
-        });
-        document.getElementById("enable_project_init").addEventListener("change", updateEnvVisibility);
+        showResultPanel(
+          false,
+          "未检测到本机配置台服务",
+          [
+            "本页面需由工程脚手架启动的本机服务提供读写与校验支持。",
+            "请在项目根目录执行 ./scripts/config_studio.sh --env dev 或 ./scripts/config_studio.sh --env prod。",
+          ],
+        );
       }
       updateEnvVisibility();
     };
 
     // ------------------------------------------------------------------
-    // 6. 表单提交（直写 Server API 或导出 Offline ZIP）
+    // 6. 表单提交（直写 Server API）
     // ------------------------------------------------------------------
+    document.getElementById("studio-form").addEventListener("input", () => {
+      updateCardVisibilityAndBadges();
+    });
+
     document.getElementById("btn-validate-only").addEventListener("click", () => {
-      const { errors, warnings } = validateClient();
+      const { errors, warnings, firstErrorEl } = validateClient();
       if (errors.length > 0) {
         showResultPanel(false, `校验未通过（发现 ${errors.length} 项错误）`, [...errors, ...warnings.map((w) => `警告：${w}`)]);
+        focusFirstError(firstErrorEl);
       } else {
-        showResultPanel(true, "✔ 全部字段格式与环境边界校验通过！", warnings.length ? warnings.map((w) => `提示：${w}`) : ["无错误项，可以放心保存或导出。"]);
+        showResultPanel(true, "✔ 全部字段格式与环境边界校验通过！", warnings.length ? warnings.map((w) => `提示：${w}`) : ["无错误项，可以放心保存写入。"]);
       }
-    });
-
-    document.getElementById("btn-copy-cmd").addEventListener("click", async () => {
-      const txt = document.getElementById("export-cmd-text").textContent;
-      await navigator.clipboard?.writeText(txt).catch(() => {});
-      document.getElementById("btn-copy-cmd").textContent = "已复制";
-      setTimeout(() => { document.getElementById("btn-copy-cmd").textContent = "复制研发导入命令"; }, 1800);
-    });
-
-    const bundleImportInput = document.getElementById("file-import-bundle");
-    document.getElementById("btn-import-bundle").addEventListener("click", () => bundleImportInput.click());
-    bundleImportInput.addEventListener("change", async () => {
-      const file = bundleImportInput.files?.[0];
-      if (!file) return;
-      const buf = new Uint8Array(await file.arrayBuffer());
-      const resp = await fetch("/api/import-bundle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Studio-Token": BOOTSTRAP.csrfToken },
-        body: JSON.stringify({ env: state.env, bundleBase64: bytesToBase64(buf) }),
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.ok) {
-        showResultPanel(false, "离线包导入失败", data.errors || ["未知错误"]);
-      } else {
-        state.isTemplate = Boolean(data.state.isTemplate);
-        state.firebaseServerState = data.state.firebase;
-        fillFormWithValues(data.state.config);
-        updateEnvVisibility();
-        showResultPanel(true, "✔ 离线配置包已校验并落盘！", data.changes || []);
-      }
-      bundleImportInput.value = "";
     });
 
     document.getElementById("studio-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const submitBtn = document.getElementById("btn-primary-submit");
-      const { errors, warnings, cfg, initPayload } = validateClient();
-      if (errors.length > 0) {
-        showResultPanel(false, `提交已拦截（发现 ${errors.length} 项阻断错误）`, errors);
+      if (BOOTSTRAP.mode !== "server") {
+        showResultPanel(false, "未连接本机配置服务", ["请通过 ./scripts/config_studio.sh --env dev|prod 启动后再提交保存。"]);
         return;
       }
-
-      const extras = {
-        app_name_zh: state.env === "dev" ? document.getElementById("extra_app_name_zh").value.trim() : "",
-        privacy_mode: document.getElementById("extra_privacy_mode").value.trim(),
-      };
-
-      if (BOOTSTRAP.mode === "offline") {
-        const manifest = {
-          schemaVersion: 1,
-          env: state.env,
-          exportedAt: new Date().toISOString(),
-          config: cfg,
-          extras,
-          project_init: initPayload,
-        };
-        const entries = [{ name: "manifest.json", data: JSON.stringify(manifest, null, 2) }];
-        if (state.firebasePending.android) entries.push({ name: "firebase/google-services.json", data: state.firebasePending.android.bytes });
-        if (state.firebasePending.ios) entries.push({ name: "firebase/GoogleService-Info.plist", data: state.firebasePending.ios.bytes });
-
-        const zipBlob = buildZipBlob(entries);
-        const filename = `${state.env}-config-bundle.zip`;
-        const url = URL.createObjectURL(zipBlob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        const cmd = `./scripts/config_studio.sh --import ${filename} --env ${state.env}`;
-        showResultPanel(
-          true,
-          `✔ 已生成并下载离线配置包 ${filename}（请发给研发或点击研发本机页面“导入离线包”）`,
-          [...warnings.map((w) => `提示：${w}`), `包含条目：manifest.json${state.firebasePending.android ? "、google-services.json" : ""}${state.firebasePending.ios ? "、GoogleService-Info.plist" : ""}`],
-          cmd,
-        );
+      const submitBtn = document.getElementById("btn-primary-submit");
+      const { errors, cfg, initPayload, firstErrorEl } = validateClient();
+      if (errors.length > 0) {
+        showResultPanel(false, `提交已拦截（发现 ${errors.length} 项阻断错误）`, errors);
+        focusFirstError(firstErrorEl);
         return;
       }
 
@@ -1610,7 +1538,7 @@
         const resp = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Studio-Token": BOOTSTRAP.csrfToken },
-          body: JSON.stringify({ env: state.env, config: cfg, extras, project_init: initPayload }),
+          body: JSON.stringify({ env: state.env, config: cfg, project_init: initPayload }),
         });
         const data = await resp.json();
         if (!resp.ok || !data.ok) {
@@ -1619,8 +1547,11 @@
         }
         const allChanges = [...(data.changes || [])];
         state.isTemplate = Boolean(data.state.isTemplate);
+        state.enabledKits = new Set(data.state.enabledKits || [...state.enabledKits]);
+        fillFormWithValues(data.state.config);
 
         // 若是立项时预选了 Firebase 文件，立项包名迁移完立即写入对应环境目录
+        const resolvedAppId = (data.state.config && data.state.config.APP_ID) || getEffectiveExpectedAppId();
         for (const platform of ["android", "ios"]) {
           const pending = state.firebasePending[platform];
           if (!pending) continue;
@@ -1631,7 +1562,7 @@
               env: state.env,
               platform,
               filename: platform === "android" ? "google-services.json" : "GoogleService-Info.plist",
-              expectedAppId: getEffectiveExpectedAppId(),
+              expectedAppId: resolvedAppId,
               contentBase64: bytesToBase64(pending.bytes),
             }),
           });
@@ -1645,7 +1576,6 @@
           }
         }
 
-        fillFormWithValues(data.state.config);
         updateEnvVisibility();
         showResultPanel(true, "✔ 已校验并直接写入工程配置！Android 与 iOS 可直接运行/打包。", allChanges);
       } catch (err) {

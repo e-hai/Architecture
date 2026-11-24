@@ -29,7 +29,6 @@ keystore.properties
 config/dev.local.xcconfig
 config/prod.local.xcconfig
 config/prod.properties
-*-config-bundle.zip
 Secrets.swift
 google-services.json
 GoogleService-Info*.plist

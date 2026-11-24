@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-统一 SSOT 配置引擎与双模式 Web 配置台后端单元测试（基于标准库 unittest）。
+统一 SSOT 配置引擎与本地 Web 配置台服务端单元测试（基于标准库 unittest）。
 
 遵循 AGENTS.md §8 测试先行规范，覆盖：
 1. `.xcconfig` 读写与 `#include?` 合并，严格保护并拦截 `ANDROID_STORE_*` 签名字段；
 2. Dev / Prod 参数校验（Dev 允许测试 AdMob ID，Prod 禁用；`API_HOST` 协议自动拆解；Secret 红线扫描）；
 3. `google-services.json` 与 `GoogleService-Info.plist` 解析及包名/BUNDLE_ID 一致性拦截；
-4. 离线 ZIP 配置包导出格式导入与严格环境隔离（Dev 绝不碰 Prod；Prod 绝不碰 Dev 与已追踪模板）；
-5. HTTP 服务接口锁定（CSRF 校验、跨环境请求 HTTP 403 拦截、`GET /api/state` 脱敏）。
+4. Dev `dev.local.xcconfig` 覆写与 `#include?` 前插保护；
+5. HTTP 服务接口锁定（CSRF 校验、跨环境请求 HTTP 403 拦截、Prod 禁止 `/api/init-project` 且仅写 `prod.local.xcconfig`、`GET /api/state` 脱敏）。
 """
 
 from __future__ import annotations
@@ -24,7 +24,6 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
-import zipfile
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -56,23 +55,8 @@ def _make_firebase_plist(bundle_id: str, google_app_id: str = "1:123456:ios:abcd
     return buf.getvalue()
 
 
-def _make_bundle_zip(
-    path: Path,
-    manifest: dict[str, object],
-    android_json: bytes | None = None,
-    ios_plist: bytes | None = None,
-) -> Path:
-    with zipfile.ZipFile(path, "w") as zf:
-        zf.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False))
-        if android_json is not None:
-            zf.writestr("firebase/google-services.json", android_json)
-        if ios_plist is not None:
-            zf.writestr("firebase/GoogleService-Info.plist", ios_plist)
-    return path
-
-
 class ConfigStudioTest(unittest.TestCase):
-    """覆盖配置真源读写、规则校验、离线包导入与本地 Web API 隔离测试。"""
+    """覆盖配置真源读写、规则校验、环境隔离与本地 Web API 测试。"""
 
     def setUp(self) -> None:
         self.tmp_dir = Path(tempfile.mkdtemp(prefix="test_config_studio_"))
@@ -95,7 +79,6 @@ class ConfigStudioTest(unittest.TestCase):
         (root / "shared" / "src" / "commonMain" / "kotlin" / "com" / "acme" / "app" / "shared").mkdir(
             parents=True
         )
-        (root / "core" / "ui" / "src" / "commonMain" / "composeResources" / "values-zh").mkdir(parents=True)
         (root / "core" / "log").mkdir(parents=True)
         (root / "core" / "ads").mkdir(parents=True)
         (root / "tools" / "config-studio").mkdir(parents=True)
@@ -108,10 +91,6 @@ class ConfigStudioTest(unittest.TestCase):
         prod_txt = (root / "config" / "prod.xcconfig").read_text(encoding="utf-8").replace("xxx.yyy.zzz", "com.acme.app")
         (root / "config" / "prod.xcconfig").write_text(prod_txt, encoding="utf-8")
 
-        (root / "core" / "ui" / "src" / "commonMain" / "composeResources" / "values-zh" / "strings.xml").write_text(
-            '<resources>\n    <string name="app_name">App</string>\n    <string name="welcome_message">欢迎体验 KMP 现代化架构</string>\n</resources>\n',
-            encoding="utf-8",
-        )
         (root / "shared" / "src" / "commonMain" / "kotlin" / "com" / "acme" / "app" / "shared" / "App.kt").write_text(
             "fun App(autoInitDeferredKits: Boolean = true) {}\n",
             encoding="utf-8",
@@ -186,7 +165,6 @@ class ConfigStudioTest(unittest.TestCase):
                 "ANDROID_ADMOB_APP_ID": "ca-app-pub-3940256099942544~3347511713",
                 "DEVELOPMENT_TEAM": "a1b2c3d4e5",
             },
-            extras={"privacy_mode": "strict"},
         )
         self.assertTrue(dev_res.is_valid, msg=dev_res.errors)
         self.assertEqual(dev_res.normalized_config["API_SCHEME"], "https")
@@ -221,55 +199,88 @@ class ConfigStudioTest(unittest.TestCase):
         self.assertEqual(plist_errs, [])
         self.assertEqual(meta["bundle_id"], "com.acme.app")
 
-    def test_import_bundle_isolation_and_cross_env_block(self) -> None:
+    def test_http_server_prod_isolation_and_forbids_init(self) -> None:
         dev_before = (self.root / "config" / "dev.xcconfig").read_text(encoding="utf-8")
         prod_before = (self.root / "config" / "prod.xcconfig").read_text(encoding="utf-8")
 
-        prod_zip = _make_bundle_zip(
-            self.tmp_dir / "prod-config-bundle.zip",
-            manifest={
-                "schemaVersion": 1,
-                "env": "prod",
-                "config": {
-                    "APP_ID": "com.acme.app.rel",
-                    "APP_NAME": "Acme",
-                    "API_SCHEME": "https",
-                    "API_HOST": "api.acme.com",
-                    "DEVELOPMENT_TEAM": "Z9Y8X7W6V5",
-                    "APPSFLYER_KEY": "af_prod_key",
-                    "IOS_APPSFLYER_APP_ID": "id99887766",
-                },
-                "extras": {"privacy_mode": "strict"},
-            },
-            android_json=_make_firebase_json("com.acme.app.rel"),
-            ios_plist=_make_firebase_plist("com.acme.app.rel"),
-        )
+        server = cs.create_studio_server(root=self.root, locked_env="prod", host="127.0.0.1", port=0)
+        port = server.server_address[1]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            base = f"http://127.0.0.1:{port}"
+            with urllib.request.urlopen(f"{base}/") as html_resp:
+                self.assertEqual(html_resp.status, 200)
+                self.assertIn('"lockedEnv": "prod"', html_resp.read().decode("utf-8"))
 
-        # 跨环境拦截：prod bundle 不能导入 dev
-        bad_val, _ = cs.import_bundle(prod_zip, expected_env="dev", root=self.root)
-        self.assertFalse(bad_val.is_valid)
-        self.assertFalse((self.root / "config" / "prod.local.xcconfig").exists())
+            # Prod 环境禁止执行首次立项
+            req_init = urllib.request.Request(
+                f"{base}/api/init-project",
+                data=json.dumps({"env": "prod", "project_init": {"app_name": "Acme", "package_name": "com.acme.app"}}).encode("utf-8"),
+                headers={"Content-Type": "application/json", "X-Studio-Token": server.csrf_token},
+                method="POST",
+            )
+            with self.assertRaises(urllib.error.HTTPError) as ctx:
+                urllib.request.urlopen(req_init)
+            self.assertEqual(ctx.exception.code, 403)
 
-        # 正确导入 prod bundle：仅写 config/prod.local.xcconfig 与 Prod Firebase，不动 Dev 与 tracked prod.xcconfig
-        ok_val, changes = cs.import_bundle(prod_zip, expected_env="prod", root=self.root)
-        self.assertTrue(ok_val.is_valid, msg=ok_val.errors)
-        self.assertTrue(len(changes) > 0)
-        self.assertEqual((self.root / "config" / "dev.xcconfig").read_text(encoding="utf-8"), dev_before)
-        self.assertEqual((self.root / "config" / "prod.xcconfig").read_text(encoding="utf-8"), prod_before)
+            # Prod 保存仅写入 config/prod.local.xcconfig，不动 Dev 与 tracked prod.xcconfig
+            req_save = urllib.request.Request(
+                f"{base}/api/save",
+                data=json.dumps(
+                    {
+                        "env": "prod",
+                        "config": {
+                            "APP_ID": "com.acme.app.rel",
+                            "APP_NAME": "Acme",
+                            "API_SCHEME": "https",
+                            "API_HOST": "api.acme.com",
+                            "DEVELOPMENT_TEAM": "Z9Y8X7W6V5",
+                            "APPSFLYER_KEY": "af_prod_key",
+                            "IOS_APPSFLYER_APP_ID": "id99887766",
+                        },
+                        "extras": {},
+                    }
+                ).encode("utf-8"),
+                headers={"Content-Type": "application/json", "X-Studio-Token": server.csrf_token},
+                method="POST",
+            )
+            with urllib.request.urlopen(req_save) as resp:
+                self.assertEqual(resp.status, 200)
 
-        prod_local = (self.root / "config" / "prod.local.xcconfig").read_text(encoding="utf-8")
-        self.assertIn("APP_ID = com.acme.app.rel", prod_local)
-        self.assertIn("API_HOST = api.acme.com", prod_local)
-        self.assertIn("IOS_APPSFLYER_APP_ID = 99887766", prod_local)
-        self.assertTrue((self.root / "androidApp" / "src" / "prod" / "google-services.json").is_file())
-        self.assertTrue((self.root / "iosApp" / "Config" / "Firebase" / "Prod" / "GoogleService-Info.plist").is_file())
-        self.assertFalse((self.root / "androidApp" / "src" / "dev" / "google-services.json").exists())
-        self.assertIn(
-            "autoInitDeferredKits: Boolean = false",
-            (self.root / "shared" / "src" / "commonMain" / "kotlin" / "com" / "acme" / "app" / "shared" / "App.kt").read_text(
-                encoding="utf-8"
-            ),
-        )
+            self.assertEqual((self.root / "config" / "dev.xcconfig").read_text(encoding="utf-8"), dev_before)
+            self.assertEqual((self.root / "config" / "prod.xcconfig").read_text(encoding="utf-8"), prod_before)
+            prod_local = (self.root / "config" / "prod.local.xcconfig").read_text(encoding="utf-8")
+            self.assertIn("APP_ID = com.acme.app.rel", prod_local)
+            self.assertIn("API_HOST = api.acme.com", prod_local)
+            self.assertIn("IOS_APPSFLYER_APP_ID = 99887766", prod_local)
+
+            for platform, fname, raw_bytes in (
+                ("android", "google-services.json", _make_firebase_json("com.acme.app.rel")),
+                ("ios", "GoogleService-Info.plist", _make_firebase_plist("com.acme.app.rel")),
+            ):
+                req_fb = urllib.request.Request(
+                    f"{base}/api/upload-firebase",
+                    data=json.dumps(
+                        {
+                            "env": "prod",
+                            "platform": platform,
+                            "filename": fname,
+                            "contentBase64": base64.b64encode(raw_bytes).decode("ascii"),
+                        }
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json", "X-Studio-Token": server.csrf_token},
+                    method="POST",
+                )
+                with urllib.request.urlopen(req_fb) as resp:
+                    self.assertEqual(resp.status, 200)
+
+            self.assertTrue((self.root / "androidApp" / "src" / "prod" / "google-services.json").is_file())
+            self.assertTrue((self.root / "iosApp" / "Config" / "Firebase" / "Prod" / "GoogleService-Info.plist").is_file())
+            self.assertFalse((self.root / "androidApp" / "src" / "dev" / "google-services.json").exists())
+        finally:
+            server.shutdown()
+            server.server_close()
 
     def test_http_server_locked_env_csrf_and_upload(self) -> None:
         server = cs.create_studio_server(root=self.root, locked_env="dev", host="127.0.0.1", port=0)
@@ -319,7 +330,6 @@ class ConfigStudioTest(unittest.TestCase):
                     {
                         "env": "dev",
                         "config": {"API_HOST": "dev2.acme.com", "APP_NAME": "Acme (Dev)"},
-                        "extras": {"app_name_zh": "艾克米", "privacy_mode": "strict"},
                     }
                 ).encode("utf-8"),
                 headers={"Content-Type": "application/json", "X-Studio-Token": server.csrf_token},
@@ -351,33 +361,30 @@ class ConfigStudioTest(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
-    def test_shell_wrapper_import_without_optional_flags_and_relative_path(self) -> None:
+    def test_shell_wrapper_help_and_rejects_removed_import_flag(self) -> None:
         (self.root / "scripts").mkdir(parents=True, exist_ok=True)
         shutil.copy(REPO_ROOT / "scripts" / "config_studio.sh", self.root / "scripts" / "config_studio.sh")
         shutil.copy(REPO_ROOT / "scripts" / "config_studio.py", self.root / "scripts" / "config_studio.py")
         (self.root / "scripts" / "config_studio.sh").chmod(0o755)
 
-        caller_dir = self.tmp_dir / "caller"
-        caller_dir.mkdir(parents=True, exist_ok=True)
-        _make_bundle_zip(
-            caller_dir / "dev-config-bundle.zip",
-            manifest={
-                "schemaVersion": 1,
-                "env": "dev",
-                "config": {"API_HOST": "wrapper-dev.acme.com"},
-                "extras": {},
-            },
-        )
-
-        proc = subprocess.run(
-            ["bash", str(self.root / "scripts" / "config_studio.sh"), "--import", "dev-config-bundle.zip", "--env", "dev"],
-            cwd=caller_dir,
+        help_proc = subprocess.run(
+            ["bash", str(self.root / "scripts" / "config_studio.sh"), "--help"],
+            cwd=self.root,
             text=True,
             capture_output=True,
             check=False,
         )
-        self.assertEqual(proc.returncode, 0, msg=f"stdout={proc.stdout}\nstderr={proc.stderr}")
-        self.assertIn("API_HOST = wrapper-dev.acme.com", (self.root / "config" / "dev.xcconfig").read_text(encoding="utf-8"))
+        self.assertEqual(help_proc.returncode, 0, msg=help_proc.stderr)
+        self.assertIn("--env", help_proc.stdout)
+
+        bad_proc = subprocess.run(
+            ["bash", str(self.root / "scripts" / "config_studio.sh"), "--import", "bundle.zip", "--env", "dev"],
+            cwd=self.root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertNotEqual(bad_proc.returncode, 0)
 
     def test_dev_local_xcconfig_override_and_append_before_include(self) -> None:
         # 1. 无 dev.local.xcconfig 时回退 config/dev.xcconfig 默认值

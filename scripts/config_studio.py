@@ -3,10 +3,10 @@
 双端单一真源配置引擎与零依赖 Web 配置台服务端（纯 Python 3.8+ 标准库）。
 
 核心能力：
-1. 原生解析与安全合并 `config/dev.xcconfig` / `config/prod.xcconfig` (+ `#include? "prod.local.xcconfig"`)；
-2. 强制环境物理隔离（`--env dev|prod`），Web 与离线导出包全程禁止暴露或写入 `ANDROID_STORE_*` 签名字段；
+1. 原生解析与安全合并 `config/dev.xcconfig` (+ `#include? "dev.local.xcconfig"`) / `config/prod.xcconfig` (+ `#include? "prod.local.xcconfig"`)；
+2. 强制环境物理隔离（`--env dev|prod`），Web 端全程禁止暴露或写入 `ANDROID_STORE_*` 签名字段；
 3. 校检 `API_HOST`、AdMob (`~` vs `/`, Prod 禁用测试 ID)、Team ID、Firebase `google-services.json` / `GoogleService-Info.plist`；
-4. 启动本机 `127.0.0.1` Web Config Studio（带 CSRF 防护与环境硬锁定），并支持 CLI `--import <bundle.zip>` 一键落盘。
+4. 启动本机 `127.0.0.1` Web Config Studio（带 CSRF 防护与环境硬锁定）校验并直写工程配置。
 """
 
 from __future__ import annotations
@@ -24,12 +24,9 @@ import shutil
 import socketserver
 import subprocess
 import sys
-import tempfile
 import webbrowser
-import zipfile
 from pathlib import Path
 from typing import Any, Iterable
-from xml.sax.saxutils import escape as xml_escape
 
 ALL_KITS: tuple[str, ...] = (
     "log",
@@ -299,12 +296,7 @@ def validate_config_payload(
         elif key in ADMOB_UNIT_ID_KEYS and not ADMOB_UNIT_ID_RE.match(val):
             errors.append(f"{key} 格式错误：应为 ca-app-pub-数字/数字（使用 / 分隔），当前值 '{val}'")
 
-    norm_extras = {
-        "app_name_zh": str(extras.get("app_name_zh", "") or "").strip(),
-        "privacy_mode": str(extras.get("privacy_mode", "") or "").strip().lower(),
-    }
-    if norm_extras["privacy_mode"] and norm_extras["privacy_mode"] not in {"standard", "strict"}:
-        errors.append(f"privacy_mode 值非法：'{norm_extras['privacy_mode']}'（仅支持 standard 或 strict）")
+    norm_extras: dict[str, str] = {}
 
     if project_init is not None:
         errors.extend(_scan_secrets_in_mapping(project_init))
@@ -428,94 +420,6 @@ def _update_xcconfig_text(content: str, updates: dict[str, str], append_missing:
     return updated, changed_keys
 
 
-def _find_single_file(root: Path, rel_base: str, glob_pattern: str) -> Path | None:
-    base = root / rel_base
-    if not base.exists():
-        return None
-    matches = sorted(base.glob(glob_pattern))
-    return matches[0] if matches else None
-
-
-def _apply_zh_strings(app_name_zh: str, root: Path, dry_run: bool, changes: list[str]) -> None:
-    if not app_name_zh:
-        return
-    zh_xml = root / "core" / "ui" / "src" / "commonMain" / "composeResources" / "values-zh" / "strings.xml"
-    if not zh_xml.is_file():
-        return
-    escaped_zh = xml_escape(app_name_zh).replace("'", "\\'")
-    old_text = zh_xml.read_text(encoding="utf-8")
-    new_text = re.sub(
-        r'(<string\s+name="app_name">)[^<]*(</string>)',
-        lambda m: f"{m.group(1)}{escaped_zh}{m.group(2)}",
-        old_text,
-    )
-    new_text = re.sub(
-        r'(<string\s+name="welcome_message">)[^<]*(</string>)',
-        lambda m: f"{m.group(1)}欢迎体验 {escaped_zh}{m.group(2)}",
-        new_text,
-    )
-    if new_text != old_text:
-        if not dry_run:
-            zh_xml.write_text(new_text, encoding="utf-8")
-        changes.append(f"[中文资源] values-zh/strings.xml 更新 app_name 与 welcome_message -> '{app_name_zh}'")
-
-
-def _apply_privacy_mode(privacy_mode: str, root: Path, dry_run: bool, changes: list[str]) -> bool:
-    if not privacy_mode:
-        return False
-    auto_init_val = "false" if privacy_mode == "strict" else "true"
-    defer_crash_val = "true" if privacy_mode == "strict" else "false"
-    kotlin_changed = False
-
-    app_kt = _find_single_file(root, "shared/src/commonMain/kotlin", "**/shared/App.kt")
-    if app_kt and app_kt.is_file():
-        old_text = app_kt.read_text(encoding="utf-8")
-        new_text = re.sub(
-            r"(autoInitDeferredKits\s*:\s*Boolean\s*=\s*)(?:true|false)",
-            lambda m: f"{m.group(1)}{auto_init_val}",
-            old_text,
-            count=1,
-        )
-        if new_text != old_text:
-            if not dry_run:
-                app_kt.write_text(new_text, encoding="utf-8")
-            kotlin_changed = True
-            changes.append(f"[隐私合规:{privacy_mode}] {app_kt.relative_to(root)} -> autoInitDeferredKits = {auto_init_val}")
-
-    and_bs = _find_single_file(root, "androidApp/src/main/kotlin", "**/android/bridge/NativeKitBootstrap.kt")
-    if and_bs and and_bs.is_file():
-        old_text = and_bs.read_text(encoding="utf-8")
-        new_text = re.sub(
-            r"(val\s+deferCrashReport\s*:\s*Boolean\s*=\s*)(?:true|false)",
-            lambda m: f"{m.group(1)}{defer_crash_val}",
-            old_text,
-            count=1,
-        )
-        if new_text != old_text:
-            if not dry_run:
-                and_bs.write_text(new_text, encoding="utf-8")
-            kotlin_changed = True
-            changes.append(f"[隐私合规:{privacy_mode}] {and_bs.relative_to(root)} -> deferCrashReport = {defer_crash_val}")
-
-    ios_bs = root / "iosApp" / "Sources" / "Bridge" / "NativeKitBootstrap.swift"
-    if ios_bs.is_file():
-        old_text = ios_bs.read_text(encoding="utf-8")
-        new_text = re.sub(
-            r"(deferCrashReport\s*:\s*Bool\s*=\s*)(?:true|false)",
-            lambda m: f"{m.group(1)}{defer_crash_val}",
-            old_text,
-            count=1,
-        )
-        if new_text != old_text:
-            if not dry_run:
-                ios_bs.write_text(new_text, encoding="utf-8")
-            changes.append(
-                f"[隐私合规:{privacy_mode}] iosApp/Sources/Bridge/NativeKitBootstrap.swift -> deferCrashReport = {defer_crash_val}"
-            )
-
-    return kotlin_changed
-
-
 def apply_env_changes(
     env: str,
     root: Path,
@@ -524,7 +428,7 @@ def apply_env_changes(
     firebase_files: dict[str, bytes] | None = None,
     dry_run: bool = False,
 ) -> list[str]:
-    """按严格环境边界将配置、隐私开关与 Firebase 文件写入唯一真源与隔离目录。"""
+    """按严格环境边界将配置与 Firebase 文件写入唯一真源与隔离目录。"""
     changes: list[str] = []
     extras = extras or {}
     firebase_files = firebase_files or {}
@@ -538,10 +442,6 @@ def apply_env_changes(
                 if not dry_run:
                     dev_cfg.write_text(new_text, encoding="utf-8")
                 changes.append(f"[Dev 唯一真源] config/dev.xcconfig 更新字段: {', '.join(keys)}")
-
-        app_name_zh = str(extras.get("app_name_zh", "") or "").strip()
-        if app_name_zh:
-            _apply_zh_strings(app_name_zh, root, dry_run, changes)
 
     elif env == "prod":
         non_empty_prod = {k: v for k, v in config.items() if v}
@@ -564,10 +464,6 @@ def apply_env_changes(
                     prod_local.write_text(new_text, encoding="utf-8")
                 action = "增量合并" if existed else "生成（已入 .gitignore）"
                 changes.append(f"[Prod 本地真源] config/prod.local.xcconfig 已{action}：{', '.join(keys)}")
-
-    privacy_mode = str(extras.get("privacy_mode", "") or "").strip().lower()
-    if privacy_mode:
-        _apply_privacy_mode(privacy_mode, root, dry_run, changes)
 
     # Firebase 文件写入对应隔离目录
     if "android" in firebase_files:
@@ -638,117 +534,14 @@ def run_project_init(root: Path, project_init: dict[str, Any], dry_run: bool = F
     return [f"[预演] {desc}" if dry_run else desc]
 
 
-def _maybe_run_spotless(root: Path) -> None:
-    gradlew = root / "gradlew"
-    if gradlew.is_file():
-        subprocess.run([str(gradlew), "spotlessApply"], cwd=root, capture_output=True, check=False)
-
-
 def _is_template_repo(root: Path) -> bool:
     return (root / "androidApp" / "src" / "main" / "kotlin" / "xxx" / "yyy" / "zzz").is_dir()
-
-
-def import_bundle(
-    bundle_path: Path,
-    expected_env: str,
-    root: Path,
-    dry_run: bool = False,
-) -> tuple[ValidationResult, list[str]]:
-    """校验并落盘离线导出的 `{dev|prod}-config-bundle.zip` 配置包。"""
-    if not bundle_path.is_file():
-        empty_res = ValidationResult([f"找不到配置包：{bundle_path}"], [], [], {}, {})
-        return empty_res, []
-
-    manifest: dict[str, Any] = {}
-    firebase_files: dict[str, bytes] = {}
-    try:
-        with zipfile.ZipFile(bundle_path, "r") as zf:
-            for info in zf.infolist():
-                parts = Path(info.filename).parts
-                if info.filename.startswith("/") or ".." in parts:
-                    return ValidationResult([f"配置包存在非法路径：{info.filename}"], [], [], {}, {}), []
-            if "manifest.json" not in zf.namelist():
-                return ValidationResult(["配置包缺少 manifest.json"], [], [], {}, {}), []
-            manifest = json.loads(zf.read("manifest.json").decode("utf-8"))
-            if "firebase/google-services.json" in zf.namelist():
-                firebase_files["android"] = zf.read("firebase/google-services.json")
-            if "firebase/GoogleService-Info.plist" in zf.namelist():
-                firebase_files["ios"] = zf.read("firebase/GoogleService-Info.plist")
-    except Exception as exc:  # noqa: BLE001
-        return ValidationResult([f"配置包解析失败：{exc}"], [], [], {}, {}), []
-
-    env = str(manifest.get("env", "")).strip().lower()
-    config_raw = manifest.get("config") or {}
-    extras_raw = manifest.get("extras") or {}
-    project_init = manifest.get("project_init")
-
-    val_res = validate_config_payload(
-        env=env,
-        config=config_raw if isinstance(config_raw, dict) else {},
-        extras=extras_raw if isinstance(extras_raw, dict) else {},
-        project_init=project_init if isinstance(project_init, dict) else None,
-        expected_env=expected_env,
-    )
-    if not val_res.is_valid:
-        return val_res, []
-
-    # 确定 Firebase 校验使用的预期 APP_ID
-    current_public = get_public_config(env, root)
-    expected_app_id = val_res.normalized_config.get("APP_ID") or ""
-    if not expected_app_id and project_init and isinstance(project_init, dict):
-        pkg = str(project_init.get("package_name", "")).strip()
-        expected_app_id = str(project_init.get("test_app_id", "") or (f"{pkg}.dev" if pkg else ""))
-    if not expected_app_id:
-        expected_app_id = current_public.get("APP_ID", "")
-
-    for platform, raw_bytes in firebase_files.items():
-        _, fb_errs, fb_warns = validate_firebase_bytes(platform, raw_bytes, expected_app_id=expected_app_id)
-        val_res.errors.extend(fb_errs)
-        val_res.warnings.extend(fb_warns)
-
-    if not val_res.is_valid:
-        return val_res, []
-
-    changes: list[str] = []
-    if project_init and isinstance(project_init, dict):
-        if _is_template_repo(root):
-            changes.extend(run_project_init(root, project_init, dry_run=dry_run))
-        else:
-            val_res.infos.append("检测到工程已完成过包名初始化，已跳过 init_project.sh 改名，仅更新配置与资源")
-
-    changes.extend(
-        apply_env_changes(
-            env=env,
-            root=root,
-            config=val_res.normalized_config,
-            extras=val_res.normalized_extras,
-            firebase_files=firebase_files,
-            dry_run=dry_run,
-        )
-    )
-    if not dry_run and val_res.normalized_extras.get("privacy_mode"):
-        _maybe_run_spotless(root)
-
-    return val_res, changes
 
 
 def _inspect_workspace_state(root: Path, locked_env: str) -> dict[str, Any]:
     is_template = _is_template_repo(root)
     enabled_kits = [k for k in ALL_KITS if (root / "core" / k).is_dir()]
     debug_panel_enabled = (root / "features" / "debug").is_dir()
-
-    app_kt = _find_single_file(root, "shared/src/commonMain/kotlin", "**/shared/App.kt")
-    privacy_mode = "standard"
-    if app_kt and app_kt.is_file():
-        if "autoInitDeferredKits: Boolean = false" in app_kt.read_text(encoding="utf-8"):
-            privacy_mode = "strict"
-
-    app_name_zh = ""
-    zh_xml = root / "core" / "ui" / "src" / "commonMain" / "composeResources" / "values-zh" / "strings.xml"
-    if zh_xml.is_file():
-        m = re.search(r'<string\s+name="app_name">([^<]*)</string>', zh_xml.read_text(encoding="utf-8"))
-        if m:
-            app_name_zh = m.group(1)
 
     fb_android = root / "androidApp" / "src" / ("dev" if locked_env == "dev" else "prod") / "google-services.json"
     fb_ios = root / "iosApp" / "Config" / "Firebase" / ("Dev" if locked_env == "dev" else "Prod") / "GoogleService-Info.plist"
@@ -767,7 +560,6 @@ def _inspect_workspace_state(root: Path, locked_env: str) -> dict[str, Any]:
         "enabledKits": enabled_kits,
         "debugPanelEnabled": debug_panel_enabled,
         "config": get_public_config(locked_env, root),
-        "extras": {"app_name_zh": app_name_zh, "privacy_mode": privacy_mode},
         "firebase": fb_state,
     }
 
@@ -875,8 +667,6 @@ class StudioRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(400, {"ok": False, "errors": val.errors, "warnings": val.warnings, "infos": val.infos})
                 return
             changes = apply_env_changes(env=env, root=root, config=val.normalized_config, extras=val.normalized_extras)
-            if val.normalized_extras.get("privacy_mode"):
-                _maybe_run_spotless(root)
             self._send_json(200, {"ok": True, "changes": changes, "warnings": val.warnings, "infos": val.infos, "state": _inspect_workspace_state(root, env)})
             return
 
@@ -915,28 +705,6 @@ class StudioRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._send_json(500, {"ok": False, "errors": [str(exc)]})
                 return
             changes.extend(apply_env_changes(env="dev", root=root, config=val.normalized_config, extras=val.normalized_extras))
-            if val.normalized_extras.get("privacy_mode"):
-                _maybe_run_spotless(root)
-            self._send_json(200, {"ok": True, "changes": changes, "warnings": val.warnings, "infos": val.infos, "state": _inspect_workspace_state(root, env)})
-            return
-
-        if self.path == "/api/import-bundle":
-            b64 = str(body.get("bundleBase64", "") or "")
-            try:
-                zip_bytes = base64.b64decode(b64, validate=True)
-            except Exception as exc:  # noqa: BLE001
-                self._send_json(400, {"ok": False, "errors": [f"压缩包解码失败：{exc}"]})
-                return
-            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tf:
-                tf.write(zip_bytes)
-                tmp_zip = Path(tf.name)
-            try:
-                val, changes = import_bundle(tmp_zip, expected_env=env, root=root)
-            finally:
-                tmp_zip.unlink(missing_ok=True)
-            if not val.is_valid:
-                self._send_json(400, {"ok": False, "errors": val.errors, "warnings": val.warnings, "infos": val.infos})
-                return
             self._send_json(200, {"ok": True, "changes": changes, "warnings": val.warnings, "infos": val.infos, "state": _inspect_workspace_state(root, env)})
             return
 
@@ -969,27 +737,8 @@ def _cmd_serve(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cmd_import(args: argparse.Namespace) -> int:
-    root = Path(args.root).resolve()
-    val, changes = import_bundle(Path(args.bundle), expected_env=args.env, root=root, dry_run=args.dry_run)
-    for info in val.infos:
-        print(f"  ℹ {info}")
-    for warn in val.warnings:
-        print(f"  ⚠ {warn}")
-    if not val.is_valid:
-        print("\n[阻断错误]")
-        for err in val.errors:
-            print(f"  ✘ {err}")
-        return 1
-    prefix = "[预演] " if args.dry_run else "✔ "
-    print(f"{prefix}配置包导入完成 (env={args.env})：")
-    for item in changes:
-        print(f"  - {item}")
-    return 0
-
-
 def main(argv: Iterable[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="KMP 双端单一真源配置台与离线包导入工具")
+    parser = argparse.ArgumentParser(description="KMP 双端单一真源本机配置台服务")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_serve = sub.add_parser("serve", help="启动本地 Web 配置界面（锁定单个环境）")
@@ -998,13 +747,6 @@ def main(argv: Iterable[str] | None = None) -> int:
     p_serve.add_argument("--no-open", action="store_true")
     p_serve.add_argument("--root", default=".")
     p_serve.set_defaults(func=_cmd_serve)
-
-    p_imp = sub.add_parser("import", help="导入离线导出的 dev/prod-config-bundle.zip")
-    p_imp.add_argument("bundle", help="zip 配置包路径")
-    p_imp.add_argument("--env", choices=("dev", "prod"), required=True)
-    p_imp.add_argument("--dry-run", action="store_true")
-    p_imp.add_argument("--root", default=".")
-    p_imp.set_defaults(func=_cmd_import)
 
     args = parser.parse_args(list(argv) if argv is not None else None)
     return args.func(args)

@@ -47,14 +47,10 @@ sequenceDiagram
 - **测试环境 (`dev`)**：[`config/dev.xcconfig`](../../config/dev.xcconfig)（Android Gradle 与 iOS Xcode Debug 共用直读）；
 - **正式环境 (`prod`)**：[`config/prod.xcconfig`](../../config/prod.xcconfig) 仅保留公开占位并在末尾 `#include? "prod.local.xcconfig"` 引入已被 [`.gitignore`](../../.gitignore) 忽略的本地 `config/prod.local.xcconfig`（研发/测试环境完全不可见，亦可通过 `PROD_*` 环境变量注入）。
 
-> **推荐操作方式（零转换 Web 可视化配置台）**：
+> **推荐操作方式（零转换本机 Web 配置台）**：
 > - 发版负责人或运营可在项目根目录启动锁定正式环境的本地网页直接填写并拖入 Firebase 凭证：
 >   ```bash
 >   ./scripts/config_studio.sh --env prod
->   ```
-> - 若填写人在无源码/无环境电脑上：直接双击打开 [`tools/config-studio/index.html`](../../tools/config-studio/index.html) 选择「正式环境 Prod」填表并拖入 Firebase 文件导出 `prod-config-bundle.zip`，再交由发版负责人一键校验落盘：
->   ```bash
->   ./scripts/config_studio.sh --import prod-config-bundle.zip --env prod
 >   ```
 > > 配置台严格遵守安全红线：**仅操作非签名参数与 Firebase 配置文件，全程不接触 Android `.jks` 签名密码或 GitHub Token**。
 

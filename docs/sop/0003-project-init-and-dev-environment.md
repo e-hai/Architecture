@@ -27,7 +27,7 @@
 
 ```mermaid
 flowchart TD
-    A["1. 配置 GitHub Packages 凭证\n(~/.gradle/gradle.properties 或环境变量)"] --> B["2A. 首次立项与 Dev 配置: ./scripts/config_studio.sh --env dev\n(支持离线导入 --import dev-config-bundle.zip 或 ./init_project.sh)"]
+    A["1. 配置 GitHub Packages 凭证\n(~/.gradle/gradle.properties 或环境变量)"] --> B["2A. 首次立项与 Dev 配置: ./scripts/config_studio.sh --env dev\n(或命令行运行 ./init_project.sh)"]
     B --> B2["2B. 上线前 Prod 配置导入: ./scripts/config_studio.sh --env prod\n(仅写入 gitignored 的 config/prod.local.xcconfig)"]
     B2 --> C["3. 激活本地质量门禁\n./scripts/check_quality.sh --install-hooks"]
     C --> D["4. 验证静态与单测基准\n./scripts/check_quality.sh --fast"]
@@ -53,26 +53,21 @@ export GITHUB_TOKEN="<你的_GitHub_PAT>"
 
 ### 步骤二：新项目一键立项初始化（仅新开独立项目时执行）
 
-#### 方式 0（推荐，适合跨角色协同）：零依赖 Web Config Studio（双端单一真源 + Dev/Prod 物理隔离）
-工程采用统一配置文件格式（[`config/dev.xcconfig`](../../config/dev.xcconfig) 与 [`config/prod.xcconfig`](../../config/prod.xcconfig)），由 Android Gradle 与 iOS Xcode 原生直读，**无需中间转换脚本**，同时提供零依赖双模式网页向导 [`tools/config-studio/index.html`](../../tools/config-studio/index.html)：
-1. **模式 A — 本地直写服务（适合研发/设计在开发机操作）**：启动 [`scripts/config_studio.sh`](../../scripts/config_studio.sh) 后自动在浏览器打开 `127.0.0.1` 配置向导，通过 `--env` 物理锁定目标环境：
-   - **首次立项与 Dev 配置**：执行 `./scripts/config_studio.sh --env dev`，可一站式完成项目重命名/Kit 裁剪、修改 [`config/dev.xcconfig`](../../config/dev.xcconfig) 及上传 Dev Firebase 配置；
+#### 方式 0（推荐，可视化本地直写）：零依赖 Web Config Studio（双端单一真源 + Dev/Prod 物理隔离）
+工程采用统一配置文件格式（[`config/dev.xcconfig`](../../config/dev.xcconfig) 与 [`config/prod.xcconfig`](../../config/prod.xcconfig)），由 Android Gradle 与 iOS Xcode 原生直读，**无需中间转换脚本**，同时提供本机启动的网页配置台（[`scripts/config_studio.sh`](../../scripts/config_studio.sh) + [`tools/config-studio/index.html`](../../tools/config-studio/index.html)）：
+1. **严格按 `--env` 启动本地直写服务**：执行以下命令后自动在浏览器打开 `127.0.0.1` 配置台并物理锁定目标环境：
+   - **首次立项与 Dev 配置**：执行 `./scripts/config_studio.sh --env dev`，可一站式完成项目重命名/Kit 裁剪、修改 [`config/dev.xcconfig`](../../config/dev.xcconfig) 及拖拽上传校验 Dev Firebase 配置；
    - **上线前 Prod 导入**：执行 `./scripts/config_studio.sh --env prod`，仅展示并写入被 `.gitignore` 忽略的 `config/prod.local.xcconfig` 与 Prod Firebase 配置，不触碰任何 Dev 文件或仓库模板；
-2. **模式 B — 无环境离线填报 + 一键导入（适合产品/运营在本机离线填写）**：
-   - 非技术人员无需安装 Python/Xcode/Gradle，直接双击打开 [`tools/config-studio/index.html`](../../tools/config-studio/index.html)；
-   - 填写参数并拖入 `google-services.json` / `GoogleService-Info.plist`（页面实时校验 `package_name` 与 `BUNDLE_ID` 是否匹配当前 `APP_ID`），点击导出 `<env>-config-bundle.zip` 交付研发执行一键导入：
 ```bash
-# --- 阶段 A：首次立项与 Dev 配置导入（Dev 环境隔离） ---
-./scripts/config_studio.sh --env dev                             # 打开本地直写页
-./scripts/config_studio.sh --import dev-config-bundle.zip --env dev  # 或直接导入离线包
+# --- 阶段 A：首次立项与 Dev 配置（Dev 环境隔离） ---
+./scripts/config_studio.sh --env dev
 
-# --- 阶段 B：正式发版导入（Prod 环境隔离，仅写入 prod.local.xcconfig） ---
-./scripts/config_studio.sh --env prod                            # 打开本地直写页
-./scripts/config_studio.sh --import prod-config-bundle.zip --env prod # 或直接导入离线包
+# --- 阶段 B：正式发版录入（Prod 环境隔离，仅写入 prod.local.xcconfig） ---
+./scripts/config_studio.sh --env prod
 ```
-3. **安全与隔离红线**：
-   - **Android 签名机密零暴露**：`ANDROID_STORE_FILE`、`ANDROID_STORE_PASSWORD`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD` 绝不出现在 Web 界面、接口返回或导出 ZIP 中，仍按 [SOP 0001](./0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 或 CI Secret 单独注入；
-   - **强制环境校验**：`--env` 与导出包 `meta.env` 不一致、在 Prod 环境填入 Google 测试广告 ID（`3940256099942544`）、Firebase 包名与 `APP_ID` 不匹配，或混淆 `~` / `/` 广告 ID 时会被立即拦截。
+2. **安全与隔离红线**：
+   - **Android 签名机密零暴露**：`ANDROID_STORE_FILE`、`ANDROID_STORE_PASSWORD`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD` 绝不出现在 Web 界面或接口返回中，仍按 [SOP 0001](./0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 或 CI Secret 单独注入；
+   - **强制环境校验**：跨环境请求被 HTTP 403 直接拦截；在 Prod 环境填入 Google 测试广告 ID（`3940256099942544`）、Firebase 包名与 `APP_ID` 不匹配，或混淆 `~` / `/` 广告 ID 时会被立即拦截。
 
 #### 方式 A / B：命令行交互或单行参数初始化
 查看 [`init_project.sh`](../../init_project.sh)，亦可使用交互式向导或单行非交互命令，同时支持 `--dry-run` 预演、`--exclude-kits` 裁剪与 `--no-debug` 移除调试台：
@@ -142,9 +137,9 @@ export GITHUB_TOKEN="<你的_GitHub_PAT>"
 - **原因**：工程之前已执行过初始化替换，脚本默认防重入拦截保护已改包名代码。
 - **解决方法**：确认确实要再次重构骨架时在命令行追加 `--force`；若仅需更新 Dev 测试配置或导入 Prod 正式配置，直接使用 `./scripts/config_studio.sh --env dev` / `--env prod` 修改参数即可，不会触动已有包结构。
 
-### Q4: `./scripts/config_studio.sh`（本地保存或 `--import` 导入）校验报错拦截怎么办？
+### Q4: `./scripts/config_studio.sh` 本地校验报错拦截怎么办？
 - **常见原因**：
-  1. **跨环境污染/误配**：如启动了 `--env dev` 却导入 `prod-config-bundle.zip`（或反之）、或企图在 Dev/Prod 中写入不属于该环境的字段；
+  1. **跨环境污染/误配**：如启动了 `--env dev` 却尝试传入 `env=prod` 请求、或企图在 Prod 环境触发表单初始化；
   2. **正式环境误填测试广告 ID**：在 Prod 配置中填入了 Google 官方测试广告 ID（含 `3940256099942544`；注意 Dev 环境允许填测试 ID），或混淆了 `ANDROID_ADMOB_APP_ID` / `IOS_ADMOB_APP_ID`（`~`）与广告位 ID（`/`）；
-  3. **Firebase 包名不匹配或签名红线触碰**：上传的 `google-services.json`（`package_name`）或 `GoogleService-Info.plist`（`BUNDLE_ID`）与当前填写的 `APP_ID` 不一致、未包含正确应用节点，或在非法的路径携带 `ANDROID_STORE_*` 签名密码/GitHub Token（`ghp_` / `github_pat_`）。
-- **解决方法**：确保 Dev 与 Prod 操作严格分离并按报错提示核对 `APP_ID`、广告 ID 与 Firebase 文件，修正后重新保存或导入即可。
+  3. **Firebase 包名不匹配或签名红线触碰**：上传的 `google-services.json`（`package_name`）或 `GoogleService-Info.plist`（`BUNDLE_ID`）与当前填写的 `APP_ID` 不一致、未包含正确应用节点，或在非法字段携带 `ANDROID_STORE_*` 签名密码/GitHub Token（`ghp_` / `github_pat_`）。
+- **解决方法**：确保 Dev 与 Prod 操作严格分离并按报错提示核对 `APP_ID`、广告 ID 与 Firebase 文件，修正后重新保存即可。
