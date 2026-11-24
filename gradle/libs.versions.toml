@@ -6,37 +6,37 @@ minSdk = "26"
 targetSdk = "36"
 
 # Gradle Plugins & Core Tooling
-androidGradlePlugin = "9.3.1"
-kotlin = "2.3.21"
-ksp = "2.3.8"
-spotless = "8.5.1"
+androidGradlePlugin = "9.5.2"
+kotlin = "2.4.21"
+ksp = "2.3.14"
+spotless = "8.12.0"
 detekt = "2.0.0-alpha.3"
 detektCompose = "0.6.8"
-googleServices = "4.4.4"
-composeMultiplatform = "1.9.3"
+googleServices = "4.6.0"
+composeMultiplatform = "1.12.2"
 
 # Kotlinx
 kotlinxCoroutines = "1.11.0"
-kotlinxSerialization = "1.11.0"
+kotlinxSerialization = "1.13.0"
 
 # Ktor
-ktor = "3.1.1"
+ktor = "3.6.1"
 
 # Database & Storage
-room = "2.8.4"
+room = "2.8.5"
 sqliteBundled = "2.5.0"
-datastore = "1.2.1"
+datastore = "1.3.0"
 
 # Dependency Injection (Koin)
-koin = "4.2.1"
+koin = "4.2.2"
 
 # AndroidX Lifecycle (KMP)
-androidxLifecycle = "2.9.0"
+androidxLifecycle = "2.11.0"
 
 # AndroidX Base (Android Host)
 androidxActivity = "1.10.1"
 androidxCore = "1.15.0"
-androidxWork = "2.8.1"
+androidxWork = "2.12.0"
 
 # e-hai Kits (Android GitHub Packages)
 analyticsKit = "1.0.1"
@@ -51,7 +51,7 @@ videoKit = "1.0.1"
 pagKit = "0.1.4"
 
 # Image Loading (Coil 3 KMP)
-coil = "3.1.0"
+coil = "3.6.3"
 
 # Testing
 turbine = "1.2.1"
