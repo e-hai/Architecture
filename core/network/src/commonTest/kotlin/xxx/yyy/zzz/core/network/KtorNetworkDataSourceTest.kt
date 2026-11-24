@@ -6,6 +6,7 @@ import io.ktor.client.engine.HttpClientEngineCapability
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.HttpTimeoutCapability
+import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.pluginOrNull
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
@@ -39,6 +40,14 @@ class KtorNetworkDataSourceTest {
         assertNull(normalizeBaseUrl("   "))
         assertEquals("https://api.example.com/", normalizeBaseUrl("https://api.example.com"))
         assertEquals("https://api.example.com/v1/", normalizeBaseUrl("  https://api.example.com/v1/ "))
+    }
+
+    @Test
+    fun testResolveHttpLogLevelFollowsEnableHttpLog() {
+        assertEquals(LogLevel.INFO, resolveHttpLogLevel(null))
+        assertEquals(LogLevel.NONE, resolveHttpLogLevel(AppConfig(isDebug = false)))
+        assertEquals(LogLevel.NONE, resolveHttpLogLevel(AppConfig(isDebug = true, enableHttpLog = false)))
+        assertEquals(LogLevel.INFO, resolveHttpLogLevel(AppConfig(isDebug = false, enableHttpLog = true)))
     }
 
     @Test

@@ -46,6 +46,7 @@ class MyApplication : Application() {
             AppConfig(
                 env = env,
                 isDebug = isDebug,
+                enableHttpLog = BuildConfig.ENABLE_HTTP_LOG,
                 baseUrl = BuildConfig.BASE_URL,
                 versionName = BuildConfig.VERSION_NAME,
                 versionCode = BuildConfig.VERSION_CODE,

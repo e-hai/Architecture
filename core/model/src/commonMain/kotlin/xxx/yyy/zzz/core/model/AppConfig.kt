@@ -14,6 +14,7 @@ enum class AppEnvironment {
  *
  * @property env 运行环境（开发/生产）
  * @property isDebug 是否为调试模式
+ * @property enableHttpLog 是否开启 HTTP 请求日志
  * @property baseUrl 基础网络 API 地址
  * @property versionName 应用版本名
  * @property versionCode 应用构建编号
@@ -21,6 +22,7 @@ enum class AppEnvironment {
 data class AppConfig(
     val env: AppEnvironment = AppEnvironment.DEV,
     val isDebug: Boolean = true,
+    val enableHttpLog: Boolean = isDebug,
     val baseUrl: String = if (env == AppEnvironment.DEV) "https://dev-api.example.com" else "https://api.example.com",
     val versionName: String = "1.0.0",
     val versionCode: Int = 1,

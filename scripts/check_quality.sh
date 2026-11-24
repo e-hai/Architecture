@@ -20,7 +20,7 @@ MODE="${1:---fast}"
 
 print_usage() {
     echo "用法: ./scripts/check_quality.sh [--fast | --full | --fix | --install-hooks]"
-    echo "  --fast           默认模式：运行 ShellCheck + 架构红线校验 + Spotless + Detekt + SwiftLint"
+    echo "  --fast           默认模式：运行 ShellCheck + Python/JS 脚本自检 + 架构红线校验 + Spotless + Detekt + SwiftLint"
     echo "  --full           完整模式：在 --fast 基础上追加全平台单测、Android Debug/Release Lint & APK 与 iOS Simulator 构建测试"
     echo "  --fix            自动修复 Kotlin/Gradle (spotlessApply) 与 Swift (swiftlint --fix) 格式问题"
     echo "  --install-hooks  一键启用仓库内置 .githooks/pre-commit 提交前静态拦截"
@@ -40,15 +40,33 @@ run_fast_checks() {
     echo -e "${BLUE}    [Quality Gate] Running Fast Static Checks (--fast)    ${NC}"
     echo -e "${BLUE}====================================================${NC}"
 
-    echo -e "${YELLOW}[1/3] L1 ShellCheck 脚本静态检查...${NC}"
+    echo -e "${YELLOW}[1/4] L1 ShellCheck 脚本静态检查...${NC}"
     require_cmd shellcheck "brew install shellcheck"
     shellcheck ./*.sh scripts/*.sh .githooks/pre-commit
 
-    echo -e "${YELLOW}[2/3] L1 + L3 + L5 Gradle 架构红线、Spotless 与 Detekt 检查...${NC}"
+    echo -e "${YELLOW}[2/4] L1 + L2 Python 脚本单测与 Config Studio JS 语法校验...${NC}"
+    require_cmd python3 "Xcode Command Line Tools / brew install python"
+    python3 -B -m unittest scripts/test_config_studio.py scripts/test_copy_ios_firebase_plist.py
+    if command -v node >/dev/null 2>&1 && [ -f tools/config-studio/index.html ]; then
+        python3 - <<'PY'
+import pathlib, re, subprocess, tempfile
+html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8")
+match = re.search(r'<script type="module">(.*)</script>', html, flags=re.S)
+assert match, "tools/config-studio/index.html missing <script type=\"module\">"
+with tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8") as tf:
+    tf.write(match.group(1))
+    tf.flush()
+    res = subprocess.run(["node", "--check", tf.name], capture_output=True, text=True)
+    if res.returncode != 0:
+        raise SystemExit(res.stderr)
+PY
+    fi
+
+    echo -e "${YELLOW}[3/4] L1 + L3 + L5 Gradle 架构红线、Spotless 与 Detekt 检查...${NC}"
     chmod +x gradlew
     ./gradlew verifyArchitecture spotlessCheck detekt
 
-    echo -e "${YELLOW}[3/3] L1 + L3 iOS SwiftLint 严格检查...${NC}"
+    echo -e "${YELLOW}[4/4] L1 + L3 iOS SwiftLint 严格检查...${NC}"
     if [ "$(uname -s)" = "Darwin" ]; then
         require_cmd swiftlint "brew install swiftlint"
         (cd iosApp && swiftlint lint --config .swiftlint.yml --strict)

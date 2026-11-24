@@ -28,6 +28,11 @@ internal fun normalizeBaseUrl(rawUrl: String?): String? {
 }
 
 /**
+ * 依据 [AppConfig.enableHttpLog] 解析 Ktor HTTP 日志级别（默认回退为调试模式开启、发布模式关闭）。
+ */
+internal fun resolveHttpLogLevel(appConfig: AppConfig?): LogLevel = if (appConfig?.enableHttpLog == false) LogLevel.NONE else LogLevel.INFO
+
+/**
  * 跨平台平台引擎抽象，由 androidMain (OkHttp) 与 iosMain (Darwin) 具体提供。
  */
 expect fun createPlatformHttpClient(): HttpClient
@@ -63,6 +68,6 @@ fun configureHttpClient(
             )
         }
         install(Logging) {
-            level = if (appConfig?.isDebug == false) LogLevel.NONE else LogLevel.INFO
+            level = resolveHttpLogLevel(appConfig)
         }
     }

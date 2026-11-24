@@ -3,6 +3,7 @@ package xxx.yyy.zzz.core.model
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -18,6 +19,10 @@ class CoreModelTest {
         assertEquals("https://dev-api.example.com", devConfig.baseUrl)
         assertEquals("https://api.example.com", prodConfig.baseUrl)
         assertTrue(devConfig.isDebug)
+        assertTrue(devConfig.enableHttpLog)
+        assertFalse(AppConfig(isDebug = false).enableHttpLog)
+        assertFalse(AppConfig(isDebug = true, enableHttpLog = false).enableHttpLog)
+        assertTrue(AppConfig(isDebug = false, enableHttpLog = true).enableHttpLog)
         assertEquals("1.0.0", prodConfig.versionName)
         assertEquals(1, prodConfig.versionCode)
     }

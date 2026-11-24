@@ -73,6 +73,10 @@ public struct iOSApp: App {
         let analyticsDebug = analyticsDebugRaw.isEmpty
             ? isDebug
             : (analyticsDebugRaw.caseInsensitiveCompare("YES") == .orderedSame || analyticsDebugRaw == "true")
+        let httpLogRaw = info?["ENABLE_HTTP_LOG"] as? String ?? ""
+        let enableHttpLog = httpLogRaw.isEmpty
+            ? isDebug
+            : (httpLogRaw.caseInsensitiveCompare("YES") == .orderedSame || httpLogRaw == "true")
         let fetchIntervalRaw = info?["REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS"] as? String ?? ""
         let remoteConfigMinFetchInterval = Double(fetchIntervalRaw)
 
@@ -98,6 +102,7 @@ public struct iOSApp: App {
         let config = AppConfig(
             env: appEnv,
             isDebug: isDebug,
+            enableHttpLog: enableHttpLog,
             baseUrl: baseUrl,
             versionName: info?["CFBundleShortVersionString"] as? String ?? "1.0.0",
             versionCode: Int32(info?["CFBundleVersion"] as? String ?? "1") ?? 1

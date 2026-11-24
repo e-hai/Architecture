@@ -40,6 +40,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ENABLE_HTTP_LOG</key>
+	<string>$(ENABLE_HTTP_LOG)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(IOS_ADMOB_APP_ID)</string>
 	<key>NSUserTrackingUsageDescription</key>

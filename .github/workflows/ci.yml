@@ -10,9 +10,109 @@ on:
       - kmp
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  kmp-build-and-test:
-    name: Code Quality, Unit Tests & Multiplatform Build
+  fast-static-checks:
+    name: Fast Static Checks (Ubuntu)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew *.sh scripts/*.sh
+
+      - name: Run ShellCheck on Automation Scripts
+        run: |
+          if ! command -v shellcheck &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y shellcheck
+          fi
+          shellcheck *.sh scripts/*.sh .githooks/pre-commit
+
+      - name: Run Python Script Unit Tests & Config Studio JS Syntax Check
+        run: |
+          python3 -B -m unittest -v scripts/test_config_studio.py scripts/test_copy_ios_firebase_plist.py
+          if command -v node &> /dev/null && [ -f tools/config-studio/index.html ]; then
+            python3 -c 'import pathlib, re, subprocess, tempfile; html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8"); m = re.search(r"<script type=\"module\">(.*)</script>", html, flags=re.S); assert m; tf = tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8"); tf.write(m.group(1)); tf.flush(); subprocess.run(["node", "--check", tf.name], check=True); tf.close()'
+          fi
+
+      - name: Run Architecture Redline Verification
+        run: ./gradlew verifyArchitecture
+
+      - name: Run Spotless Code Style Check
+        run: ./gradlew spotlessCheck
+
+      - name: Run Detekt & Compose Rules Static Analysis
+        run: ./gradlew detekt
+
+  android-build-and-test:
+    name: Android Unit Tests, Lint & Prod R8 (Ubuntu)
+    needs: fast-static-checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make scripts and Gradle Wrapper executable
+        run: chmod +x gradlew *.sh scripts/*.sh
+
+      - name: Run KMP & Android Host Unit Tests (Fake over Mock)
+        run: |
+          ./gradlew testAndroidHostTest
+          ./gradlew :shared:testAndroidHostTest -PenableDebugPanel=false
+
+      - name: Build Android Host Debug APK & Run Dev Lint
+        run: ./gradlew :androidApp:lintDevDebug :androidApp:assembleDevDebug
+
+      - name: Build Android Prod Release APK (Temporary CI Keystore, R8 + Debug Stripped)
+        run: |
+          CI_KEYSTORE="${RUNNER_TEMP:-/tmp}/ci-release.jks"
+          ./scripts/gen_keystore.sh \
+            --type release \
+            --output "$CI_KEYSTORE" \
+            --alias ci_release_key \
+            --store-pass ci_keystore_pass_123 \
+            --key-pass ci_keystore_pass_123 \
+            --force
+          trap 'rm -f "$CI_KEYSTORE"' EXIT
+          PROD_STORE_FILE="$CI_KEYSTORE" \
+          PROD_STORE_PASSWORD=ci_keystore_pass_123 \
+          PROD_KEY_ALIAS=ci_release_key \
+          PROD_KEY_PASSWORD=ci_keystore_pass_123 \
+          ./gradlew :androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false
+
+  ios-build-and-test:
+    name: iOS Unit Tests, SwiftLint & Prod Build (macOS)
+    needs: fast-static-checks
     runs-on: macos-14
     permissions:
       contents: read
@@ -32,52 +132,10 @@ jobs:
           cache: 'gradle'
 
       - name: Make scripts and Gradle Wrapper executable
-        run: chmod +x gradlew scripts/*.sh
+        run: chmod +x gradlew *.sh scripts/*.sh
 
-      - name: Run ShellCheck on Automation Scripts
-        run: |
-          if ! command -v shellcheck &> /dev/null; then
-            brew install shellcheck
-          fi
-          shellcheck *.sh scripts/*.sh .githooks/pre-commit
-
-      - name: Run Architecture Redline Verification
-        run: ./gradlew verifyArchitecture
-
-      - name: Run Spotless Code Style Check
-        run: ./gradlew spotlessCheck
-
-      - name: Run Detekt & Compose Rules Static Analysis
-        run: ./gradlew detekt
-
-      - name: Run KMP Unit Tests (Fake over Mock)
-        run: ./gradlew allTests
-
-      - name: Verify Shared KMP Tests with Debug Panel Disabled
-        run: ./gradlew :shared:testAndroidHostTest -PenableDebugPanel=false
-
-      - name: Build Android Host Debug APK
-        run: ./gradlew :androidApp:assembleDevDebug
-
-      - name: Run Android Lint Check
-        run: ./gradlew :androidApp:lintDevDebug
-
-      - name: Build Android Prod Release APK (Temporary CI Keystore, R8 + Debug Stripped)
-        run: |
-          CI_KEYSTORE="${RUNNER_TEMP:-/tmp}/ci-release.jks"
-          ./scripts/gen_keystore.sh \
-            --type release \
-            --output "$CI_KEYSTORE" \
-            --alias ci_release_key \
-            --store-pass ci_keystore_pass_123 \
-            --key-pass ci_keystore_pass_123 \
-            --force
-          trap 'rm -f "$CI_KEYSTORE"' EXIT
-          PROD_STORE_FILE="$CI_KEYSTORE" \
-          PROD_STORE_PASSWORD=ci_keystore_pass_123 \
-          PROD_KEY_ALIAS=ci_release_key \
-          PROD_KEY_PASSWORD=ci_keystore_pass_123 \
-          ./gradlew :androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false
+      - name: Run KMP iOS Simulator Unit Tests
+        run: ./gradlew iosSimulatorArm64Test
 
       - name: Run SwiftLint, Generate Xcode Project, Run iOS Simulator Tests & Build Prod
         run: |

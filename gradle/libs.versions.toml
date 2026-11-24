@@ -3,7 +3,7 @@
 compileSdk = "37"
 compileSdkMinor = "1"
 minSdk = "26"
-targetSdk = "35"
+targetSdk = "36"
 
 # Gradle Plugins & Core Tooling
 androidGradlePlugin = "9.3.1"
