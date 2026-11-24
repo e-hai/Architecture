@@ -19,6 +19,7 @@ import io.ktor.http.headersOf
 import io.ktor.util.date.GMTDate
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
 import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.model.AppEnvironment
@@ -103,6 +104,68 @@ class KtorNetworkDataSourceTest {
                 client.close()
             }
         }
+
+    @Test
+    fun testNonSuccessHttpStatusReturnsNetworkResultError() =
+        runTest {
+            val fakeEngine =
+                FakeHttpClientEngine { request ->
+                    respondJson(
+                        request = request,
+                        body = """{"error":"Unauthorized"}""",
+                        status = HttpStatusCode.Unauthorized,
+                    )
+                }
+            val client = configureHttpClient(HttpClient(fakeEngine), AppConfig(baseUrl = "https://api.example.com"))
+            try {
+                val dataSource = KtorNetworkDataSource(client, endpointPath = "dummies")
+                val result = dataSource.fetchDummyData()
+
+                assertTrue(result is NetworkResult.Error, "Expected Error for HTTP 401 but got $result")
+                assertTrue(
+                    result.message.contains("401"),
+                    "Expected status code 401 in error message, got: ${result.message}",
+                )
+            } finally {
+                client.close()
+            }
+        }
+
+    @Test
+    fun testDefaultHeadersProviderInjectsDynamicHeadersPerRequest() =
+        runTest {
+            var token = "token-v1"
+            val fakeEngine =
+                FakeHttpClientEngine { request ->
+                    respondJson(
+                        request = request,
+                        body = """[]""",
+                    )
+                }
+            val client =
+                configureHttpClient(
+                    client = HttpClient(fakeEngine),
+                    appConfig = AppConfig(baseUrl = "https://api.example.com"),
+                    defaultHeadersProvider = {
+                        mapOf(
+                            "Authorization" to "Bearer $token",
+                            "X-App-Client" to "kmp-scaffold",
+                        )
+                    },
+                )
+            try {
+                val dataSource = KtorNetworkDataSource(client)
+                dataSource.fetchDummyData()
+                assertEquals("Bearer token-v1", fakeEngine.lastRequestHeaders?.get("Authorization"))
+                assertEquals("kmp-scaffold", fakeEngine.lastRequestHeaders?.get("X-App-Client"))
+
+                token = "token-v2"
+                dataSource.fetchDummyData()
+                assertEquals("Bearer token-v2", fakeEngine.lastRequestHeaders?.get("Authorization"))
+            } finally {
+                client.close()
+            }
+        }
 }
 
 private class FakeHttpClientEngine(
@@ -111,10 +174,12 @@ private class FakeHttpClientEngine(
     override val config: HttpClientEngineConfig = HttpClientEngineConfig()
     override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability)
     var lastRequestUrl: String? = null
+    var lastRequestHeaders: Headers? = null
 
     @InternalAPI
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         lastRequestUrl = data.url.toString()
+        lastRequestHeaders = data.headers
         return handler(data)
     }
 
@@ -123,13 +188,16 @@ private class FakeHttpClientEngine(
         body: String,
         status: HttpStatusCode = HttpStatusCode.OK,
         headers: Headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-    ): HttpResponseData =
-        HttpResponseData(
+    ): HttpResponseData {
+        // 标记响应生命周期 Job 已完成，避免测试中 HttpTimeout/client.close() 空等 30s 请求超时
+        val responseJob = Job(request.executionContext[Job]).apply { complete() }
+        return HttpResponseData(
             statusCode = status,
             requestTime = GMTDate(),
             headers = headers,
             version = HttpProtocolVersion.HTTP_1_1,
             body = ByteReadChannel(body.encodeToByteArray()),
-            callContext = request.executionContext as CoroutineContext,
+            callContext = (request.executionContext as CoroutineContext) + responseJob,
         )
+    }
 }

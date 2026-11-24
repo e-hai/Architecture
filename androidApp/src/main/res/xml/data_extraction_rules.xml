@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ 数据备份与设备迁移排除规则；若后续新增敏感 Token 的 DataStore 文件，请在两处一并 exclude -->
 <data-extraction-rules>
     <cloud-backup>
         <include domain="sharedpref" path="." />
         <exclude domain="sharedpref" path="AppsFlyerAttrs.xml" />
     </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="." />
+        <exclude domain="sharedpref" path="AppsFlyerAttrs.xml" />
+    </device-transfer>
 </data-extraction-rules>

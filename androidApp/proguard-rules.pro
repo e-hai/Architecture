@@ -2,12 +2,22 @@
 # Android App ProGuard / R8 Rules for Kotlin Multiplatform
 # ==============================================================================
 
-# 1. 业务与基础模型保活
--keep class xxx.yyy.zzz.** { *; }
+# 1. 业务关键入口与反射注解精准保活（放开业务包正常混淆与裁剪）
+-keep @androidx.annotation.Keep class * { *; }
+-keepclassmembers class * {
+    @androidx.annotation.Keep *;
+}
+-keep interface xxx.yyy.zzz.core.navigation.NavKey { *; }
+-keep class * implements xxx.yyy.zzz.core.navigation.NavKey { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep class * implements androidx.room.RoomDatabaseConstructor { *; }
 
 # 2. Kotlinx Serialization
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
+-keep @kotlinx.serialization.Serializable class * { *; }
 -keepclassmembers class * {
     *** Companion;
 }

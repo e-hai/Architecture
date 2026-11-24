@@ -6,6 +6,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import xxx.yyy.zzz.core.model.AppConfig
@@ -38,7 +39,7 @@ internal fun resolveHttpLogLevel(appConfig: AppConfig?): LogLevel = if (appConfi
 expect fun createPlatformHttpClient(): HttpClient
 
 /**
- * 配置通用的 Ktor HTTP 客户端（基础域名绑定、超时治理、JSON 序列化、按环境动态配置日志级别）。
+ * 配置通用的 Ktor HTTP 客户端（基础域名绑定、非 2xx 异常校验、超时治理、动态默认 Header 钩子、JSON 序列化、按环境动态配置日志级别）。
  */
 fun configureHttpClient(
     client: HttpClient,
@@ -46,11 +47,19 @@ fun configureHttpClient(
     requestTimeoutMillis: Long = DEFAULT_REQUEST_TIMEOUT_MS,
     connectTimeoutMillis: Long = DEFAULT_CONNECT_TIMEOUT_MS,
     socketTimeoutMillis: Long = DEFAULT_SOCKET_TIMEOUT_MS,
+    defaultHeadersProvider: () -> Map<String, String> = { emptyMap() },
 ): HttpClient =
     client.config {
-        normalizeBaseUrl(appConfig?.baseUrl)?.let { baseUrl ->
-            install(DefaultRequest) {
+        expectSuccess = true
+        val normalizedBaseUrl = normalizeBaseUrl(appConfig?.baseUrl)
+        install(DefaultRequest) {
+            normalizedBaseUrl?.let { baseUrl ->
                 url(baseUrl)
+            }
+            defaultHeadersProvider().forEach { (key, value) ->
+                if (key.isNotBlank()) {
+                    header(key, value)
+                }
             }
         }
         install(HttpTimeout) {
