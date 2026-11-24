@@ -25,7 +25,7 @@
 
 ```mermaid
 flowchart TD
-    V["1. 核对版本号与 Prod 配置\n(dev.xcconfig / prod.local.xcconfig)"] --> Q["2. 封板全量质量门禁\n./scripts/check_quality.sh --full"]
+    V["1. 核对版本号与 Prod 配置\n(dev.xcconfig / prod.local.xcconfig)"] --> Q["2. 封板全量质量门禁\n./kmp check --full"]
     Q --> A["3. Android 正式产包\n:androidApp:bundleProdRelease -PenableDebugPanel=false"]
     Q --> I["4. iOS 正式归档\nxcodegen -> iosApp-Prod Archive -> Privacy Report"]
     A --> S["5. 产前合规终检与归档\n(无 Debug 入口 / R8 mapping.txt / dSYM)"]
@@ -38,7 +38,7 @@ flowchart TD
 ## 4. 分步实操指南 (Step-by-Step Instructions)
 
 ### 步骤一：同步双端版本号与 Prod 环境配置
-双端已收敛为单一真源配置，可直接通过 `./scripts/config_studio.sh --env prod` 或编辑对应 `.xcconfig` 同步更新：
+双端已收敛为单一真源配置，可直接通过 `./kmp studio prod` 或编辑对应 `.xcconfig` 同步更新：
 1. **测试基准版本号**（[`config/dev.xcconfig`](../../config/dev.xcconfig)）与**正式发版版本号**（本地未入库的 `config/prod.local.xcconfig`，未覆写时回退 [`config/prod.xcconfig`](../../config/prod.xcconfig)）：
    ```xcconfig
    APP_ID = com.acme.yourapp
@@ -50,12 +50,12 @@ flowchart TD
 
 ### 步骤二：执行封板全量质量门禁 (`--full`)
 ```bash
-./scripts/check_quality.sh --full
+./kmp check --full
 ```
 该命令会完整验证：`ShellCheck`、`verifyArchitecture`、`Spotless`、`Detekt`、`allTests`（JVM + iOS Simulator）、`:shared:testAndroidHostTest -PenableDebugPanel=false`、`lintDevDebug`、`lintProdRelease`、临时密钥 `assembleProdRelease` R8 构建、`SwiftLint --strict` 与 `iosApp-Dev` / `iosApp-Prod` 编译测试。
 
 ### 步骤三：打包 Android Google Play 正式包 (`.aab`) 与 R8 映射归档
-1. 确保本地已通过 `./scripts/gen_keystore.sh --type release --write-prod-config` 在 `config/prod.local.xcconfig` 写入真实 `ANDROID_STORE_FILE` / `ANDROID_STORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`（或通过 CI Secrets 注入 `PROD_STORE_*` / `PROD_ANDROID_STORE_*`）。
+1. 确保本地已通过 `./kmp keystore --type release --write-prod-config` 在 `config/prod.local.xcconfig` 写入真实 `ANDROID_STORE_FILE` / `ANDROID_STORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`（或通过 CI Secrets 注入 `PROD_STORE_*` / `PROD_ANDROID_STORE_*`）。
    > [`androidApp/build.gradle.kts`](../../androidApp/build.gradle.kts) 内建强制防误签拦截：若未提供有效 `prod` 签名文件执行 `ProdRelease` 打包任务将直接阻断报错，严禁测试证书流向线上。
 2. 构建 Google Play 上架所需的 AAB（显式剥离 Debug 面板与调试资源）：
    ```bash
@@ -87,7 +87,7 @@ flowchart TD
      2. `android-build-and-test`（`ubuntu-latest`，依赖 `fast-static-checks`）：执行 `testAndroidHostTest`、`:shared:testAndroidHostTest -PenableDebugPanel=false`、`lintDevDebug`/`assembleDevDebug` 以及临时 Keystore 校验 `:androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false`；
      3. `ios-build-and-test`（`macos-14`，依赖 `fast-static-checks`）：执行 `iosSimulatorArm64Test`、`swiftlint --strict`、`xcodegen generate`、`xcodebuild` `iosApp-Dev` 单测与 `iosApp-Prod` 构建验证。
    - **基础读取权限**：所有 Job 均声明 `packages: read` 与 `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`，用于拉取 GitHub Packages 中的 `e-hai/*` Kit 制品；
-   - **CI 正式签名验证**：CI 使用 `scripts/gen_keystore.sh` 生成一次性临时 Keystore 校验 Prod R8 可打包性，不会外泄真实生产证书。
+   - **CI 正式签名验证**：CI 使用 `scripts/internal/gen_keystore.sh`（经 `./kmp keystore`）生成一次性临时 Keystore 校验 Prod R8 可打包性，不会外泄真实生产证书。
 2. **Release CD 发版工作流模板（[`.github/workflows/release.yml`](../../.github/workflows/release.yml)）**：
    - **触发条件**：推送 `v*` 标签自动触发正式构建，或通过 `workflow_dispatch`（默认 `dry_run: true`）进行无 Secrets 演练验证（演练模式下若未配置正式签名，自动回退至临时 Keystore 生成 `.aab` + `mapping.txt` 验证链路）；
    - **产物流水线**：`release-gate` 通过后，`android-release-bundle` 输出 `:androidApp:bundleProdRelease -PenableDebugPanel=false` 的 `.aab` 与 R8 `mapping.txt`（保留 90 天，含可选 Google Play Internal Track 上传注释模板）；`ios-release-verify` 校验 SwiftLint 与 `iosApp-Prod` 构建（含可选签名 Archive / App Store Connect 上传注释模板）。

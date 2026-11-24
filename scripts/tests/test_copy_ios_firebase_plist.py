@@ -19,8 +19,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPTS_DIR = Path(__file__).resolve().parent
-SCRIPT_PATH = SCRIPTS_DIR / "copy_ios_firebase_plist.sh"
+TESTS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = TESTS_DIR.parent.parent
+SCRIPT_PATH = REPO_ROOT / "scripts" / "hooks" / "copy_ios_firebase_plist.sh"
 
 
 def _write_plist(path: Path, bundle_id: str | None, google_app_id: str) -> None:

@@ -50,7 +50,7 @@ sequenceDiagram
 > **推荐操作方式（零转换本机 Web 配置台）**：
 > - 发版负责人或运营可在项目根目录启动锁定正式环境的本地网页直接填写并拖入 Firebase 凭证：
 >   ```bash
->   ./scripts/config_studio.sh --env prod
+>   ./kmp studio prod
 >   ```
 > > 配置台严格遵守安全红线：**仅操作非签名参数与 Firebase 配置文件，全程不接触 Android `.jks` 签名密码或 GitHub Token**。
 
@@ -69,7 +69,7 @@ sequenceDiagram
 2. **iOS**（与 Android 对等物理隔离，详见 [`iosApp/Config/Firebase/README.md`](../../iosApp/Config/Firebase/README.md)）：
    - 测试环境放入：`iosApp/Config/Firebase/Dev/GoogleService-Info.plist`（供 `iosApp-Dev` / `Debug`）；
    - 正式环境放入：`iosApp/Config/Firebase/Prod/GoogleService-Info.plist`（供 `iosApp-Prod` / `Release`）；
-   - **免重跑 XcodeGen + 防串环境拦截**：[`iosApp/project.yml`](../../iosApp/project.yml) 已通过 `postBuildScripts` 挂载 [`scripts/copy_ios_firebase_plist.sh`](../../scripts/copy_ios_firebase_plist.sh)，每次构建自动按 `CONFIGURATION` 复制唯一匹配的 plist 至 `.app` 根目录并清理旧残留（若 `.app` 内 plist 状态变化会自动触发重签），**若 plist 的 `BUNDLE_ID` 与当前包名不匹配或遗留在 `iosApp/Sources/` 下会立即报错阻断构建**；
+   - **免重跑 XcodeGen + 防串环境拦截**：[`iosApp/project.yml`](../../iosApp/project.yml) 已通过 `postBuildScripts` 挂载 [`scripts/hooks/copy_ios_firebase_plist.sh`](../../scripts/hooks/copy_ios_firebase_plist.sh)，每次构建自动按 `CONFIGURATION` 复制唯一匹配的 plist 至 `.app` 根目录并清理旧残留（若 `.app` 内 plist 状态变化会自动触发重签），**若 plist 的 `BUNDLE_ID` 与当前包名不匹配或遗留在 `iosApp/Sources/` 下会立即报错阻断构建**；
    - [`NativeKitBootstrap.swift`](../../iosApp/Sources/Bridge/NativeKitBootstrap.swift) 会在 Stage 2 自动探测并调用 `FirebaseApp.configure()`。
 
 ### 步骤三：海外出海合规配置（ATT / PrivacyInfo / SKAdNetwork / GDPR）
@@ -154,7 +154,7 @@ sequenceDiagram
 ## 6. 常见踩坑与排障 (Troubleshooting / FAQ)
 
 ### Q1: 缺失 `google-services.json` / `GoogleService-Info.plist`，或提示 `BUNDLE_ID` 不匹配怎么办？
-- **未放置配置文件时**：不会导致编译失败。Android 端按文件存在与否动态挂载 `google-services` 插件；iOS 端 [`scripts/copy_ios_firebase_plist.sh`](../../scripts/copy_ios_firebase_plist.sh) 会清理产物残留并跳过复制，[`NativeKitBootstrap.swift`](../../iosApp/Sources/Bridge/NativeKitBootstrap.swift) 自动安全降级；增删 iOS `Config/Firebase/{Dev,Prod}/GoogleService-Info.plist` 后**无需**再执行 `xcodegen generate`。
+- **未放置配置文件时**：不会导致编译失败。Android 端按文件存在与否动态挂载 `google-services` 插件；iOS 端 [`scripts/hooks/copy_ios_firebase_plist.sh`](../../scripts/hooks/copy_ios_firebase_plist.sh) 会清理产物残留并跳过复制，[`NativeKitBootstrap.swift`](../../iosApp/Sources/Bridge/NativeKitBootstrap.swift) 自动安全降级；增删 iOS `Config/Firebase/{Dev,Prod}/GoogleService-Info.plist` 后**无需**再执行 `xcodegen generate`。
 - **提示 `BUNDLE_ID` 不匹配或误放 `iosApp/Sources/` 时**：这是构建期防串环境安全拦截，请确认 `Dev/` 下是测试包 `BUNDLE_ID`、`Prod/` 下是正式包 `BUNDLE_ID`，并删除误放于 `iosApp/Sources/` 下的旧 `GoogleService-Info.plist`。
 
 ### Q2: 为什么 iOS 模拟器中无法拿到正式 APNs Push Token 或内购弹窗报错？

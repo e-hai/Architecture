@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# KMP 跨平台脚手架统一 CLI 入口
+# 用法: ./kmp <command> [args...]
+# ==============================================================================
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
+
+INTERNAL_DIR="${REPO_ROOT}/scripts/internal"
+
+print_main_usage() {
+    cat <<'EOF'
+用法: ./kmp <command> [args...]
+
+可用命令:
+  studio [--env <dev|prod> | dev | prod] [--port <端口>] [--no-open]
+      启动 127.0.0.1 可视化配置台，直写 config/*.xcconfig 与双端 Firebase 配置
+  init [选项]
+      非交互或交互式完成新项目立项（包名、App 名称、插件前缀与模块裁剪）
+  feature <add|remove> <name> [--with-data | --force]
+      新增或彻底卸载双端业务特性模块（api + impl + 路由 + Koin DI）
+  kit <list|remove> [kit_name] [--force]
+      检视当前启用的基础设施与商业化 Kit，或全链路安全裁剪
+  check [--fast | --full | --fix | --install-hooks]
+      运行本地代码质量门禁（ShellCheck / Python 单测 / 架构红线 / Spotless / Detekt / SwiftLint）
+  keystore [选项]
+      生成 Android 正式/测试 Keystore 签名库并提取 SHA-1 / SHA-256 指纹
+
+提示: 运行 `./kmp <command> --help` 查看各子命令详细参数。
+EOF
+}
+
+print_studio_usage() {
+    cat <<'EOF'
+用法:
+  ./kmp studio --env <dev|prod> [--port <端口>] [--no-open]
+  ./kmp studio <dev|prod> [--port <端口>] [--no-open]
+
+作用:
+  启动 127.0.0.1 可视化配置台并物理锁定当前环境，校验并直写双端单一真源 config/*.xcconfig。
+
+选项:
+  --env <dev|prod>           必填（或首参简写 dev|prod），显式锁定操作环境
+  --port <端口>              本地 HTTP 服务端口（默认 8765；传 0 自动分配可用端口）
+  --no-open                  启动服务后不自动唤起默认浏览器
+  -h, --help                 显示此帮助信息
+EOF
+}
+
+cmd_studio() {
+    local env_lock=""
+    local port="8765"
+    local no_open=false
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            dev|prod)
+                if [[ -n "$env_lock" && "$env_lock" != "$1" ]]; then
+                    echo "[错误] --env 与位置参数冲突：$env_lock vs $1" >&2
+                    exit 1
+                fi
+                env_lock="$1"
+                shift
+                ;;
+            --env)
+                if [[ $# -lt 2 ]] || [[ -z "${2:-}" ]]; then
+                    echo "[错误] --env 需要 dev 或 prod 参数" >&2
+                    exit 1
+                fi
+                env_lock="$2"
+                shift 2
+                ;;
+            --port)
+                if [[ $# -lt 2 ]] || [[ -z "${2:-}" ]]; then
+                    echo "[错误] --port 需要传入端口号" >&2
+                    exit 1
+                fi
+                port="$2"
+                shift 2
+                ;;
+            --no-open)
+                no_open=true
+                shift
+                ;;
+            -h|--help)
+                print_studio_usage
+                exit 0
+                ;;
+            *)
+                echo "[错误] 未知参数：$1" >&2
+                print_studio_usage >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ "$env_lock" != "dev" && "$env_lock" != "prod" ]]; then
+        echo "[错误] 必须通过 --env dev|prod 或 ./kmp studio dev|prod 显式锁定操作环境！" >&2
+        print_studio_usage >&2
+        exit 1
+    fi
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "[错误] 未检测到 python3（macOS 默认自带，请检查 PATH）。" >&2
+        exit 1
+    fi
+
+    local cmd=(python3 "${INTERNAL_DIR}/config_studio.py" serve --env "$env_lock" --port "$port" --root "$REPO_ROOT")
+    if [[ "$no_open" == true ]]; then
+        cmd+=(--no-open)
+    fi
+    exec "${cmd[@]}"
+}
+
+cmd_feature() {
+    local subcmd="${1:-}"
+    case "$subcmd" in
+        add|create)
+            shift
+            exec "${INTERNAL_DIR}/create_feature.sh" "$@"
+            ;;
+        remove|rm|delete)
+            shift
+            exec "${INTERNAL_DIR}/remove_feature.sh" "$@"
+            ;;
+        -h|--help|help|"")
+            cat <<'EOF'
+用法:
+  ./kmp feature add <feature_name> [--with-data]
+  ./kmp feature remove <feature_name> [--force]
+EOF
+            [[ -n "$subcmd" ]] && exit 0 || exit 1
+            ;;
+        *)
+            echo "[错误] 未知 feature 子命令: $subcmd" >&2
+            echo "用法: ./kmp feature <add|remove> <feature_name> [--with-data | --force]" >&2
+            exit 1
+            ;;
+    esac
+}
+
+cmd_kit() {
+    local subcmd="${1:-}"
+    case "$subcmd" in
+        -h|--help|help)
+            cat <<'EOF'
+用法:
+  ./kmp kit list
+  ./kmp kit remove <kit_name> [--force]
+EOF
+            exit 0
+            ;;
+        "")
+            exec "${INTERNAL_DIR}/manage_kit.sh"
+            ;;
+        *)
+            exec "${INTERNAL_DIR}/manage_kit.sh" "$@"
+            ;;
+    esac
+}
+
+SUBCOMMAND="${1:-}"
+case "$SUBCOMMAND" in
+    studio)
+        shift
+        cmd_studio "$@"
+        ;;
+    init)
+        shift
+        exec "${INTERNAL_DIR}/init_project.sh" "$@"
+        ;;
+    feature)
+        shift
+        cmd_feature "$@"
+        ;;
+    kit)
+        shift
+        cmd_kit "$@"
+        ;;
+    check)
+        shift
+        exec "${INTERNAL_DIR}/check_quality.sh" "$@"
+        ;;
+    keystore)
+        shift
+        exec "${INTERNAL_DIR}/gen_keystore.sh" "$@"
+        ;;
+    -h|--help|help|"")
+        print_main_usage
+        [[ -n "$SUBCOMMAND" ]] && exit 0 || exit 1
+        ;;
+    *)
+        echo "[错误] 未知命令: $SUBCOMMAND" >&2
+        print_main_usage >&2
+        exit 1
+        ;;
+esac

@@ -217,7 +217,7 @@ def validate_config_payload(
     # 严格拦截任何尝试读写 Android 签名密码/路径的行为
     for key in config:
         if key in FORBIDDEN_SIGNING_KEYS:
-            errors.append(f"安全红线拦截：配置台禁止读写签名字段 {key}，请使用 scripts/gen_keystore.sh 或 CI 环境变量。")
+            errors.append(f"安全红线拦截：配置台禁止读写签名字段 {key}，请使用 ./kmp keystore 或 CI 环境变量。")
 
     errors.extend(_scan_secrets_in_mapping(config))
     errors.extend(_scan_secrets_in_mapping(extras))
@@ -504,7 +504,7 @@ def run_project_init(root: Path, project_init: dict[str, Any], dry_run: bool = F
 
     cmd = [
         "bash",
-        str(root / "init_project.sh"),
+        str(root / "scripts" / "internal" / "init_project.sh"),
         "--package",
         pkg,
         "--name",

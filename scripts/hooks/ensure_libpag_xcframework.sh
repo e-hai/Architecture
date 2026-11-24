@@ -13,7 +13,7 @@ LIBPAG_URL="https://github.com/Tencent/libpag/releases/download/v${LIBPAG_VERSIO
 LIBPAG_SHA256="c8615ae4891440e3c24c3622b7150d3fd4a041d0108edf33429a3193d0339d18"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 TARGET_DIR="${1:-${ROOT_DIR}/.gradle/libpag-ios/${LIBPAG_VERSION}}"
 XCFRAMEWORK_DIR="${TARGET_DIR}/libpag.xcframework"
 MARKER_FILE="${TARGET_DIR}/.libpag_${LIBPAG_VERSION}_sha256"

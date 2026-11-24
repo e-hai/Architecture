@@ -58,7 +58,7 @@
 
 #### 范式 B：KMP 原生库直连门面包装（适用于已实现 KMP+CMP 标准化的库：`pag`）
 - **Core 模块直接包装**：`:core:pag` 直接在 `commonMain` 中依赖 `io.github.e-hai:pagkit`，统一暴露 `CorePag` 门面并在 `PagComponents.kt` re-export 导出 CMP 动效组件（`PagView`, `PagImageView`, `rememberPagState`, `PagSource`, `PagState`）；上层业务严禁跳过 `:core:pag` 直接 `import io.github.pagkit.*`；
-- **宿主无需声明 Delegate**：宿主无需手写视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层原生运行时初始化（Android 端 `PagKitAndroid.init(appContext)`；iOS 端 Xcode 通过 `iosApp/Vendor/LibPag` SPM `binaryTarget` 集成，KMP 链接通过 `scripts/ensure_libpag_xcframework.sh` 自动缓存）。
+- **宿主无需声明 Delegate**：宿主无需手写视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层原生运行时初始化（Android 端 `PagKitAndroid.init(appContext)`；iOS 端 Xcode 通过 `iosApp/Vendor/LibPag` SPM `binaryTarget` 集成，KMP 链接通过 `scripts/hooks/ensure_libpag_xcframework.sh` 自动缓存）。
 
 ### 5. 依赖分发与仓库治理 (GitHub Packages Distribution)
 - **全面下线 JitPack**：所有 Kit 制品统一发布至 GitHub Packages (`https://maven.pkg.github.com/e-hai/<repoName>`)，双端依赖版本格式标准化，去除 `v` 前缀；
@@ -71,11 +71,11 @@
 
 ### 7. 代码质量与规范
 - 所有新增类、函数与方法必须包含详尽的中文注释，阐明其职责与关键逻辑；
-- 统一使用 `xxx.yyy.zzz` 作为包名骨架占位符，支持 `init_project.sh` 一键初始化重命名。
+- 统一使用 `xxx.yyy.zzz` 作为包名骨架占位符，支持 `./kmp init` 一键初始化重命名。
 
 ### 8. 单元测试与变更同步铁律 (Testing Discipline & Sync)
 - **逻辑与契约优先测试 (Test-First for Core & Logic)**：新增或重构 `core:*` 门面、`Repository`、路由/解析、状态机及 `ViewModel` 时，优先编写或补齐手写 `Fake*` 与 `commonTest` 契约用例再实现业务；纯 Compose / SwiftUI 视图排版与 1:1 原生透传 Delegate 不强制机械前置单测，改由 `Detekt Compose Rules`、`SwiftLint`、编译器零告警与冒烟测试兜底；
 - **变更必同步更新测试 (Sync Tests on Change)**：任何逻辑修改、能力扩展或 Bug 修复，必须同步新增/更新对应单测；修 Bug 原则上先补充复现失败用例再修复源码；
 - **禁止降级与空断言 (No Weakened Assertions)**：严禁引入运行时 Mock 框架（坚持 `Fake over Mock`），严禁通过删除用例、跳过测试或放宽断言来换取门禁通过；
-- **收口实测门禁**：所有改动完成后必须在最终代码上实跑 `./scripts/check_quality.sh --fast`（覆盖 `shellcheck`、`verifyArchitecture`、`spotlessCheck`、`detekt`、`swiftlint --strict`）；涉及发版、编译、Kit 装配与跨端接口变更时必须完整通过 `./scripts/check_quality.sh --full`（含 Android `lintDevDebug`/`lintProdRelease`/R8 与 iOS `xcodebuild test`/`build`）。
+- **收口实测门禁**：所有改动完成后必须在最终代码上实跑 `./kmp check --fast`（覆盖 `shellcheck`、`verifyArchitecture`、`spotlessCheck`、`detekt`、`swiftlint --strict`）；涉及发版、编译、Kit 装配与跨端接口变更时必须完整通过 `./kmp check --full`（含 Android `lintDevDebug`/`lintProdRelease`/R8 与 iOS `xcodebuild test`/`build`）。
 - **质量体系文档**：完整 L1~L6 门禁边界与排障见 `docs/sop/0002-code-quality-and-static-analysis.md`。

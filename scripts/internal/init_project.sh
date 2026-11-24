@@ -3,6 +3,10 @@
 # 遇到错误立即退出
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "$REPO_ROOT"
+
 # 检测运行平台（macOS vs Linux），sed -i 语法不同
 if [[ "$(uname)" == "Darwin" ]]; then
     SED_INPLACE=("sed" "-i" "")
@@ -22,7 +26,7 @@ echo -e "${BLUE}    Kotlin Multiplatform (KMP) Architecture Init    ${NC}"
 echo -e "${BLUE}====================================================${NC}"
 
 print_usage() {
-    echo -e "用法: ./init_project.sh [选项]"
+    echo -e "用法: ./kmp init [选项]"
     echo -e "  --package, -p <pkg>     新的命名空间 / 包名（如 com.example.myapp）"
     echo -e "  --name, -n <app_name>   应用显示名称"
     echo -e "  --app-id <formal_id>    正式版 ApplicationId / Bundle ID"
@@ -35,7 +39,7 @@ print_usage() {
     echo -e "  --dry-run               仅预览将要应用的变更，不实际修改文件"
     echo -e "  --force                 强制执行（即使当前工程未包含 xxx/yyy/zzz 模板目录）"
     echo -e ""
-    echo -e "提示：如需通过网页可视化向导完成立项与参数配置，可运行 ./scripts/config_studio.sh --env dev"
+    echo -e "提示：如需通过网页可视化向导完成立项与参数配置，可运行 ./kmp studio dev"
 }
 
 require_arg_val() {
@@ -240,7 +244,7 @@ ESCAPED_APP_NAME=$(printf '%s\n' "$NEW_APP_NAME" | sed 's/[&|\\]/\\&/g')
 echo -e "${YELLOW}[1/6] 正在执行全局文本内容替换...${NC}"
 
 find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.toml" -o -name "*.json" -o -name "*.pro" -o -name "*.swift" -o -name "*.yml" -o -name "*.yaml" -o -name "*.pbxproj" -o -name "create_feature.sh" -o -name "remove_feature.sh" -o -name "manage_kit.sh" -o -name "*.xcconfig" \) \
-    -not -path '*/.git/*' -not -path '*/.gradle/*' -not -path '*/.idea/*' -not -path '*/.kotlin/*' -not -path '*/.swiftpm/*' -not -path '*/.build/*' -not -path '*/xcuserdata/*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './init_project.sh' | while read -r file; do
+    -not -path '*/.git/*' -not -path '*/.gradle/*' -not -path '*/.idea/*' -not -path '*/.kotlin/*' -not -path '*/.swiftpm/*' -not -path '*/.build/*' -not -path '*/xcuserdata/*' -not -path '*/build/*' -not -path '*/bin/*' -not -path './scripts/internal/init_project.sh' | while read -r file; do
     "${SED_INPLACE[@]}" "s|xxx\.yyy\.zzz|${NEW_NAMESPACE}|g" "$file"
     "${SED_INPLACE[@]}" "s|myproject|${NEW_PREFIX}|g" "$file"
     "${SED_INPLACE[@]}" "s|MyProjectTheme|${THEME_PREFIX}Theme|g" "$file"
@@ -310,7 +314,7 @@ echo -e "${GREEN}✔ rootProject.name 已更新为 ${APP_NAME_COMPACT}。${NC}"
 
 # 6. 结构裁剪（初始业务模块、Debug 面板、Kit 裁剪）
 echo -e "${YELLOW}[5/6] 正在执行业务模块生成与按需模块裁剪...${NC}"
-chmod +x gradlew ./*.sh scripts/*.sh
+chmod +x gradlew ./kmp scripts/internal/*.sh scripts/hooks/*.sh
 
 if [ -n "$INITIAL_FEATURES" ]; then
     echo -e "- 正在批量创建初始业务模块: ${GREEN}${INITIAL_FEATURES}${NC}"
@@ -319,14 +323,14 @@ if [ -n "$INITIAL_FEATURES" ]; then
         feat_trimmed=$(echo "$feat" | xargs)
         if [ -n "$feat_trimmed" ] && [ "$feat_trimmed" != "home" ]; then
             echo -e "  * 创建业务特性模块: ${GREEN}${feat_trimmed}${NC}"
-            ./create_feature.sh "$feat_trimmed"
+            "${SCRIPT_DIR}/create_feature.sh" "$feat_trimmed"
         fi
     done
 fi
 
 if [ "$NO_DEBUG" = true ] && [ -d "features/debug" ]; then
     echo -e "- 已启用禁用调试台，正在安全卸载 :features:debug 模块..."
-    ./remove_feature.sh debug
+    "${SCRIPT_DIR}/remove_feature.sh" debug
 fi
 
 if [ -n "$EXCLUDE_KITS" ]; then
@@ -335,7 +339,7 @@ if [ -n "$EXCLUDE_KITS" ]; then
     for kit in "${KIT_ARRAY[@]}"; do
         kit_trimmed=$(echo "$kit" | xargs)
         if [ -n "$kit_trimmed" ]; then
-            ./manage_kit.sh remove "$kit_trimmed"
+            "${SCRIPT_DIR}/manage_kit.sh" remove "$kit_trimmed"
         fi
     done
 fi
@@ -373,7 +377,7 @@ if [ -n "$EXCLUDE_KITS" ]; then
     echo -e "  已裁剪 Kit:      ${EXCLUDE_KITS}"
 fi
 echo -e "\n${YELLOW}📋 上手前就绪检查清单 (Next Steps)：${NC}"
-echo -e "  1. 测试环境配置与 Firebase（Web 可视化面板）：运行 './scripts/config_studio.sh --env dev' 或直接编辑 config/dev.xcconfig（唯一真源，改完直读生效）"
-echo -e "  2. 正式环境 (Prod) 隔离接入：由发版负责人运行 './scripts/config_studio.sh --env prod'（或导入离线导出 zip），参数写入本地忽略的 config/prod.local.xcconfig"
-echo -e "  3. Android 正式签名证书：运行 './scripts/gen_keystore.sh --type release --write-prod-config' 生成 keystore 并写入 config/prod.local.xcconfig（详见 docs/sop/0001-app-signing-and-certificates.md）"
+echo -e "  1. 测试环境配置与 Firebase（Web 可视化面板）：运行 './kmp studio dev' 或直接编辑 config/dev.xcconfig（唯一真源，改完直读生效）"
+echo -e "  2. 正式环境 (Prod) 隔离接入：由发版负责人运行 './kmp studio prod'，参数写入本地忽略的 config/prod.local.xcconfig"
+echo -e "  3. Android 正式签名证书：运行 './kmp keystore --type release --write-prod-config' 生成 keystore 并写入 config/prod.local.xcconfig（详见 docs/sop/0001-app-signing-and-certificates.md）"
 echo -e "====================================================${NC}"

@@ -8,7 +8,7 @@
 | **正式环境 (Prod)** | `iosApp-Prod` (`Release`) | `iosApp/Config/Firebase/Prod/GoogleService-Info.plist` | 构建期自动拷贝至 `.app` 根目录，并校检 `BUNDLE_ID == Prod Bundle ID` |
 
 ## 注意事项
-1. **免重跑 XcodeGen**：本目录下的 `.plist` 由 [`scripts/copy_ios_firebase_plist.sh`](../../../scripts/copy_ios_firebase_plist.sh) 在构建期按当前 `CONFIGURATION` 隔离复制，增删或更新 `.plist` 后**无需**再次执行 `xcodegen generate`。
+1. **免重跑 XcodeGen**：本目录下的 `.plist` 由 [`scripts/hooks/copy_ios_firebase_plist.sh`](../../../scripts/hooks/copy_ios_firebase_plist.sh) 在构建期按当前 `CONFIGURATION` 隔离复制，增删或更新 `.plist` 后**无需**再次执行 `xcodegen generate`。
 2. **缺失即零阻塞降级**：若当前项目暂未接入 Firebase 或 CI 未注入该文件，构建脚本会自动清理 `.app` 内可能存在的旧残留并跳过复制，[`NativeKitBootstrap.swift`](../../Sources/Bridge/NativeKitBootstrap.swift) 与相关 Delegate 会在运行时自动安全降级。
 3. **防串环境硬拦截**：
    - 一旦检测到对应目录下存在 `GoogleService-Info.plist`，脚本会自动核对其中的 `BUNDLE_ID` 与当前 Xcode 构建的 `PRODUCT_BUNDLE_IDENTIFIER` 是否一致，若将 Dev 与 Prod 文件放反会立即报错阻断构建；

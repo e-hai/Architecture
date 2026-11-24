@@ -17,19 +17,19 @@
 
 ## 1. 30 秒极速上手 (Quick Start)
 
-### 1.1 一键极简项目立项与双端配置向导 (`config_studio.sh` / `init_project.sh`)
+### 1.1 一键极简项目立项与双端配置向导 (`./kmp studio` / `./kmp init`)
 本脚手架支持**零依赖 Web 配置向导 (Config Studio)** 与**命令行一键初始化**，统一读写双端单一真源（[`config/dev.xcconfig`](config/dev.xcconfig) 与 [`config/prod.xcconfig`](config/prod.xcconfig)），自动重命名命名空间、应用 ID、插件前缀、App 名称、按需裁剪 10 大 Kit、校验并放置双端 Firebase 文件，并**直接将默认的 `:features:home` 转换为新项目的首页模块**：
 
 ```bash
 # 方式 0（推荐，本机 Web 可视化配置台，Dev/Prod 物理隔离且原生支持 Firebase 包名校验）：
-./scripts/config_studio.sh --env dev                 # 首次立项 + Kit 裁剪 + Dev 测试配置
-./scripts/config_studio.sh --env prod                # 上线前录入 Prod 正式配置（仅写入 gitignored 的 prod.local.xcconfig）
+./kmp studio dev                                     # 首次立项 + Kit 裁剪 + Dev 测试配置
+./kmp studio prod                                    # 上线前录入 Prod 正式配置（仅写入 gitignored 的 prod.local.xcconfig）
 
 # 方式 A：交互式命令行向导（自动推导默认值，按回车即可完成）：
-./init_project.sh
+./kmp init
 
 # 方式 B：单行命令行参数极速立项（支持独立指定正式与测试应用 ID；加 `--yes` 自动采用其余默认值）：
-./init_project.sh \
+./kmp init \
   --package com.example.news \
   --app-id com.example.news \
   --test-app-id com.example.news.dev \
@@ -37,13 +37,13 @@
   --features "news,favorites,profile" \
   --yes
 ```
-> **提示**：Config Studio 前端页面见 [`tools/config-studio/index.html`](tools/config-studio/index.html)，启动脚本见 [`scripts/config_studio.sh`](scripts/config_studio.sh)，完整初始化操作与安全隔离规范详见 [SOP 0003](docs/sop/0003-project-init-and-dev-environment.md)（Android Keystore 路径与密码严禁进入 Web 向导，仍按 [SOP 0001](docs/sop/0001-app-signing-and-certificates.md) 由 `./scripts/gen_keystore.sh --write-prod-config` 管理）；命令行亦支持 `--features`、`--exclude-kits` 与 `--no-debug` 参数。
+> **提示**：Config Studio 前端页面见 [`tools/config-studio/index.html`](tools/config-studio/index.html)，统一命令行入口见 [`kmp`](kmp)，完整初始化操作与安全隔离规范详见 [SOP 0003](docs/sop/0003-project-init-and-dev-environment.md)（Android Keystore 路径与密码严禁进入 Web 向导，仍按 [SOP 0001](docs/sop/0001-app-signing-and-certificates.md) 由 `./kmp keystore --write-prod-config` 管理）；命令行亦支持 `--features`、`--exclude-kits` 与 `--no-debug` 参数。
 
-### 1.2 业务模块与 Kit 热插拔管理 (`create_feature.sh` / `remove_feature.sh` / `manage_kit.sh`)
+### 1.2 业务模块与 Kit 热插拔管理 (`./kmp feature` / `./kmp kit`)
 当需要为项目添加新的业务特性时，运行：
 ```bash
-./create_feature.sh profile              # 标准 UI + ViewModel 模块
-./create_feature.sh profile --with-data  # 额外生成 Offline-First Repository 数据层样板
+./kmp feature add profile                # 标准 UI + ViewModel 模块
+./kmp feature add profile --with-data    # 额外生成 Offline-First Repository 数据层样板
 ```
 该脚本采用标准 `api` + `impl` 规范生成模块，并**全自动完成以下挂载（无需手动修改任何配置文件）**：
 1. `settings.gradle.kts`：注册 `:features:profile:api` 与 `:features:profile:impl`；
@@ -52,11 +52,11 @@
 4. `AppNavGraph.kt`：自动导入 `ProfileNavKey` 与 `ProfileScreen` 并挂载路由分支；
 5. 自动执行 Spotless 代码规范格式化。
 
-需要卸载不需要的业务特性或 Kit 模块时，直接执行一键逆向裁剪脚本：
+需要卸载不需要的业务特性或 Kit 模块时，直接执行一键逆向裁剪命令：
 ```bash
-./remove_feature.sh profile          # 一键移除业务特性目录与全部路由/DI/Gradle 锚点
-./manage_kit.sh list                 # 检视十大 Kit 启用状态
-./manage_kit.sh remove video         # 一键双端全链路裁剪指定 Kit（含 Delegate 与 DebugSection）
+./kmp feature remove profile             # 一键移除业务特性目录与全部路由/DI/Gradle 锚点
+./kmp kit list                           # 检视十大 Kit 启用状态
+./kmp kit remove video                   # 一键双端全链路裁剪指定 Kit（含 Delegate 与 DebugSection）
 ```
 
 ### 1.3 双端应用 ID 与测试/正式统一单一真源 (`config/`)
@@ -66,7 +66,7 @@
 - **测试环境单一真源 ([`config/dev.xcconfig`](config/dev.xcconfig))**：纳入仓库跟踪，开箱即跑，包含测试包名（`${package}.dev`）、桌面名称（`xxx (Dev)`）、`API_SCHEME` / `API_HOST`、Google 官方测试 `ANDROID_ADMOB_*` / `IOS_ADMOB_*` ID 与调试开关；Android 未配置签名自动回退到系统 debug 签名，iOS `Debug` 配置自动绑定；
 - **正式环境模板与本地隔离 ([`config/prod.xcconfig`](config/prod.xcconfig) + `config/prod.local.xcconfig`)**：仓库内 `config/prod.xcconfig` 仅保留公开占位骨架与 `Prod` 默认结构，并在末尾通过 `#include? "prod.local.xcconfig"` 引入被 `.gitignore` 忽略的本地 `config/prod.local.xcconfig`（正式包名 / iOS Team / `ANDROID_STORE_*` 签名 / 商业化正式 ID 均留在本机或 CI Secret，克隆仓库拿不到正式凭证）。
 
-> 💡 **标准作业程序 (SOP)**：有关 Android `keytool` 双证书生成、SHA-1 指纹提取、`./scripts/gen_keystore.sh --write-prod-config` 写入本地签名及 iOS Apple 开发者后台配置，请参阅 [docs/sop/0001-app-signing-and-certificates.md](docs/sop/0001-app-signing-and-certificates.md)。
+> 💡 **标准作业程序 (SOP)**：有关 Android `keytool` 双证书生成、SHA-1 指纹提取、`./kmp keystore --write-prod-config` 写入本地签名及 iOS Apple 开发者后台配置，请参阅 [docs/sop/0001-app-signing-and-certificates.md](docs/sop/0001-app-signing-and-certificates.md)。
 
 ### 1.4 常用构建、单测与检查命令
 
@@ -79,9 +79,9 @@
 | **编译链接 iOS 框架** | `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` | 验证 `Shared.framework` 导出与链接 |
 | **构建无 Debug 面板 Prod 包** | `./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false` | 构建期物理裁剪 `:features:debug` 与 `like.pag`（iOS `Release` 构建由 `project.yml` 自动传入） |
 | **运行全模块单元测试** | `./gradlew allTests` | 运行全跨平台 `commonTest`、Android 单元测试与 iOS Simulator 测试 |
-| **秒级静态质量门禁** | `./scripts/check_quality.sh --fast` | 运行 `ShellCheck` + `verifyArchitecture` + `Spotless` + `Detekt` + `SwiftLint` |
-| **全量发布态质量门禁** | `./scripts/check_quality.sh --full` | 全套静态门禁 + KMP 全测 + Android Dev/Prod Lint & R8 + iOS Dev 测试 & Prod 构建 |
-| **一键激活提交前 Hook** | `./scripts/check_quality.sh --install-hooks` | 绑定 `.githooks/pre-commit`，每次 `git commit` 自动执行 `--fast` 检查 |
+| **秒级静态质量门禁** | `./kmp check --fast` | 运行 `ShellCheck` + `verifyArchitecture` + `Spotless` + `Detekt` + `SwiftLint` |
+| **全量发布态质量门禁** | `./kmp check --full` | 全套静态门禁 + KMP 全测 + Android Dev/Prod Lint & R8 + iOS Dev 测试 & Prod 构建 |
+| **一键激活提交前 Hook** | `./kmp check --install-hooks` | 绑定 `.githooks/pre-commit`，每次 `git commit` 自动执行 `--fast` 检查 |
 | **格式化代码风格** | `./gradlew spotlessApply` 或 `--fix` | 依据 ktlint / SwiftLint 规范自动格式化全工程代码 |
 | **代码规范静态检查** | `./gradlew spotlessCheck detekt verifyArchitecture` | CI 门禁检查代码格式、Detekt 坏味道与架构红线 |
 
@@ -220,12 +220,11 @@ Architecture/
 │   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0009 - 记录 Why)
 │   └── sop/                                     # 标准作业程序 (SOP 0000 ~ 0006 - 见 docs/sop/README.md)
 ├── .githooks/pre-commit                         # Git 提交前快速静态质量拦截钩子
-├── scripts/check_quality.sh                     # 六维代码质量统一门禁 CLI (--fast / --full / --fix)
-├── init_project.sh                              # 一键极简项目初始化脚本
-├── create_feature.sh                            # 一键业务特性创建与自动挂载脚本
-├── remove_feature.sh                            # 一键业务特性安全移除脚本
-├── manage_kit.sh                                # 一键 Kit 状态检视与裁剪脚本
-├── scripts/ensure_libpag_xcframework.sh         # Kotlin/Native libpag 缓存保障脚本
+├── kmp                                          # 脚手架统一 CLI 入口 (studio/init/feature/kit/check/keystore)
+├── scripts/                                     # 工程内部脚本、构建期 Hook 与回归测试（按职责分层）
+│   ├── internal/                                # 底层脚本（check_quality / init_project / feature / kit / config_studio / keystore）
+│   ├── hooks/                                   # Gradle / Xcode 构建期钩子（libpag / Firebase Plist 隔离拷贝）
+│   └── tests/                                   # 脚本自动化回归与配置台单测
 └── settings.gradle.kts                          # 全局模块声明
 ```
 
@@ -342,7 +341,7 @@ sequenceDiagram
 
 | 我想要实现什么？（日常开发场景） | 目标模块与物理目录 | 操作步骤与指南 |
 | :--- | :--- | :--- |
-| **1. 新增一个完整的业务特性页面**<br/>（如新建个人中心 `profile`） | `features/profile/api`<br/>`features/profile/impl` | 直接运行 `./create_feature.sh profile`（如需附带 Offline-First Repository 样板可加 `--with-data`），在生成的 `ProfileScreen.kt` 与 `ProfileViewModel.kt` 中编写业务逻辑即可，脚本会自动挂载路由与 DI。 |
+| **1. 新增一个完整的业务特性页面**<br/>（如新建个人中心 `profile`） | `features/profile/api`<br/>`features/profile/impl` | 直接运行 `./kmp feature add profile`（如需附带 Offline-First Repository 样板可加 `--with-data`），在生成的 `ProfileScreen.kt` 与 `ProfileViewModel.kt` 中编写业务逻辑即可，脚本会自动挂载路由与 DI。 |
 | **2. 在现有业务模块内添加子页面或弹窗**<br/>（如商品模块的规格选择弹窗） | `features/<name>/impl/src/commonMain` | 在该特性的 `impl` 目录下新增 Composable 控件与对应状态模型，并在现有 Screen 中调用。 |
 | **3. 从 A 业务页面跳转到 B 业务页面**<br/>（如首页点击头像跳转个人中心） | `features/A/impl/build.gradle.kts` | 在 A 的 `impl` 中添加 `implementation(project(":features:B:api"))`，在 Screen 中调用 `navigator.navigate(BNavKey(...))`。 |
 | **4. 编写业务网络请求与本地持久化逻辑**<br/>（如文章列表离线缓存） | `features/<name>/impl` + `core:database` | 1. 在 `core:database` 定义 Entity/DAO；<br/>2. 在业务 `impl` 中编写 `XxxRepository`，组装 Ktor 与 Room 实现离线优先，并注册到 `<Name>Module.kt`。 |

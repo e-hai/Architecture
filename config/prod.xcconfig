@@ -20,8 +20,8 @@ CURRENT_PROJECT_VERSION = $(VERSION_CODE)
 
 // -------------------------------------------------------------------
 // 2. 双端正式签名配置 (Code Signing - Release)
-// iOS DEVELOPMENT_TEAM 可由 ./scripts/config_studio.sh --env prod 或 prod.local.xcconfig 提供；
-// Android 签名库与密码由研发使用 ./scripts/gen_keystore.sh 或 CI 环境变量 (PROD_STORE_*) 注入。
+// iOS DEVELOPMENT_TEAM 可由 ./kmp studio prod 或 prod.local.xcconfig 提供；
+// Android 签名库与密码由研发使用 ./kmp keystore 或 CI 环境变量 (PROD_STORE_*) 注入。
 // -------------------------------------------------------------------
 CODE_SIGN_STYLE = Automatic
 CODE_SIGN_IDENTITY = Apple Distribution

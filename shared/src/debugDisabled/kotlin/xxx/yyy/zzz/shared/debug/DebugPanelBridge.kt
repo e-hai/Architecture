@@ -11,7 +11,7 @@ import xxx.yyy.zzz.core.navigation.Navigator
 
 /**
  * 调试控制台跨端装配桥接（Prod / 裁剪空实现分支）。
- * 当传入 `-PenableDebugPanel=false` 或执行 `./remove_feature.sh debug` 卸载调试模块时编译此分支，
+ * 当传入 `-PenableDebugPanel=false` 或执行 `./kmp feature remove debug` 卸载调试模块时编译此分支，
  * 确保正式发布包零调试面板代码与零资产残留。
  */
 internal object DebugPanelBridge {

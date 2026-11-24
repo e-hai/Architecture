@@ -186,7 +186,7 @@ targets:
     postBuildScripts:
       - name: Copy Environment Firebase Plist
         script: |
-          "${SRCROOT}/../scripts/copy_ios_firebase_plist.sh"
+          "${SRCROOT}/../scripts/hooks/copy_ios_firebase_plist.sh"
         basedOnDependencyAnalysis: false
     settings:
       base:

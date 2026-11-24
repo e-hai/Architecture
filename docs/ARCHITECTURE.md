@@ -146,7 +146,7 @@ flowchart LR
 - `:core:pag` 通过 `CorePag` 与 `PagComponents.kt` 统一封装 `PagView`、`PagImageView`、`rememberPagState` 与 `PagSource`，严禁业务层直接 `import io.github.pagkit.*`；
 - 宿主仅需处理平台底层初始化：
   - Android：`NativeKitBootstrap` 中调用 `PagKitAndroid.init(appContext)` 提取原生 `.so`；
-  - iOS：Xcode 通过 `iosApp/Vendor/LibPag` 本地 Swift Package (`binaryTarget`) 自动拉取并嵌入 `libpag.xcframework`，Gradle Kotlin/Native 链接阶段由 `scripts/ensure_libpag_xcframework.sh` 自动将官方包缓存至 `.gradle/libpag-ios/`（8MB 二进制零入库）。
+  - iOS：Xcode 通过 `iosApp/Vendor/LibPag` 本地 Swift Package (`binaryTarget`) 自动拉取并嵌入 `libpag.xcframework`，Gradle Kotlin/Native 链接阶段由 `scripts/hooks/ensure_libpag_xcframework.sh` 自动将官方包缓存至 `.gradle/libpag-ios/`（8MB 二进制零入库）。
 
 ---
 

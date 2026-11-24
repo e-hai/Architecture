@@ -3,6 +3,9 @@
 # 遇到错误立即退出
 set -e
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$REPO_ROOT"
+
 # 配色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -12,9 +15,9 @@ NC='\033[0m' # No Color
 
 if [ -z "$1" ]; then
     echo -e "${RED}[错误] 请提供特性模块名称！${NC}"
-    echo -e "用法: ./create_feature.sh <feature_name> [--with-data]"
-    echo -e "示例: ./create_feature.sh profile"
-    echo -e "      ./create_feature.sh profile --with-data"
+    echo -e "用法: ./kmp feature add <feature_name> [--with-data]"
+    echo -e "示例: ./kmp feature add profile"
+    echo -e "      ./kmp feature add profile --with-data"
     exit 1
 fi
 
@@ -28,7 +31,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -*)
             echo -e "${RED}[错误] 未知参数: $1${NC}"
-            echo -e "用法: ./create_feature.sh <feature_name> [--with-data]"
+            echo -e "用法: ./kmp feature add <feature_name> [--with-data]"
             exit 1
             ;;
         *)

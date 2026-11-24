@@ -181,11 +181,11 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 | 所属端 | 通用标准步骤 | 本项目已预置的工程化实现 | 对应源码路径 |
 | :--- | :--- | :--- | :--- |
 | **Android** | 1. 密钥文件安全忽略 | `.gitignore` 已默认忽略 `config/prod.local.xcconfig`、`*.jks`、`*.keystore`。 | [.gitignore](../../.gitignore) |
-| **Android** | 2. 双端单一真源与密钥脚本 | `dev.xcconfig`（测试）与 `prod.xcconfig` + 本地 `prod.local.xcconfig`（正式）由 Android & iOS 原生直读，配套 `./scripts/gen_keystore.sh`。 | [dev.xcconfig](../../config/dev.xcconfig) / [prod.xcconfig](../../config/prod.xcconfig) |
+| **Android** | 2. 双端单一真源与密钥脚本 | `dev.xcconfig`（测试）与 `prod.xcconfig` + 本地 `prod.local.xcconfig`（正式）由 Android & iOS 原生直读，配套 `./kmp keystore`。 | [dev.xcconfig](../../config/dev.xcconfig) / [prod.xcconfig](../../config/prod.xcconfig) |
 | **Android** | 3. Gradle 环境维度声明 | Android 宿主中统一注册 `environment` 维度与 `dev`、`prod` 两个 flavor。 | [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts) |
 | **Android** | 4. Gradle 签名逻辑与变体绑定 | 宿主已实现**`.xcconfig` 直读 + `#include?` 合并 + 环境变量回退**、`dev` 自动回退调试签名及 **`ProdRelease` 缺失正式证书强制阻断**机制。 | [androidApp/build.gradle.kts](../../androidApp/build.gradle.kts) |
 | **iOS** | 5. Xcode 多环境 Bundle ID 隔离 | `iosApp/project.yml` 直连 `../config/{dev,prod}.xcconfig` 实现 `Debug` 与 `Release` 完全隔离。 | [iosApp/project.yml](../../iosApp/project.yml) |
-| **双端** | 6. 一键全局包名替换 | `./init_project.sh`（或 Web 配置台 `--env dev`）可一键重命名双端包名。 | [init_project.sh](../../init_project.sh) |
+| **双端** | 6. 一键全局包名替换 | `./kmp init`（或 Web 配置台 `./kmp studio dev`）可一键重命名双端包名。 | [kmp](../../kmp) |
 
 > [!NOTE]
 > **关于 Android 端配置读取与正式发版安全隔离：**
@@ -215,14 +215,14 @@ keytool -list -v -keystore release.jks -alias release_key -storepass PROD_STORE_
 
 ### 3.1 Android 端开发者实操步骤（仅需 2 步，无需修改 Gradle）
 
-#### 第一步：使用脚本生成正式签名证书并写入 `config/prod.local.xcconfig`
-在项目根目录运行 [gen_keystore.sh](../../scripts/gen_keystore.sh)（自动生成 PKCS12 证书至 `config/keystore/`、打印 `SHA-1`/`SHA-256` 指纹，并同步写入已被 `.gitignore` 忽略的 `config/prod.local.xcconfig`；注意 Web 配置台全程不接触任何签名密码）：
+#### 第一步：使用命令行生成正式签名证书并写入 `config/prod.local.xcconfig`
+在项目根目录运行 `./kmp keystore`（底层实现见 [gen_keystore.sh](../../scripts/internal/gen_keystore.sh)，自动生成 PKCS12 证书至 `config/keystore/`、打印 `SHA-1`/`SHA-256` 指纹，并同步写入已被 `.gitignore` 忽略的 `config/prod.local.xcconfig`；注意 Web 配置台全程不接触任何签名密码）：
 ```bash
 # 生成正式证书并自动写入 config/prod.local.xcconfig（已由 .gitignore 忽略）
-./scripts/gen_keystore.sh --type release --write-prod-config
+./kmp keystore --type release --write-prod-config
 
 # 如需团队统一测试证书（可选）：
-./scripts/gen_keystore.sh --type test
+./kmp keystore --type test
 ```
 
 #### 第二步：核对 `config/prod.local.xcconfig` 中的商店参数与指纹

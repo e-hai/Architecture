@@ -2,9 +2,12 @@
 
 # ==============================================================================
 # 一键安全移除业务特性模块 (:features:<name>:api + :features:<name>:impl)
-# 用法: ./remove_feature.sh <feature_name> [--force]
+# 用法: ./kmp feature remove <feature_name> [--force]
 # ==============================================================================
 set -e
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$REPO_ROOT"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -14,7 +17,7 @@ NC='\033[0m'
 
 if [ -z "$1" ]; then
     echo -e "${RED}[错误] 请提供要移除的特性模块名称！${NC}"
-    echo -e "用法: ./remove_feature.sh <feature_name> [--force]"
+    echo -e "用法: ./kmp feature remove <feature_name> [--force]"
     exit 1
 fi
 

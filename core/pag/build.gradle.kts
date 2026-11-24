@@ -8,7 +8,7 @@ plugins {
 
 val libpagCacheDir = rootProject.file(".gradle/libpag-ios/$LIBPAG_IOS_VERSION")
 val xcframeworkPath = libpagCacheDir.resolve("libpag.xcframework")
-val ensureScript = rootProject.file("scripts/ensure_libpag_xcframework.sh")
+val ensureScript = rootProject.file("scripts/hooks/ensure_libpag_xcframework.sh")
 
 val ensureLibpagXcframework =
     tasks.register<Exec>("ensureLibpagXcframework") {

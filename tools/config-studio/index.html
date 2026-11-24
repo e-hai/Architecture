@@ -563,7 +563,7 @@
         <span id="mode-badge" class="badge">本机配置台</span>
       </div>
       <div class="notice">
-        <strong>安全边界声明：</strong>本工具 100% 在本地运行（零云端上传），且<strong>全程不收集 Android 正式签名私钥 (.jks) 与密码、GitHub Token</strong>；正式签名仍由研发通过 <code>./scripts/gen_keystore.sh --write-prod-config</code> 或 CI 环境变量注入。
+        <strong>安全边界声明：</strong>本工具 100% 在本地运行（零云端上传），且<strong>全程不收集 Android 正式签名私钥 (.jks) 与密码、GitHub Token</strong>；正式签名仍由研发通过 <code>./kmp keystore --write-prod-config</code> 或 CI 环境变量注入。
       </div>
     </header>
 
@@ -680,7 +680,7 @@
           </div>
 
           <div class="inline-callout">
-            Android Debug 自动回退系统默认签名；正式签名私钥 (<code>.jks</code>) 与密码不在页面收集，请按 SOP 0001 使用 <code>./scripts/gen_keystore.sh --write-prod-config</code> 或 CI <code>PROD_STORE_*</code> 注入。
+            Android Debug 自动回退系统默认签名；正式签名私钥 (<code>.jks</code>) 与密码不在页面收集，请按 SOP 0001 使用 <code>./kmp keystore --write-prod-config</code> 或 CI <code>PROD_STORE_*</code> 注入。
           </div>
         </fieldset>
       </section>
@@ -1168,7 +1168,7 @@
     setupDropzone("ios");
 
     // ------------------------------------------------------------------
-    // 4. 表单读写、视图联动与前端校验规则（对齐后端 config_studio.py）
+    // 4. 表单读写、视图联动与前端校验规则（对齐后端 scripts/internal/config_studio.py）
     // ------------------------------------------------------------------
     const shouldUseProjectInit = () => (
       state.env === "dev" && BOOTSTRAP.mode === "server" && state.isTemplate
@@ -1403,7 +1403,7 @@
         badge.textContent = isDev ? "本机直写模式 · 已锁定 DEV 测试环境" : "本机直写模式 · 已锁定 PROD 正式环境";
       } else {
         badge.className = "badge badge-prod";
-        badge.textContent = "未连接本机配置服务（请通过 config_studio.sh 启动）";
+        badge.textContent = "未连接本机配置服务（请通过 ./kmp studio 启动）";
       }
 
       const submitBtn = document.getElementById("btn-primary-submit");
@@ -1411,8 +1411,8 @@
 
       if (BOOTSTRAP.mode !== "server") {
         submitBtn.disabled = true;
-        submitBtn.textContent = "请通过 ./scripts/config_studio.sh 启动";
-        desc.textContent = "当前页面未挂载本地服务端，请在工程根目录运行 ./scripts/config_studio.sh --env dev 或 --env prod。";
+        submitBtn.textContent = "请通过 ./kmp studio 启动";
+        desc.textContent = "当前页面未挂载本地服务端，请在工程根目录运行 ./kmp studio dev 或 ./kmp studio prod。";
         updateCardVisibilityAndBadges();
         return;
       }
@@ -1494,7 +1494,7 @@
           "未检测到本机配置台服务",
           [
             "本页面需由工程脚手架启动的本机服务提供读写与校验支持。",
-            "请在项目根目录执行 ./scripts/config_studio.sh --env dev 或 ./scripts/config_studio.sh --env prod。",
+            "请在项目根目录执行 ./kmp studio dev 或 ./kmp studio prod。",
           ],
         );
       }
@@ -1521,7 +1521,7 @@
     document.getElementById("studio-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (BOOTSTRAP.mode !== "server") {
-        showResultPanel(false, "未连接本机配置服务", ["请通过 ./scripts/config_studio.sh --env dev|prod 启动后再提交保存。"]);
+        showResultPanel(false, "未连接本机配置服务", ["请通过 ./kmp studio dev|prod 启动后再提交保存。"]);
         return;
       }
       const submitBtn = document.getElementById("btn-primary-submit");

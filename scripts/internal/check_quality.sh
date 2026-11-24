@@ -3,11 +3,11 @@
 # ==============================================================================
 # KMP + Android + iOS 统一代码质量检测门禁 CLI (L1 ~ L6)
 # 用法:
-#   ./scripts/check_quality.sh [--fast | --full | --fix | --install-hooks]
+#   ./kmp check [--fast | --full | --fix | --install-hooks]
 # ==============================================================================
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 RED='\033[0;31m'
@@ -19,7 +19,7 @@ NC='\033[0m'
 MODE="${1:---fast}"
 
 print_usage() {
-    echo "用法: ./scripts/check_quality.sh [--fast | --full | --fix | --install-hooks]"
+    echo "用法: ./kmp check [--fast | --full | --fix | --install-hooks]"
     echo "  --fast           默认模式：运行 ShellCheck + Python/JS 脚本自检 + 架构红线校验 + Spotless + Detekt + SwiftLint"
     echo "  --full           完整模式：在 --fast 基础上追加全平台单测、Android Debug/Release Lint & APK 与 iOS Simulator 构建测试"
     echo "  --fix            自动修复 Kotlin/Gradle (spotlessApply) 与 Swift (swiftlint --fix) 格式问题"
@@ -42,11 +42,11 @@ run_fast_checks() {
 
     echo -e "${YELLOW}[1/4] L1 ShellCheck 脚本静态检查...${NC}"
     require_cmd shellcheck "brew install shellcheck"
-    shellcheck ./*.sh scripts/*.sh .githooks/pre-commit
+    shellcheck ./kmp scripts/internal/*.sh scripts/hooks/*.sh .githooks/pre-commit
 
     echo -e "${YELLOW}[2/4] L1 + L2 Python 脚本单测与 Config Studio JS 语法校验...${NC}"
     require_cmd python3 "Xcode Command Line Tools / brew install python"
-    python3 -B -m unittest scripts/test_config_studio.py scripts/test_copy_ios_firebase_plist.py scripts/test_scaffold_scripts.py
+    python3 -B -m unittest scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_scaffold_scripts.py
     if command -v node >/dev/null 2>&1 && [ -f tools/config-studio/index.html ]; then
         python3 - <<'PY'
 import pathlib, re, subprocess, tempfile
@@ -92,7 +92,7 @@ run_full_checks() {
     tmp_keystore="$(mktemp /tmp/quality-release-XXXXXX.jks)"
     rm -f "$tmp_keystore"
     trap 'rm -f "${tmp_keystore:-}" /tmp/iosAppQualityDerivedData' EXIT
-    ./scripts/gen_keystore.sh \
+    ./kmp keystore \
         --type release \
         --output "$tmp_keystore" \
         --alias ci_release_key \
@@ -149,11 +149,11 @@ run_fix() {
     if [ "$(uname -s)" = "Darwin" ] && command -v swiftlint >/dev/null 2>&1; then
         (cd iosApp && swiftlint --fix --config .swiftlint.yml)
     fi
-    echo -e "${GREEN}✔ 自动格式化完成，建议随后执行 ./scripts/check_quality.sh --fast 复核。${NC}"
+    echo -e "${GREEN}✔ 自动格式化完成，建议随后执行 ./kmp check --fast 复核。${NC}"
 }
 
 install_hooks() {
-    chmod +x .githooks/pre-commit ./*.sh scripts/*.sh
+    chmod +x .githooks/pre-commit ./kmp scripts/internal/*.sh scripts/hooks/*.sh
     if [ ! -d ".git" ]; then
         echo -e "${YELLOW}[提示] 当前目录尚无 .git 仓库，已赋予脚本可执行权限；初始化 Git 后请重新运行 --install-hooks。${NC}"
         exit 0

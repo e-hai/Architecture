@@ -15,7 +15,7 @@
 ---
 
 ## 2. 前置准备与权限检查 (Prerequisites)
-- [ ] 已完成 [SOP 0003](./0003-project-init-and-dev-environment.md) 环境配置并通过 `./scripts/check_quality.sh --fast`；
+- [ ] 已完成 [SOP 0003](./0003-project-init-and-dev-environment.md) 环境配置并通过 `./kmp check --fast`；
 - [ ] 已阅读 [`AGENTS.md`](../../AGENTS.md) 中的三级模块化分层与“十大 Kit 跨平台接入双范式”；
 - [ ] 已阅读 [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) 中的离线优先数据流规范。
 
@@ -26,15 +26,15 @@
 ```mermaid
 flowchart TD
     Start["确定扩展或裁剪目标"] --> Type{"变更类型?"}
-    Type -->|新增/移除 Feature| F1["./create_feature.sh / ./remove_feature.sh\n跳转仅依赖对方 :api NavKey"]
-    Type -->|裁剪已有 Kit| K1["./manage_kit.sh list\n./manage_kit.sh remove kit_name"]
+    Type -->|新增/移除 Feature| F1["./kmp feature add / remove\n跳转仅依赖对方 :api NavKey"]
+    Type -->|裁剪已有 Kit| K1["./kmp kit list\n./kmp kit remove kit_name"]
     Type -->|接入自定义新 Kit| N1{"SDK 是否已支持 KMP+CMP?"}
     Type -->|修改 Room 表结构| R1["修改 Entity + AppDatabase version\n导出新 JSON Schema + 写 Migration"]
 
     N1 -->|否: 纯原生 AAR/SPM| N2["范式 A: 纯 commonMain Core* + *Delegate\n双端 delegates/ 1:1 透传 + NativeKitBootstrap"]
     N1 -->|是: 已有 KMP 制品| N3["范式 B: core:kit 直接依赖并 re-export\n上层严禁跳过 core 直连"]
 
-    F1 --> Gate["运行 ./scripts/check_quality.sh --fast\n(含 verifyArchitecture + Detekt + SwiftLint)"]
+    F1 --> Gate["运行 ./kmp check --fast\n(含 verifyArchitecture + Detekt + SwiftLint)"]
     K1 --> Gate
     N2 --> Gate
     N3 --> Gate
@@ -46,24 +46,24 @@ flowchart TD
 ## 4. 分步实操指南 (Step-by-Step Instructions)
 
 ### 步骤一：业务特性模块（Feature）创建、裁剪与跨模块跳转
-1. **一键生成标准 Feature**（使用 [`create_feature.sh`](../../create_feature.sh)）：
+1. **一键生成标准 Feature**（底层脚本见 [`create_feature.sh`](../../scripts/internal/create_feature.sh)）：
    ```bash
-   ./create_feature.sh profile              # 标准 Screen + ViewModel 模块
-   ./create_feature.sh profile --with-data  # 额外生成 Offline-First Repository 骨架
+   ./kmp feature add profile              # 标准 Screen + ViewModel 模块
+   ./kmp feature add profile --with-data  # 额外生成 Offline-First Repository 骨架
    ```
    脚本会自动更新 `settings.gradle.kts`、`shared/build.gradle.kts`、[`AppBootstrap.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/di/AppBootstrap.kt) 与 [`AppNavGraph.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/navigation/AppNavGraph.kt)。
 2. **跨模块跳转铁律**：若 `home` 跳转到 `profile`，仅允许在 `features/home/impl/build.gradle.kts` 依赖 `implementation(projects.features.profile.api)` 并通过 `@Serializable NavKey` 驱动 `Navigator`；**严禁依赖 `:features:profile:impl`**（由 `verifyArchitecture` 自动阻断）。
-3. **安全卸载 Feature**（使用 [`remove_feature.sh`](../../remove_feature.sh)）：
+3. **安全卸载 Feature**（底层脚本见 [`remove_feature.sh`](../../scripts/internal/remove_feature.sh)）：
    ```bash
-   ./remove_feature.sh profile
+   ./kmp feature remove profile
    ```
    若目标模块当前被 [`AppNavGraph.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/navigation/AppNavGraph.kt) 的 `[START_ROUTE_START/END]` 设为首页或被其他 `:features:*` 引用，脚本会直接拦截并提示解除依赖（极特殊情况可追加 `--force`）。
 
 ### 步骤二：十大 Kit 检视与热插拔裁剪
-使用 [`manage_kit.sh`](../../manage_kit.sh) 管理内置 Kit（移除操作基于 `[KIT:<name>:START]`/`[KIT:<name>:END]` 锚点，并自动折叠多余空行）：
+使用 `./kmp kit`（底层脚本见 [`manage_kit.sh`](../../scripts/internal/manage_kit.sh)）管理内置 Kit（移除操作基于 `[KIT:<name>:START]`/`[KIT:<name>:END]` 锚点，并自动折叠多余空行）：
 ```bash
-./manage_kit.sh list               # 查看全部 10 个 Kit 启用状态
-./manage_kit.sh remove video       # 一键双端裁剪 Gradle / Kotlin / Swift / DebugSection
+./kmp kit list               # 查看全部 10 个 Kit 启用状态
+./kmp kit remove video       # 一键双端裁剪 Gradle / Kotlin / Swift / DebugSection
 ```
 > 注意：`:core:log` 被核心底座与调试台广泛引用，默认受安全拦截保护；移除任何仍被业务特性依赖的 Kit 时也会先检查引用链。
 
@@ -102,10 +102,10 @@ flowchart TD
 - **原因**：在 `features:*`、`shared` 或非 `:core:pag` 的 `core:*` 模块中直接导入了 `io.github.pagkit.*` / `com.kit.*` 等底层包，或在 9 大原生委托 Kit 下创建了 `androidMain`/`iosMain`。
 - **解决方法**：将原生 SDK 导入严格下沉至宿主 `delegates/` / `Delegates/` 内部，通过 `Core*` 门面接口通信。
 
-### Q2: `./create_feature.sh` 新建的模块在 iOS SwiftUI 页面里点击跳转崩溃或找不到符号？
+### Q2: `./kmp feature add` 新建的模块在 iOS SwiftUI 页面里点击跳转崩溃或找不到符号？
 - **原因**：Xcode 工程尚未触发重编 Kotlin/Native `Shared.framework` 或未加入 Koin 模块。
-- **解决方法**：确认 `create_feature.sh` 已挂载 [`AppBootstrap.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/di/AppBootstrap.kt) 与 [`AppNavGraph.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/navigation/AppNavGraph.kt)，然后重新编译 `iosApp-Dev`。
+- **解决方法**：确认 [`create_feature.sh`](../../scripts/internal/create_feature.sh) 已挂载 [`AppBootstrap.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/di/AppBootstrap.kt) 与 [`AppNavGraph.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/navigation/AppNavGraph.kt)，然后重新编译 `iosApp-Dev`。
 
-### Q3: 新增 Kit 后运行 `./manage_kit.sh remove <kit>` 漏删了部分引用？
+### Q3: 新增 Kit 后运行 `./kmp kit remove <kit>` 漏删了部分引用？
 - **原因**：宿主引导器、根目录 `settings.gradle.kts`、`shared/build.gradle.kts` 或 `DebugModule.kt` 中的代码行未包裹在 `// [KIT:<name>:START] ... // [KIT:<name>:END]` 锚点内。
-- **解决方法**：核对 [`manage_kit.sh`](../../manage_kit.sh) 的 `ALL_KITS` 与所有锚点区间命名是否严格一致。
+- **解决方法**：核对 [`manage_kit.sh`](../../scripts/internal/manage_kit.sh) 的 `ALL_KITS` 与所有锚点区间命名是否严格一致。

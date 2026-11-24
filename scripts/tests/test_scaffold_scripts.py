@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Sandboxed regression tests for root scaffold shell scripts.
+"""Sandboxed regression tests for unified `./kmp` scaffold lifecycle CLI.
 
-Verifies create_feature.sh, remove_feature.sh, manage_kit.sh, and init_project.sh
+Verifies `init`, `feature add/remove`, `kit list/remove`, and `--help` via `./kmp`
 inside isolated temporary copies of the repository without mutating the workspace.
 """
 
@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 import unittest
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
 IGNORE_PATTERNS = shutil.ignore_patterns(
     ".git",
@@ -43,7 +43,11 @@ def copy_repo_to_sandbox(sandbox_root: pathlib.Path) -> pathlib.Path:
     gradlew.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
     gradlew.chmod(gradlew.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-    for script in [*repo_dir.glob("*.sh"), *(repo_dir / "scripts").glob("*.sh")]:
+    for script in [
+        repo_dir / "kmp",
+        *(repo_dir / "scripts" / "internal").glob("*.sh"),
+        *(repo_dir / "scripts" / "hooks").glob("*.sh"),
+    ]:
         script.chmod(script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     return repo_dir
@@ -73,7 +77,7 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo_dir = copy_repo_to_sandbox(pathlib.Path(tmp))
 
-            run_script(repo_dir, ["./create_feature.sh", "billing", "--with-data"])
+            run_script(repo_dir, ["./kmp", "feature", "add", "billing", "--with-data"])
 
             self.assertTrue((repo_dir / "features/billing/api/build.gradle.kts").is_file())
             self.assertTrue((repo_dir / "features/billing/impl/build.gradle.kts").is_file())
@@ -107,7 +111,7 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
             self.assertIn("BillingNavKey", nav_graph)
             self.assertIn("BillingScreen", nav_graph)
 
-            run_script(repo_dir, ["./remove_feature.sh", "billing"])
+            run_script(repo_dir, ["./kmp", "feature", "remove", "billing"])
 
             self.assertFalse((repo_dir / "features/billing").exists())
             self.assertNotIn(
@@ -137,10 +141,10 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo_dir = copy_repo_to_sandbox(pathlib.Path(tmp))
 
-            list_res = run_script(repo_dir, ["./manage_kit.sh", "list"])
+            list_res = run_script(repo_dir, ["./kmp", "kit", "list"])
             self.assertIn("video", list_res.stdout)
 
-            run_script(repo_dir, ["./manage_kit.sh", "remove", "video"])
+            run_script(repo_dir, ["./kmp", "kit", "remove", "video"])
 
             self.assertFalse((repo_dir / "core/video").exists())
             self.assertFalse(
@@ -173,7 +177,8 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
             run_script(
                 repo_dir,
                 [
-                    "./init_project.sh",
+                    "./kmp",
+                    "init",
                     "--package",
                     "com.acme.demo",
                     "--name",

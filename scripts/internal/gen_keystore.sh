@@ -3,15 +3,18 @@
 # ==============================================================================
 # Android 签名证书生成脚本（对齐 androidApp/build.gradle.kts 的 config/prod.local.xcconfig 与 config/dev.xcconfig）
 # 用法:
-#   ./scripts/gen_keystore.sh [--type release|test] [--output <path>] [--alias <alias>]
-#                             [--store-pass <pwd>] [--key-pass <pwd>] [--dname <dname>]
-#                             [--write-prod-config] [--force]
+#   ./kmp keystore [--type release|test] [--output <path>] [--alias <alias>]
+#                  [--store-pass <pwd>] [--key-pass <pwd>] [--dname <dname>]
+#                  [--write-prod-config] [--force]
 # 示例:
-#   ./scripts/gen_keystore.sh
-#   ./scripts/gen_keystore.sh --type release --write-prod-config
-#   ./scripts/gen_keystore.sh --type release --output /tmp/ci-release.jks --alias ci_key --store-pass changeit --key-pass changeit --force
+#   ./kmp keystore
+#   ./kmp keystore --type release --write-prod-config
+#   ./kmp keystore --type release --output /tmp/ci-release.jks --alias ci_key --store-pass changeit --key-pass changeit --force
 # ==============================================================================
 set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$REPO_ROOT"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -30,7 +33,7 @@ FORCE=false
 
 print_usage() {
     cat <<'EOF'
-用法: ./scripts/gen_keystore.sh [选项]
+用法: ./kmp keystore [选项]
 
 选项:
   --type <release|test>   证书类型，默认 release
@@ -232,7 +235,7 @@ else
     echo ""
     echo -e "${YELLOW}下一步（写入 config/prod.local.xcconfig 或 CI 环境变量）：${NC}"
     if [[ "$TYPE" == "release" ]]; then
-        echo "  ./scripts/gen_keystore.sh --type release --write-prod-config"
+        echo "  ./kmp keystore --type release --write-prod-config"
         echo "  或手动在 config/prod.local.xcconfig 追加："
         echo "  ANDROID_STORE_FILE = ${OUTPUT_PATH}"
         echo "  ANDROID_KEY_ALIAS = ${KEY_ALIAS}"

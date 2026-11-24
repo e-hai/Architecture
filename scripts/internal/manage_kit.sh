@@ -3,13 +3,16 @@
 # ==============================================================================
 # Kit 模块生命周期管理脚本（支持列表检视与一键干净裁剪移除）
 # 用法:
-#   ./manage_kit.sh list
-#   ./manage_kit.sh remove <kit_name> [--force]
+#   ./kmp kit list
+#   ./kmp kit remove <kit_name> [--force]
 # 示例:
-#   ./manage_kit.sh remove video
-#   ./manage_kit.sh remove ads
+#   ./kmp kit remove video
+#   ./kmp kit remove ads
 # ==============================================================================
 set -e
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$REPO_ROOT"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -175,7 +178,7 @@ case "$1" in
         cmd_remove "$2" "$3"
         ;;
     *)
-        echo -e "用法: ./manage_kit.sh <list|remove> [kit_name] [--force]"
+        echo -e "用法: ./kmp kit <list|remove> [kit_name] [--force]"
         exit 1
         ;;
 esac

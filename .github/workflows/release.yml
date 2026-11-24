@@ -38,18 +38,18 @@ jobs:
           cache: 'gradle'
 
       - name: Make scripts and Gradle Wrapper executable
-        run: chmod +x gradlew *.sh scripts/*.sh
+        run: chmod +x gradlew ./kmp scripts/internal/*.sh scripts/hooks/*.sh
 
       - name: Run ShellCheck on Automation Scripts
         run: |
           if ! command -v shellcheck &> /dev/null; then
             sudo apt-get update && sudo apt-get install -y shellcheck
           fi
-          shellcheck *.sh scripts/*.sh .githooks/pre-commit
+          shellcheck ./kmp scripts/internal/*.sh scripts/hooks/*.sh .githooks/pre-commit
 
       - name: Run Python Script Unit Tests & Config Studio JS Syntax Check
         run: |
-          python3 -B -m unittest -v scripts/test_config_studio.py scripts/test_copy_ios_firebase_plist.py scripts/test_scaffold_scripts.py
+          python3 -B -m unittest -v scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_scaffold_scripts.py
           if command -v node &> /dev/null && [ -f tools/config-studio/index.html ]; then
             python3 -c 'import pathlib, re, subprocess, tempfile; html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8"); m = re.search(r"<script type=\"module\">(.*)</script>", html, flags=re.S); assert m; tf = tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8"); tf.write(m.group(1)); tf.flush(); subprocess.run(["node", "--check", tf.name], check=True); tf.close()'
           fi
@@ -84,7 +84,7 @@ jobs:
           cache: 'gradle'
 
       - name: Make scripts and Gradle Wrapper executable
-        run: chmod +x gradlew *.sh scripts/*.sh
+        run: chmod +x gradlew ./kmp scripts/internal/*.sh scripts/hooks/*.sh
 
       - name: Restore Optional Prod Local Config & Firebase JSON
         env:
@@ -122,7 +122,7 @@ jobs:
             } >> "$GITHUB_ENV"
           elif [ "$IS_DRY_RUN" = "true" ]; then
             KEYSTORE_PATH="${RUNNER_TEMP}/dryrun-release.jks"
-            ./scripts/gen_keystore.sh \
+            ./kmp keystore \
               --type release \
               --output "$KEYSTORE_PATH" \
               --alias dryrun_release_key \
@@ -195,7 +195,7 @@ jobs:
           cache: 'gradle'
 
       - name: Make scripts and Gradle Wrapper executable
-        run: chmod +x gradlew *.sh scripts/*.sh
+        run: chmod +x gradlew ./kmp scripts/internal/*.sh scripts/hooks/*.sh
 
       - name: Restore Optional Prod Local Config & iOS Firebase Plist
         env:

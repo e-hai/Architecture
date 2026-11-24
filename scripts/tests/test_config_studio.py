@@ -26,10 +26,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-SCRIPTS_DIR = Path(__file__).resolve().parent
+TESTS_DIR = Path(__file__).resolve().parent
+SCRIPTS_DIR = TESTS_DIR.parent
+INTERNAL_SCRIPTS_DIR = SCRIPTS_DIR / "internal"
 REPO_ROOT = SCRIPTS_DIR.parent
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_DIR))
+if str(INTERNAL_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(INTERNAL_SCRIPTS_DIR))
 
 import config_studio as cs  # noqa: E402
 
@@ -362,13 +364,16 @@ class ConfigStudioTest(unittest.TestCase):
             server.server_close()
 
     def test_shell_wrapper_help_and_rejects_removed_import_flag(self) -> None:
-        (self.root / "scripts").mkdir(parents=True, exist_ok=True)
-        shutil.copy(REPO_ROOT / "scripts" / "config_studio.sh", self.root / "scripts" / "config_studio.sh")
-        shutil.copy(REPO_ROOT / "scripts" / "config_studio.py", self.root / "scripts" / "config_studio.py")
-        (self.root / "scripts" / "config_studio.sh").chmod(0o755)
+        (self.root / "scripts" / "internal").mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO_ROOT / "kmp", self.root / "kmp")
+        shutil.copy(
+            REPO_ROOT / "scripts" / "internal" / "config_studio.py",
+            self.root / "scripts" / "internal" / "config_studio.py",
+        )
+        (self.root / "kmp").chmod(0o755)
 
         help_proc = subprocess.run(
-            ["bash", str(self.root / "scripts" / "config_studio.sh"), "--help"],
+            ["bash", str(self.root / "kmp"), "studio", "--help"],
             cwd=self.root,
             text=True,
             capture_output=True,
@@ -378,7 +383,7 @@ class ConfigStudioTest(unittest.TestCase):
         self.assertIn("--env", help_proc.stdout)
 
         bad_proc = subprocess.run(
-            ["bash", str(self.root / "scripts" / "config_studio.sh"), "--import", "bundle.zip", "--env", "dev"],
+            ["bash", str(self.root / "kmp"), "studio", "--import", "bundle.zip", "--env", "dev"],
             cwd=self.root,
             text=True,
             capture_output=True,
