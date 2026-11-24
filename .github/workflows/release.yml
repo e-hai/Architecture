@@ -148,7 +148,7 @@ jobs:
         run: rm -f "${RUNNER_TEMP}/release.jks" "${RUNNER_TEMP}/dryrun-release.jks" config/prod.local.xcconfig androidApp/src/prod/google-services.json
 
       - name: Upload Android Prod AAB & R8 Mapping Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-prod-release-bundle
           path: |
