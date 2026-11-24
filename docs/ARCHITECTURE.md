@@ -1,7 +1,7 @@
 # Kotlin Multiplatform (KMP) 架构设计与技术全景
 
 > **规范基准**：JetBrains 2026 官方推荐结构 (`New Default Project Structure`) + AGP 9.0 + Swift 6 SPM  
-> **分支**：`kmp`  
+> **分支**：`main`  
 > **核心组件**：Compose Multiplatform (CMP) + Koin + Room KMP + Ktor + 十大基础设施与商业化 Kit
 
 ---

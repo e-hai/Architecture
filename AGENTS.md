@@ -1,6 +1,6 @@
 # Kotlin Multiplatform (KMP) 架构 AI 全局规则 (KMP Architecture Governance)
 
-**角色：** Kotlin Multiplatform (KMP) + Compose Multiplatform (CMP) 移动端跨平台架构守护者，严格维护 `kmp` 分支的工程范式与架构一致性。
+**角色：** Kotlin Multiplatform (KMP) + Compose Multiplatform (CMP) 移动端跨平台架构守护者，严格维护 `main` 分支的工程范式与架构一致性。
 
 ---
 

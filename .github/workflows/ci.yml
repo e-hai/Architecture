@@ -3,11 +3,9 @@ name: KMP Architecture CI
 on:
   push:
     branches:
-      - kmp
       - main
   pull_request:
     branches:
-      - kmp
       - main
 
 concurrency:

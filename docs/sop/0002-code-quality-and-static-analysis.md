@@ -9,7 +9,7 @@
 ## 1. 适用场景与触发时机 (When to Use)
 - 开发者在本地完成业务特性、Core 门面、iOS Delegate 或 Gradle 脚本改动后，执行 `git commit` 前后；
 - 执行 `./kmp feature add/remove`、`./kmp kit remove`、`./kmp init` 增删或重构模块之后；
-- 任何代码合入 `kmp` / `main` 分支触发 GitHub Actions CI 之前与发版提审前校验。
+- 任何代码合入 `main` 分支触发 GitHub Actions CI 之前与发版提审前校验。
 
 ---
 

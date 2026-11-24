@@ -1,6 +1,6 @@
 # 1. 采用多分支隔离策略管理多平台移动端架构方案
 
-- 状态: Accepted
+- 状态: Superseded (已于 2026-11-24 收敛为单分支 KMP 模板仓，原多分支已归档至 `archive/*` Tag)
 - 日期: 2026-11-02
 - 决策者: 移动端架构委员会
 
@@ -32,3 +32,11 @@
 - 各平台开发者可通过 `git clone -b <platform>` 快速拉取对应干净的独立工程模板；
 - 避免不同平台工具链（Gradle 与 SPM/Xcode）在同一工作区冲突；
 - 主分支清晰呈现全局架构设计思考与技术矩阵。
+
+## 演进说明 (2026-11-24)
+
+随着脚手架确定以 Compose Multiplatform (KMP + CMP) 作为唯一跨平台模板主干，若继续保留多平台多分支结构，会导致通过 GitHub **Use this template** 创建新项目时复制出 `android`、`ios`、`main` 等多余分支，每次均需人工重置默认分支并删枝。
+
+因此工程已收敛为**单分支（仅 `main`）KMP 模板仓**：
+- 原 `kmp` 分支完整保留历史并提升为唯一默认 `main` 分支（`Use this template` 开箱即用、零分支清理成本）；
+- 原分支历史已通过只读归档 Tag 永久保留：`archive/portal-main`、`archive/android`、`archive/ios`、`archive/feature-shortvideo`。
