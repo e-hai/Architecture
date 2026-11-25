@@ -230,6 +230,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=YES \
+            IPHONEOS_DEPLOYMENT_TARGET=17.0 \
             CODE_SIGNING_ALLOWED=NO \
             build
 
@@ -246,6 +247,7 @@ jobs:
       #       -scheme iosApp-Prod \
       #       -configuration Release \
       #       -destination 'generic/platform=iOS' \
+      #       IPHONEOS_DEPLOYMENT_TARGET=17.0 \
       #       -archivePath "${RUNNER_TEMP}/iosApp-Prod.xcarchive" \
       #       archive
       #     xcodebuild -exportArchive \

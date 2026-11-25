@@ -151,5 +151,5 @@ jobs:
             echo "No available iPhone Simulator found!"
             exit 1
           fi
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination "id=${SIM_UDID}" CODE_SIGNING_ALLOWED=NO test
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Prod -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination "id=${SIM_UDID}" IPHONEOS_DEPLOYMENT_TARGET=17.0 CODE_SIGNING_ALLOWED=NO test
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Prod -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES IPHONEOS_DEPLOYMENT_TARGET=17.0 CODE_SIGNING_ALLOWED=NO build
