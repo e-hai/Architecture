@@ -28,6 +28,8 @@ print_main_usage() {
       运行本地代码质量门禁（ShellCheck / Python 单测 / 架构红线 / Spotless / Detekt / SwiftLint）
   keystore [选项]
       生成 Android 正式/测试 Keystore 签名库并提取 SHA-1 / SHA-256 指纹
+  doctor
+      一键体检本地开发环境依赖（JDK / GitHub Packages 凭证 / XcodeGen / SwiftLint / ShellCheck / Hooks）
 
 提示: 运行 `./kmp <command> --help` 查看各子命令详细参数。
 EOF
@@ -162,6 +164,95 @@ EOF
     esac
 }
 
+cmd_doctor() {
+    local failures=0
+    local warnings=0
+
+    echo "== KMP 开发环境体检 (./kmp doctor) =="
+
+    if command -v java >/dev/null 2>&1; then
+        local java_ver
+        java_ver=$(java -version 2>&1 | head -n 1)
+        if [[ "$java_ver" =~ \"(17|18|19|20|21|22|23|24)\. ]]; then
+            echo "[OK]      JDK: ${java_ver}"
+        else
+            echo "[WARN]    JDK 版本建议使用 17+（当前: ${java_ver}）"
+            warnings=$((warnings + 1))
+        fi
+    else
+        echo "[MISSING] JDK 17+: 未检测到 java，请安装 Zulu 17 或使用 Android Studio JBR"
+        failures=$((failures + 1))
+    fi
+
+    local global_gradle_props="${HOME}/.gradle/gradle.properties"
+    if [[ -n "${GITHUB_TOKEN:-}" ]] || { [[ -f "$global_gradle_props" ]] && grep -q "gpr\.key=" "$global_gradle_props" 2>/dev/null; }; then
+        echo "[OK]      GitHub Packages 凭证: 已配置 (GITHUB_TOKEN 或 ~/.gradle/gradle.properties)"
+    else
+        echo "[WARN]    GitHub Packages 凭证: 未检测到 gpr.key 或 GITHUB_TOKEN（拉取 e-hai/* Kit 将 401，详见 SOP 0003）"
+        warnings=$((warnings + 1))
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        local py_ver
+        py_ver=$(python3 --version 2>&1)
+        echo "[OK]      Python: ${py_ver}"
+    else
+        echo "[MISSING] python3: 未检测到（Config Studio 与脚本单测依赖）"
+        failures=$((failures + 1))
+    fi
+
+    if command -v shellcheck >/dev/null 2>&1; then
+        local sc_ver
+        sc_ver=$(shellcheck --version | awk '/^version:/ {print $2}')
+        echo "[OK]      shellcheck: ${sc_ver:-installed}"
+    else
+        echo "[MISSING] shellcheck: 未检测到（请执行 brew install shellcheck）"
+        failures=$((failures + 1))
+    fi
+
+    if command -v node >/dev/null 2>&1; then
+        local node_ver
+        node_ver=$(node --version 2>&1)
+        echo "[OK]      node: ${node_ver}（用于 Config Studio 前端语法校验）"
+    else
+        echo "[WARN]    node: 未安装（不影响运行，建议 brew install node 以校验 Config Studio JS）"
+        warnings=$((warnings + 1))
+    fi
+
+    if [[ "$(uname -s)" = "Darwin" ]]; then
+        for ios_tool in xcodegen swiftlint xcodebuild; do
+            if command -v "$ios_tool" >/dev/null 2>&1; then
+                echo "[OK]      macOS/iOS 工具: ${ios_tool}"
+            else
+                echo "[WARN]    macOS/iOS 工具缺失: ${ios_tool}（可执行 brew install ${ios_tool}）"
+                warnings=$((warnings + 1))
+            fi
+        done
+    else
+        echo "[SKIP]    macOS/iOS 工具: 非 Darwin 环境，跳过 XcodeGen / SwiftLint 检查"
+    fi
+
+    if [[ -d ".git" ]]; then
+        local hooks_path
+        hooks_path=$(git config --get core.hooksPath 2>/dev/null || true)
+        if [[ "$hooks_path" = ".githooks" ]]; then
+            echo "[OK]      Git Hook: core.hooksPath=.githooks 已激活"
+        else
+            echo "[WARN]    Git Hook: 未激活 .githooks（建议运行 ./kmp check --install-hooks）"
+            warnings=$((warnings + 1))
+        fi
+    else
+        echo "[SKIP]    Git Hook: 当前目录非 Git 仓库"
+    fi
+
+    echo "--------------------------------------"
+    echo "体检完成: failures=${failures}, warnings=${warnings}"
+    if [[ "$failures" -gt 0 ]]; then
+        return 1
+    fi
+    return 0
+}
+
 SUBCOMMAND="${1:-}"
 case "$SUBCOMMAND" in
     studio)
@@ -187,6 +278,9 @@ case "$SUBCOMMAND" in
     keystore)
         shift
         exec "${INTERNAL_DIR}/gen_keystore.sh" "$@"
+        ;;
+    doctor)
+        cmd_doctor
         ;;
     -h|--help|help|"")
         print_main_usage

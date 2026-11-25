@@ -169,20 +169,24 @@ android {
         versionName = devEnv.get("VERSION_NAME", "1.0.0")
     }
 
-    signingConfigs {
-        create("test") {
-            val storeFilePath = devEnv.get("ANDROID_STORE_FILE")
-            val storeFileObj = if (storeFilePath.isNotBlank()) rootProject.file(storeFilePath) else null
-            if (storeFileObj != null && storeFileObj.exists()) {
-                storeFile = storeFileObj
-                storePassword = devEnv.get("ANDROID_STORE_PASSWORD", "android")
-                keyAlias = devEnv.get("ANDROID_KEY_ALIAS", "androiddebugkey")
-                keyPassword = devEnv.get("ANDROID_KEY_PASSWORD", "android")
+    val devStoreFilePath = devEnv.get("ANDROID_STORE_FILE")
+    val devStoreFileObj = if (devStoreFilePath.isNotBlank()) rootProject.file(devStoreFilePath) else null
+    val devSigningConfig =
+        signingConfigs.run {
+            if (devStoreFileObj != null && devStoreFileObj.exists()) {
+                create("test") {
+                    storeFile = devStoreFileObj
+                    storePassword = devEnv.get("ANDROID_STORE_PASSWORD", "android")
+                    keyAlias = devEnv.get("ANDROID_KEY_ALIAS", "androiddebugkey")
+                    keyPassword = devEnv.get("ANDROID_KEY_PASSWORD", "android")
+                }
             } else {
-                initWith(getByName("debug"))
+                // 未配置自定义测试签名库时直接使用 AGP 原生 debug 配置，兼容无 ~/.android/debug.keystore 的全新主机与 Linux CI
+                getByName("debug")
             }
         }
 
+    signingConfigs {
         create("prod") {
             val storeFilePath = prodEnv.get("ANDROID_STORE_FILE")
             val storeFileObj = if (storeFilePath.isNotBlank()) rootProject.file(storeFilePath) else null
@@ -213,7 +217,7 @@ android {
             dimension = "environment"
             // 锁定 IDE 默认构建变体为 devDebug，点击运行按钮 100% 走测试配置
             isDefault = true
-            signingConfig = signingConfigs.getByName("test")
+            signingConfig = devSigningConfig
             applyEnv(devEnv)
         }
         create("prod") {
@@ -225,7 +229,7 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("test")
+            signingConfig = devSigningConfig
         }
         release {
             isMinifyEnabled = true

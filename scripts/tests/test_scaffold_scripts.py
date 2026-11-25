@@ -220,9 +220,16 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
             dev_xcconfig = (repo_dir / "config/dev.xcconfig").read_text(encoding="utf-8")
             prod_xcconfig = (repo_dir / "config/prod.xcconfig").read_text(encoding="utf-8")
             proguard = (repo_dir / "androidApp/proguard-rules.pro").read_text(encoding="utf-8")
+            ci_yml = (repo_dir / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+            release_yml = (repo_dir / ".github/workflows/release.yml").read_text(encoding="utf-8")
             self.assertIn("com.acme.demo", dev_xcconfig)
             self.assertIn("com.acme.demo", prod_xcconfig)
             self.assertIn("com.acme.demo.core.navigation.NavKey", proguard)
+            self.assertIn("KMP AcmeDemo CI", ci_yml)
+            self.assertIn("KMP AcmeDemo Release CD", release_yml)
+
+            doctor_res = run_script(repo_dir, ["./kmp", "doctor"])
+            self.assertIn("体检完成", doctor_res.stdout)
 
             # Confirm placeholder xxx.yyy.zzz is completely gone across source/config trees.
             for tree in ("androidApp", "shared", "core", "features", "config", "iosApp/Sources"):

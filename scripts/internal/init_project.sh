@@ -253,6 +253,7 @@ find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.tom
     "${SED_INPLACE[@]}" "s|>Architecture<|>${ESCAPED_APP_NAME}<|g" "$file"
     "${SED_INPLACE[@]}" "s|>Welcome to KMP Architecture<|>Welcome to ${ESCAPED_APP_NAME}<|g" "$file"
     "${SED_INPLACE[@]}" "s|KMP Architecture CI|KMP ${APP_NAME_COMPACT} CI|g" "$file"
+    "${SED_INPLACE[@]}" "s|KMP Architecture Release CD|KMP ${APP_NAME_COMPACT} Release CD|g" "$file"
 done
 
 # 同步核心工程文档中的包名、插件前缀、主题名与根目录展示名（避免误改英文单词 Architecture）

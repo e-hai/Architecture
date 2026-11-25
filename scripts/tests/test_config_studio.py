@@ -225,6 +225,7 @@ class ConfigStudioTest(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as ctx:
                 urllib.request.urlopen(req_init)
             self.assertEqual(ctx.exception.code, 403)
+            ctx.exception.close()
 
             # Prod 保存仅写入 config/prod.local.xcconfig，不动 Dev 与 tracked prod.xcconfig
             req_save = urllib.request.Request(
@@ -313,6 +314,7 @@ class ConfigStudioTest(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as ctx1:
                 urllib.request.urlopen(req_no_csrf)
             self.assertEqual(ctx1.exception.code, 403)
+            ctx1.exception.close()
 
             # 跨环境 env="prod" 必须返回 403
             req_wrong_env = urllib.request.Request(
@@ -324,6 +326,7 @@ class ConfigStudioTest(unittest.TestCase):
             with self.assertRaises(urllib.error.HTTPError) as ctx2:
                 urllib.request.urlopen(req_wrong_env)
             self.assertEqual(ctx2.exception.code, 403)
+            ctx2.exception.close()
 
             # 正常保存 Dev 配置与上传 Dev Firebase plist
             req_save = urllib.request.Request(
