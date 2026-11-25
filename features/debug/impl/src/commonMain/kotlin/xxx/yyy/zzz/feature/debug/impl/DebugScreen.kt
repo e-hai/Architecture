@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -111,7 +113,7 @@ fun DebugScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { DebugTopBar(onBack = onBack, onClearLogs = { consoleLogs.clear() }) }
-        item { DebugConsoleCard(consoleLogs = consoleLogs, listState = listState) }
+        item { DebugConsoleCard(consoleLogs = consoleLogs.toImmutableList(), listState = listState) }
         item { AppConfigCard(appConfig = appConfig) }
 
         DebugCategory.entries.forEach { category ->
@@ -120,7 +122,7 @@ fun DebugScreen(
                 item(key = category.name) {
                     DebugCategoryCard(
                         category = category,
-                        sections = categorySections,
+                        sections = categorySections.toImmutableList(),
                         emitLog = ::emitLog,
                     )
                 }
@@ -160,7 +162,7 @@ private fun DebugTopBar(
 
 @Composable
 private fun DebugConsoleCard(
-    consoleLogs: List<String>,
+    consoleLogs: ImmutableList<String>,
     listState: LazyListState,
     modifier: Modifier = Modifier,
 ) {
@@ -242,7 +244,7 @@ private fun AppConfigCard(
 @Composable
 private fun DebugCategoryCard(
     category: DebugCategory,
-    sections: List<DebugSection>,
+    sections: ImmutableList<DebugSection>,
     emitLog: (tag: String, message: String, level: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {

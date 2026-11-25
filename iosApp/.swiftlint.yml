@@ -16,8 +16,21 @@ excluded:
 opt_in_rules:
   - empty_count
   - empty_string
+  - fatal_error_message
   - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
   - modifier_order
+  - unowned_variable_capture
+  - weak_delegate
+
+custom_rules:
+  no_raw_print_or_nslog:
+    name: "禁止绕过 CoreLog 裸打日志"
+    included: "Sources/.*\\.swift"
+    regex: "\\b(print|NSLog)\\("
+    message: "禁止绕过 CoreLog 使用裸 print/NSLog，请统一调用 CoreLog.shared"
+    severity: error
 
 line_length:
   warning: 130

@@ -87,7 +87,12 @@ internal class AndroidMmpDelegate(
         eventName: String,
         params: Map<String, Any?>,
     ) {
-        val nonNullParams = params.filterValues { it != null }.mapValues { it.value!! }
+        val nonNullParams =
+            buildMap {
+                params.forEach { (key, value) ->
+                    if (value != null) put(key, value)
+                }
+            }
         Mmp.trackEvent(eventName, nonNullParams)
     }
 
@@ -97,7 +102,12 @@ internal class AndroidMmpDelegate(
         eventName: String,
         params: Map<String, Any?>,
     ) {
-        val nonNullParams = params.filterValues { it != null }.mapValues { it.value!! }
+        val nonNullParams =
+            buildMap {
+                params.forEach { (key, value) ->
+                    if (value != null) put(key, value)
+                }
+            }
         Mmp.trackRevenue(
             MmpRevenue(
                 revenue = revenue,

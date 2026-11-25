@@ -18,6 +18,13 @@ internal final class IosPushDelegate: NSObject, PushDelegate, @unchecked Sendabl
         }
     }
 
+    static func handleDeviceToken(_ deviceToken: Data) {
+        PushKitManager.shared.apnsProvider.handleDeviceToken(deviceToken)
+        if let token = PushKitManager.shared.apnsProvider.getToken(), !token.isEmpty {
+            CorePush.shared.setPushToken(token: token)
+        }
+    }
+
     func doInit(registerFcm: Bool) {
         guard Bundle.main.bundleIdentifier != nil else { return }
 

@@ -108,7 +108,9 @@ public final class NativeKitBootstrap: Sendable {
         if !state.essentialInitialized {
             initEssentialLocked(deferCrashReport: config.deferCrashReport)
             state.essentialInitialized = true
-            print("[KMP-iOS] Stage 1 essential kits initialized.")
+            // [KIT:log:START]
+            CoreLog.shared.i(tag: LogTags.shared.APP, message: "[KMP-iOS] Stage 1 essential kits initialized.")
+            // [KIT:log:END]
         }
     }
 
@@ -163,9 +165,20 @@ public final class NativeKitBootstrap: Sendable {
         // [KIT:push:END]
 
         state.deferredInitialized = true
-        print("[KMP-iOS] Stage 2 deferred kits initialized.")
+        // [KIT:log:START]
+        CoreLog.shared.i(tag: LogTags.shared.APP, message: "[KMP-iOS] Stage 2 deferred kits initialized.")
+        // [KIT:log:END]
         return true
     }
+
+    // [KIT:push:START]
+    /**
+     * 透传 APNs 设备 Token 至 PushKit 并同步至 CorePush 门面（隔离 iOSApp 入口对 PushKit 的直接依赖）。
+     */
+    public static func handlePushDeviceToken(_ deviceToken: Data) {
+        IosPushDelegate.handleDeviceToken(deviceToken)
+    }
+    // [KIT:push:END]
 
     /**
      * 兼容一站式入口：依次完成 Stage 1 基础装配激活与 Stage 2 延迟 Kit 激活（常用于单测或无需延迟场景）。

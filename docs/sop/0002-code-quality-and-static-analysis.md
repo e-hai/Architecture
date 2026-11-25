@@ -45,12 +45,12 @@ flowchart TD
 | 层级 | 工具/任务 | 核心配置文件 | 职责边界 |
 | :--- | :--- | :--- | :--- |
 | **L1** | `Spotless 8.5.1` + `ktlint` | [`.editorconfig`](../../.editorconfig)、[`SpotlessConventionPlugin.kt`](../../build-logic/convention/src/main/kotlin/SpotlessConventionPlugin.kt) | Kotlin 与 Gradle DSL 缩进、导入顺序、通配符导入与行宽格式化 |
-| **L1/L3** | `SwiftLint 0.65.1` (`--strict`) | [`iosApp/.swiftlint.yml`](../../iosApp/.swiftlint.yml) | iOS `Sources`/`Tests` 排版、圈复杂度（12/20）、函数长度（60/100）与类型约束 |
+| **L1/L3** | `SwiftLint 0.65.1` (`--strict`) | [`iosApp/.swiftlint.yml`](../../iosApp/.swiftlint.yml) | iOS `Sources`/`Tests` 排版、圈复杂度（12/20）、函数长度（60/100）、强制解包/弱委托/隐式可选/`unowned`/`fatalError` 拦截与自定义 `no_raw_print_or_nslog` 禁裸日志 |
 | **L1** | `ShellCheck 0.11.0` | `./kmp`、`scripts/internal/*.sh`、`scripts/hooks/*.sh`、`.githooks/pre-commit` | Bash 脚手架脚本未引用变量、转义与跨平台兼容性检查 |
 | **L2** | Kotlin & Swift 6 编译器 | [`KotlinConfiguration.kt`](../../build-logic/convention/src/main/kotlin/project/KotlinConfiguration.kt)、[`iosApp/project.yml`](../../iosApp/project.yml) | Kotlin JVM/KMP/K-N `allWarningsAsErrors = true`；Xcode `SWIFT_TREAT_WARNINGS_AS_ERRORS: "YES"` |
-| **L3** | `Detekt 2.0.0-alpha.3` + `Compose Rules 0.6.8` | [`DetektConfiguration.kt`](../../build-logic/convention/src/main/kotlin/project/DetektConfiguration.kt)、[`config/detekt/detekt.yml`](../../config/detekt/detekt.yml) | 22 个模块全源集（`src/**`）圈复杂度、长函数、魔法数字、异常吞没与 Compose 最佳实践 |
+| **L3** | `Detekt 2.0.0-alpha.3` + `Compose Rules 0.6.8` | [`DetektConfiguration.kt`](../../build-logic/convention/src/main/kotlin/project/DetektConfiguration.kt)、[`config/detekt/detekt.yml`](../../config/detekt/detekt.yml) | 22 个模块全源集（`src/**`）圈复杂度、长函数、`GlobalCoroutineUsage`、`UnsafeCallOnNullableType`、`UnstableCollections`（配合 `ImmutableList`/`ImmutableSet`）与 Compose 最佳实践 |
 | **L4** | `Android Lint` | [`config/lint/lint.xml`](../../config/lint/lint.xml) | `lintDevDebug` & `lintProdRelease`（`warningsAsErrors = true`、`abortOnError = true`） |
-| **L5** | `verifyArchitecture` | [`ArchitectureVerificationPlugin.kt`](../../build-logic/convention/src/main/kotlin/ArchitectureVerificationPlugin.kt) | 9 大 Kit 纯 `commonMain`、原生 SDK 隔离、单向依赖、Fake over Mock、AGP 9.0 防回退 |
+| **L5** | `verifyArchitecture` | [`ArchitectureVerificationPlugin.kt`](../../build-logic/convention/src/main/kotlin/ArchitectureVerificationPlugin.kt) | 10 大架构红线：9 大 Kit 纯 `commonMain`、双端原生 SDK 隔离、单向依赖、Fake over Mock、AGP 9.0 防回退、`doInit*` Obj-C 导出防改名、禁绕过 `CoreLog` 裸打日志、双端 Delegate 对称性、Feature 禁直引 DTO/Entity |
 | **L6** | `./kmp check` & CI | [`kmp`](../../kmp)、[`scripts/internal/check_quality.sh`](../../scripts/internal/check_quality.sh)、[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | 统一本地秒级拦截（`--fast`）与完整双端发版验证（`--full`） |
 
 ---
@@ -82,7 +82,7 @@ flowchart TD
 ## 5. 验收与豁免原则 (Verification & Exemption Policy)
 1. **禁止全局禁用规则**：不得在 `detekt.yml`、`lint.xml` 或 `.swiftlint.yml` 中关闭全局安全/缺陷规则；仅允许针对跨端工程惯例做局部微调（如放行 `@Composable` 大驼峰命名、忽略已托管的依赖升级巡检 `GradleDependency`）。
 2. **局部 `@Suppress` 必须附带中文说明**：例如释放/裁剪桩 `DebugPanelBridge.kt` 或第三方 SDK 兜底 `catch (t: Throwable)` 时，必须精准到具体规则名并写明工程原因。
-3. **架构红线零豁免**：`verifyArchitecture` 涉及的五项红线（范式 A 隔离、原生 SDK 隔离、模块单向依赖、Fake over Mock、AGP 9 规范）不允许绕过。
+3. **架构红线零豁免**：`verifyArchitecture` 涉及的十项红线（范式 A 隔离、Android/iOS 双端原生 SDK 隔离、模块单向依赖、Fake over Mock、AGP 9 规范、Obj-C `doInit*` 命名、禁绕过 `CoreLog` 裸打日志、双端 Delegate 对称性、Feature 数据层 DTO/Entity 边界）不允许绕过。
 
 ---
 

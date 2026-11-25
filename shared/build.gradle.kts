@@ -70,6 +70,7 @@ kotlin {
 
             dependencies {
                 api(project(":core:model"))
+                api(libs.kotlinx.collections.immutable)
                 implementation(project(":core:navigation"))
                 implementation(project(":core:network"))
                 implementation(project(":core:database"))

@@ -10,6 +10,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":features:debug:api"))
+            implementation(libs.kotlinx.collections.immutable)
             implementation(project(":core:database"))
             implementation(project(":core:datastore"))
             implementation(project(":core:network"))

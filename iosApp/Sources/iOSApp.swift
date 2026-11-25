@@ -1,6 +1,3 @@
-// [KIT:push:START]
-import PushKit
-// [KIT:push:END]
 import Shared
 import SwiftUI
 import UIKit
@@ -14,10 +11,7 @@ public final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
-        PushKitManager.shared.apnsProvider.handleDeviceToken(deviceToken)
-        if let token = PushKitManager.shared.apnsProvider.getToken(), !token.isEmpty {
-            CorePush.shared.setPushToken(token: token)
-        }
+        NativeKitBootstrap.handlePushDeviceToken(deviceToken)
     }
 
     public func application(

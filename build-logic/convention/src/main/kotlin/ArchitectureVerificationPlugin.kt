@@ -5,13 +5,14 @@ import java.io.File
 
 /**
  * 工程架构红线自动化校验插件（L5 门禁）。
- * 挂载于根工程，提供 `./gradlew verifyArchitecture` 任务，强制守护 AGENTS.md 中的五项核心架构边界。
+ * 挂载于根工程，提供 `./gradlew verifyArchitecture` 任务，强制守护 AGENTS.md 中的十项核心架构边界。
  */
 class ArchitectureVerificationPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.tasks.register("verifyArchitecture") {
             group = "verification"
-            description = "校验 KMP 三级模块化隔离、9 大原生委托 Kit 纯 commonMain 约束、Fake over Mock 与 AGP 9.0 规范。"
+            description =
+                "校验 KMP 三级模块化隔离、9 大原生委托 Kit 纯 commonMain 约束、Fake over Mock、AGP 9.0、Obj-C init 命名、iOS SDK 隔离、禁裸日志、Delegate 对称性与数据层边界。"
 
             val rootDir = target.rootDir
             doLast {
@@ -21,6 +22,11 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
                 checkModuleDependencyDirection(rootDir, violations)
                 checkFakeOverMock(rootDir, violations)
                 checkAgp9Compliance(rootDir, violations)
+                checkObjCInitNaming(rootDir, violations)
+                checkIosNativeSdkIsolation(rootDir, violations)
+                checkNoRawLogging(rootDir, violations)
+                checkDelegateSymmetry(rootDir, violations)
+                checkFeatureDataLayerBoundary(rootDir, violations)
 
                 if (violations.isNotEmpty()) {
                     val report = violations.joinToString(separator = "\n") { "  - $it" }
@@ -28,7 +34,7 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
                         "架构红线校验失败（发现 ${violations.size} 处违规）：\n$report",
                     )
                 }
-                logger.lifecycle("[verifyArchitecture] 全部 5 项架构红线校验通过。")
+                logger.lifecycle("[verifyArchitecture] 全部 10 项架构红线校验通过。")
             }
         }
     }
@@ -192,6 +198,163 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
             }
     }
 
+    private fun checkObjCInitNaming(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val scanRoots = mutableListOf(File(rootDir, "shared/src/commonMain"))
+        File(rootDir, "core")
+            .listFiles { file -> file.isDirectory }
+            ?.forEach { scanRoots.add(File(it, "src/commonMain")) }
+
+        scanKotlinFiles(rootDir, scanRoots) { file, lineNumber, rawLine ->
+            val trimmed = rawLine.trim()
+            if (isNonCommentCodeLine(trimmed) && FORBIDDEN_OBJC_INIT_REGEX.containsMatchIn(trimmed)) {
+                val relPath = file.relativeTo(rootDir).path
+                violations.add(
+                    "[Obj-C 导出命名违规] $relPath:$lineNumber 跨端公开/内部初始化方法禁止以 init 开头，请统一使用 doInit* 命名",
+                )
+            }
+        }
+    }
+
+    private fun checkIosNativeSdkIsolation(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val iosSources = File(rootDir, "iosApp/Sources")
+        if (!iosSources.isDirectory) return
+
+        iosSources
+            .walkTopDown()
+            .onEnter { dir -> dir.name !in IGNORED_DIRS }
+            .filter { it.isFile && it.extension == "swift" }
+            .forEach { file ->
+                val relPath = file.relativeTo(rootDir).path
+                if (relPath.startsWith("iosApp/Sources/Bridge/")) return@forEach
+
+                scanNonCommentLines(file) { lineNumber, line ->
+                    val module = SWIFT_IMPORT_REGEX.find(line)?.groupValues?.getOrNull(1)
+                    if (module != null && module in FORBIDDEN_IOS_NATIVE_MODULES) {
+                        violations.add(
+                            "[iOS 原生 SDK 泄露] $relPath:$lineNumber 禁止在 iosApp/Sources/Bridge/ 之外直接导入原生 SDK ($module)",
+                        )
+                    }
+                }
+            }
+    }
+
+    private fun checkNoRawLogging(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val kotlinBusinessRoots =
+            mutableListOf(
+                File(rootDir, "shared/src"),
+                File(rootDir, "androidApp/src"),
+            )
+        File(rootDir, "features")
+            .listFiles { file -> file.isDirectory }
+            ?.forEach { kotlinBusinessRoots.add(File(it, "src")) }
+
+        scanKotlinFiles(rootDir, kotlinBusinessRoots) { file, lineNumber, rawLine ->
+            val relPath = file.relativeTo(rootDir).path
+            if (isTestSourcePath(relPath) || file.name == "AndroidLogDelegate.kt") return@scanKotlinFiles
+            val trimmed = rawLine.trim()
+            if (isNonCommentCodeLine(trimmed) && FORBIDDEN_KOTLIN_RAW_LOG_REGEX.containsMatchIn(trimmed)) {
+                violations.add(
+                    "[裸日志违规] $relPath:$lineNumber 禁止绕过 CoreLog 使用裸 println / android.util.Log",
+                )
+            }
+        }
+
+        val coreRoots =
+            File(rootDir, "core")
+                .listFiles { file -> file.isDirectory && file.name != "log" }
+                ?.map { File(it, "src") }
+                .orEmpty()
+        scanKotlinFiles(rootDir, coreRoots) { file, lineNumber, rawLine ->
+            val relPath = file.relativeTo(rootDir).path
+            if (isTestSourcePath(relPath)) return@scanKotlinFiles
+            val trimmed = rawLine.trim()
+            if (isNonCommentCodeLine(trimmed) && FORBIDDEN_ANDROID_UTIL_LOG_REGEX.containsMatchIn(trimmed)) {
+                violations.add(
+                    "[裸日志违规] $relPath:$lineNumber :core 模块禁止使用 android.util.Log",
+                )
+            }
+        }
+
+        val iosSources = File(rootDir, "iosApp/Sources")
+        if (iosSources.isDirectory) {
+            iosSources
+                .walkTopDown()
+                .onEnter { dir -> dir.name !in IGNORED_DIRS }
+                .filter { it.isFile && it.extension == "swift" }
+                .forEach { file ->
+                    val relPath = file.relativeTo(rootDir).path
+                    scanNonCommentLines(file) { lineNumber, line ->
+                        if (FORBIDDEN_SWIFT_RAW_LOG_REGEX.containsMatchIn(line)) {
+                            violations.add(
+                                "[裸日志违规] $relPath:$lineNumber 禁止绕过 CoreLog.shared 使用裸 print / NSLog",
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun checkDelegateSymmetry(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val androidKotlinRoot = File(rootDir, "androidApp/src/main/kotlin")
+        val iosDelegatesDir = File(rootDir, "iosApp/Sources/Bridge/Delegates")
+
+        DELEGATE_KIT_PASCAL_NAMES.forEach { (kit, pascal) ->
+            if (!File(rootDir, "core/$kit").isDirectory) return@forEach
+
+            val expectedAndroidFile = "Android${pascal}Delegate.kt"
+            val hasAndroidDelegate =
+                androidKotlinRoot.isDirectory &&
+                    androidKotlinRoot
+                        .walkTopDown()
+                        .any { it.isFile && it.name == expectedAndroidFile }
+            if (!hasAndroidDelegate) {
+                violations.add(
+                    "[双端 Delegate 对称性违规] 存在 :core:$kit 但缺少 Android 宿主委托文件 $expectedAndroidFile",
+                )
+            }
+
+            val expectedIosFile = File(iosDelegatesDir, "Ios${pascal}Delegate.swift")
+            if (!expectedIosFile.isFile) {
+                violations.add(
+                    "[双端 Delegate 对称性违规] 存在 :core:$kit 但缺少 iOS 宿主委托文件 iosApp/Sources/Bridge/Delegates/Ios${pascal}Delegate.swift",
+                )
+            }
+        }
+    }
+
+    private fun checkFeatureDataLayerBoundary(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val featureRoots =
+            File(rootDir, "features")
+                .listFiles { file -> file.isDirectory }
+                ?.map { File(it, "src") }
+                .orEmpty()
+        scanKotlinFiles(rootDir, featureRoots) { file, lineNumber, rawLine ->
+            val relPath = file.relativeTo(rootDir).path
+            if (isTestSourcePath(relPath)) return@scanKotlinFiles
+            val trimmed = rawLine.trim()
+            if (FORBIDDEN_FEATURE_DATA_IMPORT_REGEX.containsMatchIn(trimmed)) {
+                violations.add(
+                    "[数据层边界违规] $relPath:$lineNumber features 层禁止直接导入 DTO/Entity，请通过 Domain Model 传递",
+                )
+            }
+        }
+    }
+
     private fun scanKotlinFiles(
         rootDir: File,
         roots: List<File>,
@@ -218,16 +381,26 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
     ) {
         file.readLines().forEachIndexed { idx, raw ->
             val trimmed = raw.trim()
-            if (trimmed.isNotEmpty() &&
-                !trimmed.startsWith("//") &&
-                !trimmed.startsWith("#") &&
-                !trimmed.startsWith("*") &&
-                !trimmed.startsWith("/**")
-            ) {
+            if (isNonCommentCodeLine(trimmed)) {
                 onLine(idx + 1, trimmed)
             }
         }
     }
+
+    private fun isNonCommentCodeLine(trimmed: String): Boolean =
+        trimmed.isNotEmpty() &&
+            !trimmed.startsWith("//") &&
+            !trimmed.startsWith("#") &&
+            !trimmed.startsWith("*") &&
+            !trimmed.startsWith("/**")
+
+    private fun isTestSourcePath(relPath: String): Boolean =
+        relPath.contains("/src/commonTest/") ||
+            relPath.contains("/src/test/") ||
+            relPath.contains("/src/androidTest/") ||
+            relPath.contains("/src/androidHostTest/") ||
+            relPath.contains("/src/iosTest/") ||
+            relPath.endsWith("Test.kt")
 
     private companion object {
         val IGNORED_DIRS = setOf(".git", ".gradle", ".build", ".kotlin", "build", "build-logic")
@@ -241,5 +414,48 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
             Regex("""\b(io\.mockk|org\.mockito|org\.powermock|mockk|mockito)\b""")
         val FORBIDDEN_AGP_LEGACY_REGEX =
             Regex("""com\.android\.library|org\.jetbrains\.kotlin\.android""")
+        val FORBIDDEN_OBJC_INIT_REGEX =
+            Regex(
+                """^(?!private\s)(?:(?:public|internal|override|suspend|inline|open|abstract|expect|actual)\s+)*fun\s+init(?:[A-Z0-9_]\w*)?\s*\(""",
+            )
+        val SWIFT_IMPORT_REGEX =
+            Regex("""^(?:@\w+\s+)?import\s+(?:(?:class|struct|enum|func|var|typealias|protocol)\s+)?([A-Za-z0-9_]+)""")
+        val FORBIDDEN_IOS_NATIVE_MODULES =
+            setOf(
+                "LogKit",
+                "CrashReportKit",
+                "AnalyticsKit",
+                "ABTestingKit",
+                "MMPKit",
+                "AdsKit",
+                "PayKit",
+                "PushKit",
+                "VideoKit",
+                "Firebase",
+                "FirebaseCore",
+                "FirebaseAnalytics",
+                "FirebaseCrashlytics",
+                "FirebaseRemoteConfig",
+                "FirebaseMessaging",
+                "GoogleMobileAds",
+                "AppsFlyerLib",
+                "libpag",
+            )
+        val FORBIDDEN_KOTLIN_RAW_LOG_REGEX = Regex("""\bprintln\s*\(|\bandroid\.util\.Log\b""")
+        val FORBIDDEN_ANDROID_UTIL_LOG_REGEX = Regex("""\bandroid\.util\.Log\b""")
+        val FORBIDDEN_SWIFT_RAW_LOG_REGEX = Regex("""\b(?:print|NSLog)\s*\(""")
+        val FORBIDDEN_FEATURE_DATA_IMPORT_REGEX = Regex("""^import\s+\S*\.(dto|entity)\.""")
+        val DELEGATE_KIT_PASCAL_NAMES =
+            mapOf(
+                "log" to "Log",
+                "crashreport" to "CrashReport",
+                "analytics" to "Analytics",
+                "abtesting" to "AbTesting",
+                "mmp" to "Mmp",
+                "ads" to "Ads",
+                "pay" to "Pay",
+                "push" to "Push",
+                "video" to "Video",
+            )
     }
 }

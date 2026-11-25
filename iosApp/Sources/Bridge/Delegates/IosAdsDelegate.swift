@@ -160,7 +160,10 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
         }
 
         Task { @MainActor [weak self] in
-            print("[Ads-iOS] loadAd: triggerId=\(triggerId), unitId=\(resolvedUnitId), type=\(kind.sdkType.name)")
+            CoreLog.shared.d(
+                tag: LogTags.shared.ADS,
+                message: "[Ads-iOS] loadAd: triggerId=\(triggerId), unitId=\(resolvedUnitId), type=\(kind.sdkType.name)"
+            )
             let request = AdsRequest(
                 triggerId: triggerId,
                 adUnitId: resolvedUnitId,
@@ -169,14 +172,23 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
             )
             let listener = CustomAdsListener(
                 onLoaded: { [weak self] entity in
-                    print("[Ads-iOS] onAdLoaded (\(kind.sdkType.name)): \(triggerId)")
+                    CoreLog.shared.d(
+                        tag: LogTags.shared.ADS,
+                        message: "[Ads-iOS] onAdLoaded (\(kind.sdkType.name)): \(triggerId)"
+                    )
                     self?.setLoadedAd(entity, kind: kind, for: triggerId)
                 },
                 onFailed: { error, code in
-                    print("[Ads-iOS] onAdFailed (\(kind.sdkType.name)): \(triggerId) error=\(error) code=\(code ?? "")")
+                    CoreLog.shared.w(
+                        tag: LogTags.shared.ADS,
+                        message: "[Ads-iOS] onAdFailed (\(kind.sdkType.name)): \(triggerId) error=\(error) code=\(code ?? "")"
+                    )
                 },
                 onClosed: { [weak self] in
-                    print("[Ads-iOS] onAdClosed (\(kind.sdkType.name)): \(triggerId)")
+                    CoreLog.shared.d(
+                        tag: LogTags.shared.ADS,
+                        message: "[Ads-iOS] onAdClosed (\(kind.sdkType.name)): \(triggerId)"
+                    )
                     self?.removeLoadedAd(for: triggerId)
                 }
             )
@@ -196,9 +208,12 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
         let entity = cached?.entity
 
         Task { @MainActor [weak self] in
-            print("[Ads-iOS] showAd: triggerId=\(triggerId), type=\(kind.sdkType.name)")
+            CoreLog.shared.d(
+                tag: LogTags.shared.ADS,
+                message: "[Ads-iOS] showAd: triggerId=\(triggerId), type=\(kind.sdkType.name)"
+            )
             guard let topVC = self?.getTopViewController() else {
-                print("[Ads-iOS] showAd failed: no topViewController")
+                CoreLog.shared.w(tag: LogTags.shared.ADS, message: "[Ads-iOS] showAd failed: no topViewController")
                 return
             }
 
@@ -260,7 +275,10 @@ internal final class IosAdsDelegate: NSObject, AdsDelegate, @unchecked Sendable 
         )
         let primaryLabel = (kind == .rewarded) ? "完成观看 (领取奖励)" : "确认"
         alert.addAction(UIAlertAction(title: primaryLabel, style: .default) { _ in
-            print("[Ads-iOS] Fallback Ad complete (\(kind.sdkType.name)) for trigger=\(triggerId)")
+            CoreLog.shared.i(
+                tag: LogTags.shared.ADS,
+                message: "[Ads-iOS] Fallback Ad complete (\(kind.sdkType.name)) for trigger=\(triggerId)"
+            )
         })
         alert.addAction(UIAlertAction(title: "关闭", style: .cancel))
         viewController.present(alert, animated: true)

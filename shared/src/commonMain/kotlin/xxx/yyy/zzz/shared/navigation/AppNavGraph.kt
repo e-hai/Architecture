@@ -4,6 +4,8 @@ package xxx.yyy.zzz.shared.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import xxx.yyy.zzz.core.navigation.NavKey
 import xxx.yyy.zzz.core.navigation.Navigator
 import xxx.yyy.zzz.core.ui.ErrorView
@@ -21,7 +23,7 @@ import xxx.yyy.zzz.feature.home.impl.HomeScreen
 val defaultStartKey: NavKey = HomeNavKey
 
 /** 默认顶级导航根路由集合 */
-val defaultTopLevelKeys: Set<NavKey> = setOf(HomeNavKey)
+val defaultTopLevelKeys: ImmutableSet<NavKey> = persistentSetOf(HomeNavKey)
 // [START_ROUTE_END]
 
 /**

@@ -55,7 +55,7 @@ Compose:
   RememberContentMissing:
     active: true
   UnstableCollections:
-    active: false
+    active: true
   ViewModelForwarding:
     active: true
   ViewModelInjection:
@@ -68,6 +68,10 @@ complexity:
     allowedFunctionsPerInterface: 16
     allowedFunctionsPerObject: 16
 
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+
 empty-blocks:
   EmptyFunctionBlock:
     # 放行 Android ActivityLifecycleCallbacks / SDK 监听器的接口空实现重写方法
@@ -77,6 +81,10 @@ naming:
   FunctionNaming:
     ignoreAnnotated:
       - Composable
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
 
 style:
   MagicNumber:

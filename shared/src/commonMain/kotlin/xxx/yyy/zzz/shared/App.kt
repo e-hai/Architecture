@@ -21,6 +21,7 @@ import xxx.yyy.zzz.shared.debug.DebugPanelBridge
 // [KIT:mmp:END]
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import kotlinx.collections.immutable.ImmutableSet
 import xxx.yyy.zzz.core.navigation.NavKey
 import xxx.yyy.zzz.core.navigation.NavigationState
 import xxx.yyy.zzz.core.navigation.Navigator
@@ -38,7 +39,7 @@ import xxx.yyy.zzz.shared.navigation.defaultTopLevelKeys
 fun App(
     modifier: Modifier = Modifier,
     startKey: NavKey = defaultStartKey,
-    topLevelKeys: Set<NavKey> = defaultTopLevelKeys,
+    topLevelKeys: ImmutableSet<NavKey> = defaultTopLevelKeys,
     autoInitDeferredKits: Boolean = true,
 ) {
     if (autoInitDeferredKits) {

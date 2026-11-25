@@ -8,7 +8,7 @@ import VideoKit
 internal final class IosVideoDelegate: NSObject, VideoDelegate {
     func doInit() {
         _ = VideoCacheManager.shared
-        print("[IosVideoDelegate] VideoCacheManager initialized.")
+        CoreLog.shared.d(tag: LogTags.shared.VIDEO, message: "[IosVideoDelegate] VideoCacheManager initialized.")
     }
 
     func preload(url: String, bytes: Int64) {
@@ -29,7 +29,7 @@ internal final class IosVideoDelegate: NSObject, VideoDelegate {
 
     func clearCache() {
         VideoCacheManager.shared.clearAllCache()
-        print("[IosVideoDelegate] VideoCacheManager cache cleared.")
+        CoreLog.shared.d(tag: LogTags.shared.VIDEO, message: "[IosVideoDelegate] VideoCacheManager cache cleared.")
     }
 
     func saveProgress(videoId: String, positionMs: Int64, durationMs: Int64) {
@@ -43,6 +43,6 @@ internal final class IosVideoDelegate: NSObject, VideoDelegate {
 
     func clearProgress(videoId: String) {
         VodProgressStore.shared.clearProgress(for: videoId)
-        print("[IosVideoDelegate] VodProgressStore cleared for: \(videoId)")
+        CoreLog.shared.d(tag: LogTags.shared.VIDEO, message: "[IosVideoDelegate] VodProgressStore cleared for: \(videoId)")
     }
 }
