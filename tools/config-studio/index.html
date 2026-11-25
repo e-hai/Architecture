@@ -605,19 +605,6 @@
               </div>
 
               <div class="field">
-                <label for="init_plugin_prefix">工程插件前缀（可选）</label>
-                <span id="hint_init_plugin_prefix" class="hint">纯小写字母数字；留空默认取包名最后一段</span>
-                <input type="text" id="init_plugin_prefix" name="init_plugin_prefix" autocorrect="off" autocapitalize="none" spellcheck="false" pattern="[a-z][a-z0-9]*" aria-describedby="hint_init_plugin_prefix" data-error="err_init_plugin_prefix" enterkeyhint="next">
-                <div id="err_init_plugin_prefix" class="error-msg">仅允许以小写字母开头的字母或数字。</div>
-              </div>
-
-              <div class="field">
-                <label for="init_initial_features">初始业务页面模块（可选）</label>
-                <span id="hint_init_initial_features" class="hint">英文小写逗号分隔，如 feed,profile,paywall（home 已内置）</span>
-                <input type="text" id="init_initial_features" name="init_initial_features" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="hint_init_initial_features" enterkeyhint="next">
-              </div>
-
-              <div class="field">
                 <label class="check-item" for="init_debug_panel">
                   <input type="checkbox" id="init_debug_panel" name="init_debug_panel" checked>
                   <span>
@@ -1202,9 +1189,7 @@
       if (!shouldUseProjectInit()) return null;
       const pkg = document.getElementById("init_package_name").value.trim();
       const appName = document.getElementById("init_app_name").value.trim();
-      const prefix = document.getElementById("init_plugin_prefix").value.trim() || (pkg ? pkg.split(".").pop() : "");
-      const featsRaw = document.getElementById("init_initial_features").value.replace(/，/g, ",");
-      const feats = featsRaw.split(",").map((s) => s.trim().toLowerCase().replace(/-/g, "_")).filter((s) => s && s !== "home");
+      const prefix = pkg ? pkg.split(".").pop() : "";
       const excludedKits = ALL_KITS.filter((k) => !k.required && !document.getElementById(`kit_${k.id}`).checked).map((k) => k.id);
       const testAppId = document.getElementById("cfg_APP_ID").value.trim();
       return {
@@ -1213,7 +1198,7 @@
         formal_app_id: pkg,
         test_app_id: (testAppId && testAppId !== "xxx.yyy.zzz.dev") ? testAppId : (pkg ? `${pkg}.dev` : ""),
         plugin_prefix: prefix,
-        initial_features: [...new Set(feats)],
+        initial_features: [],
         debug_panel: document.getElementById("init_debug_panel").checked,
         excluded_kits: excludedKits,
       };
@@ -1310,9 +1295,6 @@
         }
         if (!/^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/.test(initPayload.package_name) || initPayload.package_name === "xxx.yyy.zzz") {
           addError("立项配置：package_name 须为反域名纯小写格式（如 com.acme.app）", "init_package_name");
-        }
-        if (initPayload.plugin_prefix && !/^[a-z][a-z0-9]*$/.test(initPayload.plugin_prefix)) {
-          addError("立项配置：plugin_prefix 仅支持以小写字母开头的字母数字", "init_plugin_prefix");
         }
       }
 

@@ -18,7 +18,7 @@
 ## 1. 30 秒极速上手 (Quick Start)
 
 ### 1.1 一键极简项目立项与双端配置向导 (`./kmp studio` / `./kmp init`)
-本脚手架支持**零依赖 Web 配置向导 (Config Studio)** 与**命令行一键初始化**，统一读写双端单一真源（[`config/dev.xcconfig`](config/dev.xcconfig) 与 [`config/prod.xcconfig`](config/prod.xcconfig)），自动重命名命名空间、应用 ID、插件前缀、App 名称、按需裁剪 10 大 Kit、校验并放置双端 Firebase 文件，并**直接将默认的 `:features:home` 转换为新项目的首页模块**：
+本脚手架支持**零依赖 Web 配置向导 (Config Studio)** 与**命令行一键初始化**，统一读写双端单一真源（[`config/dev.xcconfig`](config/dev.xcconfig) 与 [`config/prod.xcconfig`](config/prod.xcconfig)），自动重命名命名空间、应用 ID、Gradle 插件前缀（Web 端默认按包名末段自动推导，CLI 亦支持 `--prefix` 自定义）、App 名称、按需裁剪 10 大 Kit、校验并放置双端 Firebase 文件，并**保留 `:features:home` 作为默认首页模块**（后续可随时用 `./kmp feature add` 扩展，或通过 CLI `--features` 批量生成）：
 
 ```bash
 # 方式 0（推荐，本机 Web 可视化配置台，Dev/Prod 物理隔离且原生支持 Firebase 包名校验）：
@@ -79,10 +79,10 @@
 | **编译链接 iOS 框架** | `./gradlew :shared:linkDebugFrameworkIosSimulatorArm64` | 验证 `Shared.framework` 导出与链接 |
 | **构建无 Debug 面板 Prod 包** | `./gradlew :androidApp:assembleProdRelease -PenableDebugPanel=false` | 构建期物理裁剪 `:features:debug` 与 `like.pag`（iOS `Release` 构建由 `project.yml` 自动传入） |
 | **运行全模块单元测试** | `./gradlew allTests` | 运行全跨平台 `commonTest`、Android 单元测试与 iOS Simulator 测试 |
-| **秒级静态质量门禁** | `./kmp check --fast` | 运行 `ShellCheck` + `verifyArchitecture` + `Spotless` + `Detekt` + `SwiftLint` |
+| **秒级静态质量门禁** | `./kmp check --fast` | 运行 `ShellCheck` + `scripts/tests/` Python 单测 + JS 语法 + `verifyArchitecture` + `Spotless` + `Detekt` + `SwiftLint` |
 | **全量发布态质量门禁** | `./kmp check --full` | 全套静态门禁 + KMP 全测 + Android Dev/Prod Lint & R8 + iOS Dev 测试 & Prod 构建 |
 | **一键激活提交前 Hook** | `./kmp check --install-hooks` | 绑定 `.githooks/pre-commit`，每次 `git commit` 自动执行 `--fast` 检查 |
-| **格式化代码风格** | `./gradlew spotlessApply` 或 `--fix` | 依据 ktlint / SwiftLint 规范自动格式化全工程代码 |
+| **格式化代码风格** | `./kmp check --fix` | 一键自动修复 Kotlin/Gradle (`spotlessApply`) 与 Swift (`swiftlint --fix`) 格式问题 |
 | **代码规范静态检查** | `./gradlew spotlessCheck detekt verifyArchitecture` | CI 门禁检查代码格式、Detekt 坏味道与架构红线 |
 
 > 💡 **质量规范手册**：关于六维代码质量防御体系（L1~L6）、配置文件职责、豁免原则与常见排障，请参阅 [docs/sop/0002-code-quality-and-static-analysis.md](docs/sop/0002-code-quality-and-static-analysis.md)；完整 **SOP 0001 ~ 0006** 索引请参阅 [docs/sop/README.md](docs/sop/README.md)。
@@ -114,7 +114,7 @@ flowchart TD
     end
 
     subgraph Tier2["第二层：跨平台业务与呈现层 (Shared App & Feature Layer)"]
-        Shared["📦 shared 模块 (跨端 App 聚合中枢 / Umbrella Module)\nApp() 根 Composable / AppNavGraph 全局路由表\nAppBootstrap (Koin 全局注册) / DebugScreen 开发者控制台\n导出 Shared.framework 供 iOS 消费"]
+        Shared["📦 shared 模块 (跨端 App 聚合中枢 / Umbrella Module)\nApp() 根 Composable / AppNavGraph 全局路由表\nAppBootstrap (Koin 全局注册)\n导出 Shared.framework 供 iOS 消费"]
         
         subgraph FeaturesGroup["🧩 features:* 业务特性群 (按需生成，零业务耦合)"]
             direction LR
@@ -170,12 +170,14 @@ flowchart TD
 ```
 Architecture/
 ├── androidApp/                                  # [第一层：Android 宿主薄壳]
-│   ├── src/main/AndroidManifest.xml
+│   ├── proguard-rules.pro                       # 精准 R8 混淆保活规则（@Keep / NavKey / Room / Serialization）
+│   ├── src/main/AndroidManifest.xml             # 绑定 NetworkSecurityConfig 与预测性返回回调
+│   ├── src/{dev,prod}/res/xml/network_security_config.xml # Dev 抓包与 Prod 禁明文网络安全隔离配置
 │   └── src/main/kotlin/xxx/yyy/zzz/android/
-│       ├── MyApplication.kt                     # 冷启动两段式初始化入口
+│       ├── MyApplication.kt                     # 冷启动阶段一 Essential 启动入口
 │       ├── MainActivity.kt                      # 挂载 CMP App() 根视图
 │       └── bridge/
-│           ├── NativeKitBootstrap.kt            # 十大 Kit 统一引导装配器
+│           ├── NativeKitBootstrap.kt            # 十大 Kit 统一引导装配器（Stage 1 + Stage 2）
 │           └── delegates/Android*Delegate.kt    # 9 个独立拆分的原生委托实现
 ├── iosApp/                                      # [第一层：iOS 宿主薄壳]
 │   ├── project.yml                              # XcodeGen 单一真源（引入 e-hai/*-iOS 与 Vendor/LibPag SPM）
@@ -215,6 +217,11 @@ Architecture/
 │   ├── video/                                   # CoreVideo 门面 + 播放控制器 (直连 e-hai/VideoKit)
 │   └── pag/                                     # CorePag 门面 + PagView CMP 动效 (直连 e-hai/PagKit)
 ├── build-logic/                                 # Gradle Convention 约定插件
+├── config/                                      # 双端环境配置单一真源（Dev 跟踪 / Prod 本地覆写隔离）
+│   ├── dev.xcconfig                             # 测试环境包名 / 域名 / 测试广告 ID
+│   └── prod.xcconfig                            # 正式环境模板（末尾 #include? prod.local.xcconfig）
+├── tools/config-studio/                         # 零依赖 Web 本地可视化配置台
+│   └── index.html
 ├── docs/                                        # 项目工程文档库
 │   ├── ARCHITECTURE.md                          # 架构设计与技术全景指南
 │   ├── adr/                                     # 架构决策记录 (ADR 0000 ~ 0009 - 记录 Why)
@@ -301,25 +308,30 @@ flowchart LR
 
 ---
 
-### 3.3 双段式冷启动流向 (Two-Phase Initialization)
-为了严格隔离原生 SDK 与纯跨端 KMP 容器，两端宿主在启动时均遵循严格的**双段式初始化时序**：
+### 3.3 双阶段冷启动、延迟合规激活与 DI 装配 (Staged Initialization)
+为了隔离原生 SDK 与纯 KMP 容器，同时满足隐私合规（首帧后或 GDPR UMP / ATT / 隐私弹窗同意后再激活商业化 SDK），双端宿主严格遵循**三步延迟合规初始化时序**：
 
 ```mermaid
 sequenceDiagram
-    participant OS as 操作系统启动入口 (MyApplication / iOSApp)
-    participant HostBootstrap as NativeKitBootstrap (宿主壳层)
-    participant CoreKits as Core* 门面契约 (纯 KMP 层)
-    participant KmpBootstrap as AppBootstrap (纯 KMP 层)
+    participant OS as "操作系统启动入口 (MyApplication / iOSApp)"
+    participant HostBootstrap as "NativeKitBootstrap (宿主壳层)"
+    participant CoreKits as "Core* 门面契约 (纯 KMP 层)"
+    participant KmpBootstrap as "AppBootstrap (纯 KMP 层)"
+    participant AppUI as "App() 首帧 / 隐私同意后"
 
-    Note over OS,HostBootstrap: 【Phase 1：原生基础设施初始化】
-    OS->>HostBootstrap: initKits(appContext / windowScene)
-    HostBootstrap->>CoreKits: Core*.install(Android*Delegate / Ios*Delegate)
-    HostBootstrap->>CoreKits: Core*.doInit*(...) (初始化原生 SDK)
-    HostBootstrap->>HostBootstrap: PagKit 底层运行时初始化 (Android so 提取 / iOS xcframework)
+    Note over OS,HostBootstrap: 【Stage 1：冷启动基础层】
+    OS->>HostBootstrap: "initEssentialKits(...)"
+    HostBootstrap->>CoreKits: "幂等装配全部 9 大 *Delegate"
+    HostBootstrap->>CoreKits: "仅激活 Log / Pag / Video (及非延迟 CrashReport)"
 
-    Note over OS,KmpBootstrap: 【Phase 2：纯 KMP 跨端层初始化】
-    OS->>KmpBootstrap: doInitKoin(appConfig) { androidContext(...) }
-    KmpBootstrap->>KmpBootstrap: 启动 Room / DataStore / Ktor / Features DI
+    Note over OS,KmpBootstrap: 【Phase 2：纯 KMP 容器 + Stage 2 回调绑定】
+    OS->>KmpBootstrap: "doInitKoin(appConfig)"
+    OS->>KmpBootstrap: "registerDeferredKitInitializer { initDeferredKits() }"
+
+    Note over AppUI,CoreKits: 【Stage 2：首帧或隐私弹窗同意后幂等激活】
+    AppUI->>KmpBootstrap: "doInitDeferredKits()"
+    KmpBootstrap->>HostBootstrap: "回调 initDeferredKits()"
+    HostBootstrap->>CoreKits: "激活 Analytics / AbTesting / Mmp / Ads / Pay / Push"
 ```
 
 ---

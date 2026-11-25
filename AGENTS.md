@@ -77,5 +77,5 @@
 - **逻辑与契约优先测试 (Test-First for Core & Logic)**：新增或重构 `core:*` 门面、`Repository`、路由/解析、状态机及 `ViewModel` 时，优先编写或补齐手写 `Fake*` 与 `commonTest` 契约用例再实现业务；纯 Compose / SwiftUI 视图排版与 1:1 原生透传 Delegate 不强制机械前置单测，改由 `Detekt Compose Rules`、`SwiftLint`、编译器零告警与冒烟测试兜底；
 - **变更必同步更新测试 (Sync Tests on Change)**：任何逻辑修改、能力扩展或 Bug 修复，必须同步新增/更新对应单测；修 Bug 原则上先补充复现失败用例再修复源码；
 - **禁止降级与空断言 (No Weakened Assertions)**：严禁引入运行时 Mock 框架（坚持 `Fake over Mock`），严禁通过删除用例、跳过测试或放宽断言来换取门禁通过；
-- **收口实测门禁**：所有改动完成后必须在最终代码上实跑 `./kmp check --fast`（覆盖 `shellcheck`、`verifyArchitecture`、`spotlessCheck`、`detekt`、`swiftlint --strict`）；涉及发版、编译、Kit 装配与跨端接口变更时必须完整通过 `./kmp check --full`（含 Android `lintDevDebug`/`lintProdRelease`/R8 与 iOS `xcodebuild test`/`build`）。
+- **收口实测门禁**：所有改动完成后必须在最终代码上实跑 `./kmp check --fast`（覆盖 `shellcheck`、`scripts/tests/` Python 单测、Config Studio JS 校验、`verifyArchitecture`、`spotlessCheck`、`detekt`、`swiftlint --strict`）；涉及发版、编译、Kit 装配与跨端接口变更时必须完整通过 `./kmp check --full`（含 Android `lintDevDebug`/`lintProdRelease`/R8 与 iOS `xcodebuild test`/`build`）。
 - **质量体系文档**：完整 L1~L6 门禁边界与排障见 `docs/sop/0002-code-quality-and-static-analysis.md`。
