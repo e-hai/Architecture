@@ -66,14 +66,27 @@ if [ ! -f "$SRC_PLIST" ]; then
 fi
 
 # 4. 校验 plist 内 BUNDLE_ID 有效性及与当前构建包名一致性（防 Dev <-> Prod 放反）
-PLIST_BUDDY="/usr/libexec/PlistBuddy"
-if [ ! -x "$PLIST_BUDDY" ]; then
+PLIST_BUDDY="${PLIST_BUDDY_BIN:-/usr/libexec/PlistBuddy}"
+if [ -x "$PLIST_BUDDY" ]; then
+    PLIST_BUNDLE_ID=$("$PLIST_BUDDY" -c "Print :BUNDLE_ID" "$SRC_PLIST" 2>/dev/null || true)
+elif command -v python3 >/dev/null 2>&1; then
+    PLIST_BUNDLE_ID=$(
+        python3 - "$SRC_PLIST" <<'PY' 2>/dev/null || true
+import plistlib
+import sys
+
+with open(sys.argv[1], "rb") as fp:
+    data = plistlib.load(fp)
+val = data.get("BUNDLE_ID") if isinstance(data, dict) else None
+if isinstance(val, str):
+    print(val)
+PY
+    )
+else
     cleanup_dest_and_invalidate
-    echo "error: [Firebase-iOS 校验失败] 未找到可执行工具 ${PLIST_BUDDY}，无法校检 GoogleService-Info.plist。" >&2
+    echo "error: [Firebase-iOS 校验失败] 未找到可执行工具 ${PLIST_BUDDY} 或 python3，无法校检 GoogleService-Info.plist。" >&2
     exit 1
 fi
-
-PLIST_BUNDLE_ID=$("$PLIST_BUDDY" -c "Print :BUNDLE_ID" "$SRC_PLIST" 2>/dev/null || true)
 if [ -z "$PLIST_BUNDLE_ID" ]; then
     cleanup_dest_and_invalidate
     echo "error: [Firebase-iOS 校验失败] Config/Firebase/${ENV_DIR}/GoogleService-Info.plist 缺少有效的 BUNDLE_ID 字段，请检查文件是否完整。" >&2

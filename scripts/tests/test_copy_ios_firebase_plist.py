@@ -60,6 +60,7 @@ class CopyIosFirebasePlistTest(unittest.TestCase):
         self,
         configuration: str = "Debug",
         product_bundle_id: str = "com.acme.app.dev",
+        extra_env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         self.assertTrue(SCRIPT_PATH.is_file(), f"缺少脚本: {SCRIPT_PATH}")
         env = dict(os.environ)
@@ -72,6 +73,8 @@ class CopyIosFirebasePlistTest(unittest.TestCase):
                 "UNLOCALIZED_RESOURCES_FOLDER_PATH": self.resources_subpath,
             }
         )
+        if extra_env:
+            env.update(extra_env)
         return subprocess.run(
             ["bash", str(SCRIPT_PATH)],
             env=env,
@@ -154,6 +157,32 @@ class CopyIosFirebasePlistTest(unittest.TestCase):
         combined = proc.stdout + proc.stderr
         self.assertIn("error:", combined)
         self.assertIn("Sources/", combined)
+
+    def test_python_plistlib_fallback_when_plistbuddy_unavailable(self) -> None:
+        dev_src = self.src_root / "Config" / "Firebase" / "Dev" / "GoogleService-Info.plist"
+        _write_plist(dev_src, "com.acme.app.dev", "1:333:ios:linux")
+        dest_plist = self.bundle_dir / "GoogleService-Info.plist"
+        code_sig_dir = self._create_fake_codesig()
+
+        linux_env = {"PLIST_BUDDY_BIN": "/nonexistent/PlistBuddy"}
+        ok_proc = self._run_script(
+            configuration="Debug",
+            product_bundle_id="com.acme.app.dev",
+            extra_env=linux_env,
+        )
+        self.assertEqual(ok_proc.returncode, 0, msg=ok_proc.stdout + ok_proc.stderr)
+        self.assertTrue(dest_plist.is_file())
+        self.assertFalse(code_sig_dir.exists(), "无 PlistBuddy 时兜底拷贝也应失效 _CodeSignature")
+
+        _write_plist(dev_src, "com.other.app.dev", "1:444:ios:mismatch")
+        bad_proc = self._run_script(
+            configuration="Debug",
+            product_bundle_id="com.acme.app.dev",
+            extra_env=linux_env,
+        )
+        self.assertNotEqual(bad_proc.returncode, 0)
+        self.assertIn("BUNDLE_ID", bad_proc.stdout + bad_proc.stderr)
+        self.assertFalse(dest_plist.exists(), "无 PlistBuddy 且 BUNDLE_ID 不匹配时也必须清理旧残留")
 
 
 if __name__ == "__main__":
