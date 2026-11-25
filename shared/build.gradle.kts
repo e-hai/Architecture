@@ -18,6 +18,7 @@ kotlin {
             binaryOption("bundleId", "xxx.yyy.zzz.shared")
             isStatic = true
             export(project(":core:model"))
+            export(project(":core:ui"))
             // [KIT_EXPORTS_START]
             // [KIT:log:START]
             export(project(":core:log"))
@@ -75,7 +76,7 @@ kotlin {
                 implementation(project(":core:network"))
                 implementation(project(":core:database"))
                 implementation(project(":core:datastore"))
-                implementation(project(":core:ui"))
+                api(project(":core:ui"))
 
                 // [KIT_APIS_START]
                 // [KIT:log:START]

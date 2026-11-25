@@ -60,6 +60,10 @@
 - **Core 模块直接包装**：`:core:pag` 直接在 `commonMain` 中依赖 `io.github.e-hai:pagkit`，统一暴露 `CorePag` 门面并在 `PagComponents.kt` re-export 导出 CMP 动效组件（`PagView`, `PagImageView`, `rememberPagState`, `PagSource`, `PagState`）；上层业务严禁跳过 `:core:pag` 直接 `import io.github.pagkit.*`；
 - **宿主无需声明 Delegate**：宿主无需手写视图桥接代码，仅在 `NativeKitBootstrap` 中处理底层原生运行时初始化（Android 端 `PagKitAndroid.init(appContext)`；iOS 端 Xcode 通过 `iosApp/Vendor/LibPag` SPM `binaryTarget` 集成，KMP 链接通过 `scripts/hooks/ensure_libpag_xcframework.sh` 自动缓存）。
 
+#### 局部生命周期对象与多实例原生视图扩展约定（Scoped Native Objects）
+- **纯逻辑多实例局部对象**：当能力需要随页面或组件独立初始化与销毁时，全局 `*Delegate` 仅装配无状态工厂 `ScopedNativeFactory<Config, T : ScopedNativeHandle>`，每次按需 `create(config)` 产出实现 `AutoCloseable` 的隔离句柄，并通过 `ViewModel.addCloseable` 或 `:core:ui` 的 `rememberScopedNativeHandle` 绑定释放；
+- **多实例原生 UI 视图**：统一通过 `:core:ui` 中的 `NativeViewRegistry`（双端宿主在启动阶段按 `viewType` 注册原生 View 工厂）与 `NativeViewHost`（按 `(viewType, instanceKey)` 独立创建并触发 `onRelease`）承载；严禁为单个业务 Kit 破坏纯 `commonMain` 红线而自行创建 `androidMain`/`iosMain`。完整设计参见 `docs/adr/0010-scoped-native-objects-and-view-host.md`。
+
 ### 5. 依赖分发与仓库治理 (GitHub Packages Distribution)
 - **全面下线 JitPack**：所有 Kit 制品统一发布至 GitHub Packages (`https://maven.pkg.github.com/e-hai/<repoName>`)，双端依赖版本格式标准化，去除 `v` 前缀；
 - **凭证安全隔离**：Gradle 从 `~/.gradle/gradle.properties`（本地开发）或环境变量（CI/CD）安全读取 `GITHUB_TOKEN`，严禁明文入库。

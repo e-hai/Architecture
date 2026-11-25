@@ -7,6 +7,12 @@ kotlin {
     android {
         namespace = "xxx.yyy.zzz.core.ui"
     }
+
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.collections.immutable)
+        }
+    }
 }
 
 compose.resources {
