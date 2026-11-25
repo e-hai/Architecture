@@ -111,7 +111,7 @@ jobs:
   ios-build-and-test:
     name: iOS Unit Tests, SwiftLint & Prod Build (macOS)
     needs: fast-static-checks
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: read
       packages: read

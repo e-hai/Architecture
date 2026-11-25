@@ -14,7 +14,7 @@
 ---
 
 ## 2. 前置准备与权限检查 (Prerequisites)
-- [ ] macOS 14+ / Xcode 16+ / JDK 17+（CI Runner：`macos-14`）
+- [ ] macOS 14+ / Xcode 16+ / JDK 17+（CI Runner：`macos-15`）
 - [ ] 已安装本地静态分析命令行工具：
   ```bash
   brew install swiftlint shellcheck xcodegen

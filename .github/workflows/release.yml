@@ -176,7 +176,7 @@ jobs:
   ios-release-verify:
     name: iOS Prod Release Verification (macOS)
     needs: release-gate
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: read
       packages: read

@@ -85,7 +85,7 @@ flowchart TD
    - 采用 **Linux + macOS 3-Job 并行拆分架构**，并默认开启 Gradle Configuration Cache（`org.gradle.configuration-cache=true`）：
      1. `fast-static-checks`（`ubuntu-latest`）：执行 `ShellCheck`、`scripts/` Python 单测、Config Studio JS 语法检查、`verifyArchitecture`、`spotlessCheck`、`detekt`；
      2. `android-build-and-test`（`ubuntu-latest`，依赖 `fast-static-checks`）：执行 `testAndroidHostTest`、`:shared:testAndroidHostTest -PenableDebugPanel=false`、`lintDevDebug`/`assembleDevDebug` 以及临时 Keystore 校验 `:androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false`；
-     3. `ios-build-and-test`（`macos-14`，依赖 `fast-static-checks`）：执行 `iosSimulatorArm64Test`、`swiftlint --strict`、`xcodegen generate`、`xcodebuild` `iosApp-Dev` 单测与 `iosApp-Prod` 构建验证。
+     3. `ios-build-and-test`（`macos-15`，依赖 `fast-static-checks`）：执行 `iosSimulatorArm64Test`、`swiftlint --strict`、`xcodegen generate`、`xcodebuild` `iosApp-Dev` 单测与 `iosApp-Prod` 构建验证。
    - **基础读取权限**：所有 Job 均声明 `packages: read` 与 `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`，用于拉取 GitHub Packages 中的 `e-hai/*` Kit 制品；
    - **CI 正式签名验证**：CI 使用 `scripts/internal/gen_keystore.sh`（经 `./kmp keystore`）生成一次性临时 Keystore 校验 Prod R8 可打包性，不会外泄真实生产证书。
 2. **Release CD 发版工作流模板（[`.github/workflows/release.yml`](../../.github/workflows/release.yml)）**：
