@@ -43,6 +43,7 @@ public struct iOSApp: App {
     // [KIT:push:END]
 
     public init() {
+        StartupPerformanceTracker.shared.markProcessStart(platform: "ios")
         #if DEBUG
         let isDebug = true
         let appEnv: AppEnvironment = .dev
@@ -87,6 +88,7 @@ public struct iOSApp: App {
         AppBootstrap.shared.registerDeferredKitInitializer {
             _ = NativeKitBootstrap.initDeferredKits()
         }
+        StartupPerformanceTracker.shared.markStage1EssentialReady()
     }
 
     private static func makeBootstrapConfig(from info: [String: Any]?, isDebug: Bool) -> IosKitBootstrapConfig {

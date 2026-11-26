@@ -1,0 +1,23 @@
+# ART Baseline Profile（冷启动关键路径 AOT 预热规则）
+# 由 AGP 打包至 APK assets/dexopt/baseline.prof，配合 androidx.profileinstaller 自动下发至系统 ART
+
+HSPLxxx/yyy/zzz/android/MyApplication;->onCreate()V
+HSPLxxx/yyy/zzz/android/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLxxx/yyy/zzz/android/bridge/NativeKitBootstrap;->**(**)**
+HSPLxxx/yyy/zzz/shared/di/AppBootstrap;->**(**)**
+HSPLxxx/yyy/zzz/shared/performance/StartupPerformanceTracker;->**(**)**
+HSPLxxx/yyy/zzz/shared/AppKt;->App(**)**
+HSPLxxx/yyy/zzz/shared/navigation/AppNavGraphKt;->AppNavGraph(**)**
+HSPLxxx/yyy/zzz/core/ui/ThemeKt;->MyProjectTheme(**)**
+HSPLxxx/yyy/zzz/feature/home/impl/HomeScreenKt;->HomeScreen(**)**
+HSPLxxx/yyy/zzz/feature/home/impl/HomeViewModel;-><init>(**)V
+Lxxx/yyy/zzz/android/MyApplication;
+Lxxx/yyy/zzz/android/MainActivity;
+Lxxx/yyy/zzz/android/bridge/NativeKitBootstrap;
+Lxxx/yyy/zzz/shared/di/AppBootstrap;
+Lxxx/yyy/zzz/shared/performance/StartupPerformanceTracker;
+Lxxx/yyy/zzz/shared/AppKt;
+Lxxx/yyy/zzz/shared/navigation/AppNavGraphKt;
+Lxxx/yyy/zzz/core/ui/ThemeKt;
+Lxxx/yyy/zzz/feature/home/impl/HomeScreenKt;
+Lxxx/yyy/zzz/feature/home/impl/HomeViewModel;

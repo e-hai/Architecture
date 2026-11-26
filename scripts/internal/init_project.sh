@@ -256,6 +256,11 @@ find . -type f \( -name "*.kt" -o -name "*.kts" -o -name "*.xml" -o -name "*.tom
     "${SED_INPLACE[@]}" "s|KMP Architecture Release CD|KMP ${APP_NAME_COMPACT} Release CD|g" "$file"
 done
 
+if [ -f "androidApp/src/main/baselineProfiles/baseline-prof.txt" ]; then
+    "${SED_INPLACE[@]}" "s|xxx/yyy/zzz|${NEW_PATH}|g" "androidApp/src/main/baselineProfiles/baseline-prof.txt"
+    "${SED_INPLACE[@]}" "s|MyProjectTheme|${THEME_PREFIX}Theme|g" "androidApp/src/main/baselineProfiles/baseline-prof.txt"
+fi
+
 # 同步核心工程文档中的包名、插件前缀、主题名与根目录展示名（避免误改英文单词 Architecture）
 for doc_file in README.md AGENTS.md docs/ARCHITECTURE.md; do
     if [ -f "$doc_file" ]; then

@@ -7,6 +7,7 @@ import xxx.yyy.zzz.android.bridge.NativeKitBootstrap
 import xxx.yyy.zzz.core.model.AppConfig
 import xxx.yyy.zzz.core.model.AppEnvironment
 import xxx.yyy.zzz.shared.di.AppBootstrap
+import xxx.yyy.zzz.shared.performance.StartupPerformanceTracker
 
 /**
  * Android 独立宿主 Application 入口。
@@ -17,6 +18,7 @@ import xxx.yyy.zzz.shared.di.AppBootstrap
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        StartupPerformanceTracker.markProcessStart("android")
         val isDebug = BuildConfig.DEBUG
         val isDevFlavor = BuildConfig.FLAVOR == "dev"
         val env = if (isDevFlavor) AppEnvironment.DEV else AppEnvironment.PROD
@@ -57,5 +59,6 @@ class MyApplication : Application() {
         AppBootstrap.registerDeferredKitInitializer {
             NativeKitBootstrap.initDeferredKits()
         }
+        StartupPerformanceTracker.markStage1EssentialReady()
     }
 }

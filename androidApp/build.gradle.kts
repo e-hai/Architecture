@@ -294,4 +294,5 @@ dependencies {
     // [KIT_DEPENDENCIES_END]
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.profileinstaller)
 }

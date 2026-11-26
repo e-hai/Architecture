@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Python Script Unit Tests & Config Studio JS Syntax Check
         run: |
-          python3 -B -m unittest -v scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_compile_kmp_framework.py scripts/tests/test_scaffold_scripts.py
+          python3 -B -m unittest -v scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_compile_kmp_framework.py scripts/tests/test_check_artifact_size.py scripts/tests/test_scaffold_scripts.py
           if command -v node &> /dev/null && [ -f tools/config-studio/index.html ]; then
             python3 -c 'import pathlib, re, subprocess, tempfile; html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8"); m = re.search(r"<script type=\"module\">(.*)</script>", html, flags=re.S); assert m; tf = tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8"); tf.write(m.group(1)); tf.flush(); subprocess.run(["node", "--check", tf.name], check=True); tf.close()'
           fi
@@ -108,6 +108,16 @@ jobs:
           PROD_KEY_PASSWORD=ci_keystore_pass_123 \
           ./gradlew :androidApp:lintProdRelease :androidApp:assembleProdRelease -PenableDebugPanel=false
 
+      - name: Verify Baseline Profile & Prod APK Size Gate
+        run: |
+          PROD_APK="androidApp/build/outputs/apk/prod/release/androidApp-prod-release.apk"
+          unzip -l "$PROD_APK" | grep -q "assets/dexopt/baseline.prof"
+          ./scripts/hooks/check_artifact_size.sh \
+            --platform android \
+            --artifact "$PROD_APK" \
+            --warn-mb 65 \
+            --fail-mb 85
+
   ios-build-and-test:
     name: iOS Unit Tests, SwiftLint & Prod Build (macOS)
     needs: fast-static-checks
@@ -152,4 +162,9 @@ jobs:
             exit 1
           fi
           xcodebuild -project iosApp.xcodeproj -scheme iosApp-Dev -destination "id=${SIM_UDID}" IPHONEOS_DEPLOYMENT_TARGET=17.0 CODE_SIGNING_ALLOWED=NO test
-          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Prod -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=YES IPHONEOS_DEPLOYMENT_TARGET=17.0 CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp-Prod -destination 'generic/platform=iOS Simulator' -derivedDataPath "${RUNNER_TEMP}/iosAppProdDerivedData" ARCHS=arm64 ONLY_ACTIVE_ARCH=YES IPHONEOS_DEPLOYMENT_TARGET=17.0 CODE_SIGNING_ALLOWED=NO build
+          ../scripts/hooks/check_artifact_size.sh \
+            --platform ios \
+            --artifact "${RUNNER_TEMP}/iosAppProdDerivedData/Build/Products/Release-iphonesimulator/iosApp.app" \
+            --warn-mb 80 \
+            --fail-mb 105

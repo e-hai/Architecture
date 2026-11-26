@@ -30,6 +30,7 @@ import xxx.yyy.zzz.shared.di.AppBootstrap
 import xxx.yyy.zzz.shared.navigation.AppNavGraph
 import xxx.yyy.zzz.shared.navigation.defaultStartKey
 import xxx.yyy.zzz.shared.navigation.defaultTopLevelKeys
+import xxx.yyy.zzz.shared.performance.StartupPerformanceTracker
 
 /**
  * 跨平台应用 Compose 根入口视图。
@@ -46,6 +47,9 @@ fun App(
         LaunchedEffect(Unit) {
             AppBootstrap.doInitDeferredKits()
         }
+    }
+    LaunchedEffect(Unit) {
+        StartupPerformanceTracker.markFirstFrameRendered()
     }
     MyProjectTheme {
         Scaffold(

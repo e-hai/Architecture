@@ -55,6 +55,10 @@ flowchart TD
 1. **Gradle 并行、缓存与 K/N 静态缓存**：[`gradle.properties`](../../gradle.properties) 统一开启 `org.gradle.parallel=true`、`org.gradle.caching=true`、`org.gradle.configuration-cache=true`、`org.gradle.configuration-cache.parallel=true`、`kotlin.incremental=true` 与 `kotlin.incremental.multiplatform=true`（Kotlin `2.3.20+` 默认启用 Kotlin/Native 静态缓存，已移除废弃的 `kotlin.native.cacheKind` 属性）。
 2. **Xcode Swift-Only 改动毫秒级跳过 Gradle**：[`iosApp/project.yml`](../../iosApp/project.yml) 的 `Compile KMP Framework` Phase 调用 [`scripts/hooks/compile_kmp_framework.sh`](../../scripts/hooks/compile_kmp_framework.sh)，按 `(CONFIGURATION, SDK_NAME, ARCHS, enableDebugPanel)` 与源码/资源/构建脚本指纹比对决定是否跳过 `:shared:embedAndSignAppleFrameworkForXcode`。
 3. **Debug 单架构与轻量符号**：[`iosApp/project.yml`](../../iosApp/project.yml) 将 `ONLY_ACTIVE_ARCH: YES` 与 `DEBUG_INFORMATION_FORMAT: dwarf` 下沉至 `Debug`，避免日常本地调试生成耗时 `dSYM`；`Release` 保持 `ONLY_ACTIVE_ARCH: NO` 与 `dwarf-with-dsym`。
+4. **双端冷启动性能与包体积基线守护**：
+   - **冷启动耗时追踪**：[`StartupPerformanceTracker.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/performance/StartupPerformanceTracker.kt) 在 Android `MyApplication.onCreate` / iOS `iOSApp.init` 起点、Stage 1 完成（`stage1_ms`）与 CMP 首帧渲染（`ttid_ms`）埋点上报 `AnalyticsEvents.App.COLD_START` 至 `CoreAnalytics`；
+   - **Android Baseline Profile**：[`baseline-prof.txt`](../../androidApp/src/main/baselineProfiles/baseline-prof.txt) 配合 `androidx.profileinstaller` 编译生成 APK 内 `assets/dexopt/baseline.prof`，加速冷启动热点类/Compose 首帧 JIT/AOT 预热；
+   - **CI 包体积阈值门禁**：[`check_artifact_size.sh`](../../scripts/hooks/check_artifact_size.sh) 在 CI 自动采集包体并写入 GitHub Step Summary（当前实测基线：`androidApp-prod-release.apk` 约 `51.01 MB`，`warn=65 MB / fail=85 MB`；`Release-iphonesimulator/iosApp.app` 约 `63.47 MB`，`warn=80 MB / fail=105 MB`）。
 
 ### 步骤二：强制重编 KMP Framework（如外部环境变量或 Xcode 配置手动变动）
 ```bash

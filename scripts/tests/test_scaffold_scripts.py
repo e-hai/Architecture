@@ -220,11 +220,16 @@ class ScaffoldScriptsRegressionTest(unittest.TestCase):
             dev_xcconfig = (repo_dir / "config/dev.xcconfig").read_text(encoding="utf-8")
             prod_xcconfig = (repo_dir / "config/prod.xcconfig").read_text(encoding="utf-8")
             proguard = (repo_dir / "androidApp/proguard-rules.pro").read_text(encoding="utf-8")
+            baseline_prof = (repo_dir / "androidApp/src/main/baselineProfiles/baseline-prof.txt").read_text(
+                encoding="utf-8",
+            )
             ci_yml = (repo_dir / ".github/workflows/ci.yml").read_text(encoding="utf-8")
             release_yml = (repo_dir / ".github/workflows/release.yml").read_text(encoding="utf-8")
             self.assertIn("com.acme.demo", dev_xcconfig)
             self.assertIn("com.acme.demo", prod_xcconfig)
             self.assertIn("com.acme.demo.core.navigation.NavKey", proguard)
+            self.assertIn("com/acme/demo/android/MyApplication", baseline_prof)
+            self.assertNotIn("xxx/yyy/zzz", baseline_prof)
             self.assertIn("KMP AcmeDemo CI", ci_yml)
             self.assertIn("KMP AcmeDemo Release CD", release_yml)
 
