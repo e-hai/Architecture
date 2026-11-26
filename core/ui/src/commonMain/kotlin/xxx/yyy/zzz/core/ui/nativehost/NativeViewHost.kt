@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -94,6 +95,7 @@ private fun DefaultNativeViewFallback(
     Box(
         modifier =
             modifier
+                .testTag("native_view_fallback")
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(12.dp),
         contentAlignment = Alignment.Center,

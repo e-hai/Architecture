@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -43,16 +44,21 @@ fun HomeScreen(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.testTag("home_title"),
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(Res.string.sub_title),
             style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.testTag("home_subtitle"),
         )
 
         if (uiState.isDebug && onNavigateToDebug != null) {
             Spacer(modifier = Modifier.height(24.dp))
-            OutlinedButton(onClick = onNavigateToDebug) {
+            OutlinedButton(
+                onClick = onNavigateToDebug,
+                modifier = Modifier.testTag("home_open_debug_button"),
+            ) {
                 Text("🛠️ " + stringResource(Res.string.open_debug_console))
             }
         }

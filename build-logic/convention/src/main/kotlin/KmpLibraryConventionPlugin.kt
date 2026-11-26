@@ -25,10 +25,12 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
             configureDetekt()
 
             extensions.configure<KotlinMultiplatformExtension> {
-                // 使用 AGP 9.0 原生 KMP 库扩展配置单变体 Android Target，并开启 JVM 单元测试支持
+                // 使用 AGP 9.0 原生 KMP 库扩展配置单变体 Android Target，并开启 JVM 单元测试与 Robolectric 资源支持
                 (this as ExtensionAware).extensions.configure<KotlinMultiplatformAndroidLibraryTarget>("android") {
                     configureKotlinAndroid(this)
-                    withHostTest {}
+                    withHostTest {
+                        isIncludeAndroidResources = true
+                    }
                 }
                 iosArm64()
                 iosSimulatorArm64()

@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -109,7 +110,7 @@ fun DebugScreen(
     }
 
     LazyColumn(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier.fillMaxSize().padding(16.dp).testTag("debug_lazy_list"),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { DebugTopBar(onBack = onBack, onClearLogs = { consoleLogs.clear() }) }
@@ -124,6 +125,7 @@ fun DebugScreen(
                         category = category,
                         sections = categorySections.toImmutableList(),
                         emitLog = ::emitLog,
+                        modifier = Modifier.testTag("debug_category_${category.name}"),
                     )
                 }
             }
@@ -142,7 +144,10 @@ private fun DebugTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedButton(onClick = onBack) {
+        OutlinedButton(
+            onClick = onBack,
+            modifier = Modifier.testTag("debug_back_button"),
+        ) {
             Text(stringResource(Res.string.back))
         }
         Spacer(modifier = Modifier.width(8.dp))
@@ -154,7 +159,10 @@ private fun DebugTopBar(
             modifier = Modifier.weight(1f),
         )
         Spacer(modifier = Modifier.width(8.dp))
-        OutlinedButton(onClick = onClearLogs) {
+        OutlinedButton(
+            onClick = onClearLogs,
+            modifier = Modifier.testTag("debug_clear_logs_button"),
+        ) {
             Text(stringResource(Res.string.clear_log))
         }
     }
@@ -167,7 +175,7 @@ private fun DebugConsoleCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().height(180.dp),
+        modifier = modifier.fillMaxWidth().height(180.dp).testTag("debug_console_card"),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(CONSOLE_CONTAINER_COLOR)),
     ) {

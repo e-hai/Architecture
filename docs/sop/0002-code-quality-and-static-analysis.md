@@ -51,7 +51,7 @@ flowchart TD
 | **L3** | `Detekt 2.0.0-alpha.3` + `Compose Rules 0.6.8` | [`DetektConfiguration.kt`](../../build-logic/convention/src/main/kotlin/project/DetektConfiguration.kt)、[`config/detekt/detekt.yml`](../../config/detekt/detekt.yml) | 22 个模块全源集（`src/**`）圈复杂度、长函数、`GlobalCoroutineUsage`、`UnsafeCallOnNullableType`、`UnstableCollections`（配合 `ImmutableList`/`ImmutableSet`）与 Compose 最佳实践 |
 | **L4** | `Android Lint` | [`config/lint/lint.xml`](../../config/lint/lint.xml) | `lintDevDebug` & `lintProdRelease`（`warningsAsErrors = true`、`abortOnError = true`） |
 | **L5** | `verifyArchitecture` | [`ArchitectureVerificationPlugin.kt`](../../build-logic/convention/src/main/kotlin/ArchitectureVerificationPlugin.kt) | 11 大架构红线：9 大 Kit 纯 `commonMain`、双端原生 SDK 隔离、单向依赖、Fake over Mock、AGP 9.0 防回退、`doInit*` Obj-C 导出防改名、禁绕过 `CoreLog` 裸打日志、双端 Delegate 对称性、Feature 禁直引 DTO/Entity、Swift 可见 `suspend`/`throw` 强制 `@Throws` 契约 |
-| **L6** | `./kmp check` & CI | [`kmp`](../../kmp)、[`scripts/internal/check_quality.sh`](../../scripts/internal/check_quality.sh)、[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | 统一本地秒级拦截（`--fast`）与完整双端发版验证（`--full`） |
+| **L6** | `./kmp check` & CI | [`kmp`](../../kmp)、[`scripts/internal/check_quality.sh`](../../scripts/internal/check_quality.sh)、[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | 统一本地秒级拦截（`--fast`）与完整双端发版验证（`--full`），涵盖领域契约单测与双端 `runComposeUiTest` Compose UI 交互测试（Android Host Robolectric + iOS Simulator） |
 
 ---
 
@@ -73,7 +73,7 @@ flowchart TD
 
 ### 步骤三：重大重构或提审合入前（全量双端验证）
 ```bash
-# 完整执行静态门禁 + 全平台单测 + Android Dev/ProdRelease Lint & R8 APK + iOS Simulator 测试与 Prod 构建
+# 完整执行静态门禁 + 全平台单测与 Compose UI 测试（Robolectric / iOS Simulator）+ Android Dev/ProdRelease Lint & R8 APK + iOS Simulator 测试与 Prod 构建
 ./kmp check --full
 ```
 

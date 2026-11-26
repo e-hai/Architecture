@@ -10,7 +10,7 @@ import project.libsCatalog
 
 /**
  * 跨平台 Compose Multiplatform 约定插件。
- * 为 KMP 模块注入 CMP 基础依赖（Material3, Runtime, Foundation, UI, Lifecycle, Koin Compose）。
+ * 为 KMP 模块注入 CMP 基础依赖（Material3, Runtime, Foundation, UI, Lifecycle, Koin Compose）与双端 UI 测试能力。
  */
 class KmpComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -41,6 +41,15 @@ class KmpComposeConventionPlugin : Plugin<Project> {
                     implementation(libsCatalog.findLibrary("androidx-lifecycle-runtime-compose").get())
                     implementation(libsCatalog.findLibrary("koin-compose").get())
                     implementation(libsCatalog.findLibrary("koin-compose-viewmodel").get())
+                }
+
+                sourceSets.getByName("commonTest").dependencies {
+                    implementation(libsCatalog.findLibrary("jetbrains-compose-ui-test").get())
+                }
+
+                sourceSets.findByName("androidHostTest")?.dependencies {
+                    implementation(libsCatalog.findLibrary("robolectric").get())
+                    implementation(libsCatalog.findLibrary("androidx-compose-ui-test-manifest").get())
                 }
             }
         }
