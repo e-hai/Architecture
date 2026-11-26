@@ -5,14 +5,14 @@ import java.io.File
 
 /**
  * 工程架构红线自动化校验插件（L5 门禁）。
- * 挂载于根工程，提供 `./gradlew verifyArchitecture` 任务，强制守护 AGENTS.md 中的十项核心架构边界。
+ * 挂载于根工程，提供 `./gradlew verifyArchitecture` 任务，强制守护 AGENTS.md 中的十一项核心架构边界。
  */
 class ArchitectureVerificationPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.tasks.register("verifyArchitecture") {
             group = "verification"
             description =
-                "校验 KMP 三级模块化隔离、9 大原生委托 Kit 纯 commonMain 约束、Fake over Mock、AGP 9.0、Obj-C init 命名、iOS SDK 隔离、禁裸日志、Delegate 对称性与数据层边界。"
+                "校验 KMP 三级模块化隔离、9 大原生委托 Kit 纯 commonMain 约束、Fake over Mock、AGP 9.0、Obj-C init 命名、iOS SDK 隔离、禁裸日志、Delegate 对称性、数据层边界与 Swift @Throws 契约。"
 
             val rootDir = target.rootDir
             doLast {
@@ -27,6 +27,7 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
                 checkNoRawLogging(rootDir, violations)
                 checkDelegateSymmetry(rootDir, violations)
                 checkFeatureDataLayerBoundary(rootDir, violations)
+                checkSwiftThrowsContract(rootDir, violations)
 
                 if (violations.isNotEmpty()) {
                     val report = violations.joinToString(separator = "\n") { "  - $it" }
@@ -34,7 +35,7 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
                         "架构红线校验失败（发现 ${violations.size} 处违规）：\n$report",
                     )
                 }
-                logger.lifecycle("[verifyArchitecture] 全部 10 项架构红线校验通过。")
+                logger.lifecycle("[verifyArchitecture] 全部 11 项架构红线校验通过。")
             }
         }
     }
@@ -355,6 +356,142 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
         }
     }
 
+    private fun checkSwiftThrowsContract(
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val exportedModules = mutableListOf(File(rootDir, "shared"))
+        val sharedBuildFile = File(rootDir, "shared/build.gradle.kts")
+        if (sharedBuildFile.isFile) {
+            scanNonCommentLines(sharedBuildFile) { _, line ->
+                val match = EXPORT_CORE_MODULE_REGEX.find(line)
+                if (match != null) {
+                    exportedModules.add(File(rootDir, "core/${match.groupValues[1]}"))
+                }
+            }
+        }
+
+        val scanRoots =
+            exportedModules.flatMap { modDir ->
+                listOf(File(modDir, "src/commonMain"), File(modDir, "src/iosMain"))
+            }
+
+        scanRoots
+            .filter { it.isDirectory }
+            .forEach { root ->
+                root
+                    .walkTopDown()
+                    .onEnter { dir -> dir.name !in IGNORED_DIRS }
+                    .filter { file ->
+                        file.isFile &&
+                            file.name.endsWith(".kt") &&
+                            !isTestSourcePath(file.relativeTo(rootDir).path) &&
+                            !file.name.startsWith("Fake")
+                    }.forEach { file ->
+                        scanFileForSwiftThrows(file, rootDir, violations)
+                    }
+            }
+    }
+
+    private fun scanFileForSwiftThrows(
+        file: File,
+        rootDir: File,
+        violations: MutableList<String>,
+    ) {
+        val relPath = file.relativeTo(rootDir).path
+        val lines = file.readLines()
+        var inBlockComment = false
+        var pendingHasThrows = false
+        var pendingHasExempt = false
+        var trackingBody = false
+        var bodyStartDepth = 0
+        var braceDepth = 0
+        var activeFunLine = 0
+        var activeFunHasThrows = false
+        var activeFunHasExempt = false
+        var activeFunReported = false
+
+        lines.forEachIndexed { idx, rawLine ->
+            val lineNumber = idx + 1
+            var line = rawLine
+            if (inBlockComment) {
+                val endIdx = line.indexOf("*/")
+                if (endIdx < 0) return@forEachIndexed
+                inBlockComment = false
+                line = line.substring(endIdx + 2)
+            }
+            val blockStart = line.indexOf("/*")
+            if (blockStart >= 0 && !line.trimStart().startsWith("//")) {
+                val blockEnd = line.indexOf("*/", blockStart + 2)
+                if (blockEnd >= 0) {
+                    line = line.removeRange(blockStart, blockEnd + 2)
+                } else {
+                    inBlockComment = true
+                    line = line.substring(0, blockStart)
+                }
+            }
+
+            val trimmed = line.substringBefore("//").trim()
+            if (trimmed.isEmpty()) return@forEachIndexed
+
+            val depthBefore = braceDepth
+            val openCount = trimmed.count { it == '{' }
+            val closeCount = trimmed.count { it == '}' }
+            braceDepth = (braceDepth + openCount - closeCount).coerceAtLeast(0)
+
+            if (trackingBody) {
+                if (!activeFunReported &&
+                    !activeFunHasThrows &&
+                    !activeFunHasExempt &&
+                    THROW_STATEMENT_REGEX.containsMatchIn(trimmed)
+                ) {
+                    violations.add(
+                        "[Swift @Throws 违规] $relPath:$activeFunLine Swift 可见函数包含 suspend 或 throw，必须标注 @Throws(...) 防止 iOS 进程直接 abort",
+                    )
+                    activeFunReported = true
+                }
+                if (braceDepth <= bodyStartDepth) {
+                    trackingBody = false
+                }
+                return@forEachIndexed
+            }
+
+            if (trimmed.startsWith("@")) {
+                if (trimmed.contains("@Throws")) pendingHasThrows = true
+                if (trimmed.contains("SwiftThrowsExempt")) pendingHasExempt = true
+                return@forEachIndexed
+            }
+
+            if (SWIFT_VISIBLE_FUN_REGEX.containsMatchIn(trimmed)) {
+                val inlineHasThrows = pendingHasThrows || trimmed.contains("@Throws")
+                val inlineHasExempt = pendingHasExempt || trimmed.contains("SwiftThrowsExempt")
+                val isSuspend = SUSPEND_MODIFIER_REGEX.containsMatchIn(trimmed)
+                val inlineThrow = !trimmed.contains('{') && THROW_STATEMENT_REGEX.containsMatchIn(trimmed)
+
+                if ((isSuspend || inlineThrow) && !inlineHasThrows && !inlineHasExempt) {
+                    violations.add(
+                        "[Swift @Throws 违规] $relPath:$lineNumber Swift 可见函数包含 suspend 或 throw，必须标注 @Throws(...) 防止 iOS 进程直接 abort",
+                    )
+                } else if (openCount > closeCount) {
+                    trackingBody = true
+                    bodyStartDepth = depthBefore
+                    activeFunLine = lineNumber
+                    activeFunHasThrows = inlineHasThrows
+                    activeFunHasExempt = inlineHasExempt
+                    activeFunReported = false
+                }
+                pendingHasThrows = false
+                pendingHasExempt = false
+                return@forEachIndexed
+            }
+
+            if (!SWIFT_MODIFIER_ONLY_REGEX.matches(trimmed)) {
+                pendingHasThrows = false
+                pendingHasExempt = false
+            }
+        }
+    }
+
     private fun scanKotlinFiles(
         rootDir: File,
         roots: List<File>,
@@ -445,6 +582,14 @@ class ArchitectureVerificationPlugin : Plugin<Project> {
         val FORBIDDEN_ANDROID_UTIL_LOG_REGEX = Regex("""\bandroid\.util\.Log\b""")
         val FORBIDDEN_SWIFT_RAW_LOG_REGEX = Regex("""\b(?:print|NSLog)\s*\(""")
         val FORBIDDEN_FEATURE_DATA_IMPORT_REGEX = Regex("""^import\s+\S*\.(dto|entity)\.""")
+        val EXPORT_CORE_MODULE_REGEX = Regex("""export\(\s*project\(\s*":core:([a-zA-Z0-9_-]+)"\s*\)\s*\)""")
+        val SWIFT_VISIBLE_FUN_REGEX =
+            Regex(
+                """^(?!private\s)(?:(?:public|internal|override|suspend|inline|open|abstract|expect|actual|operator|infix|tailrec)\s+)*fun\s+""",
+            )
+        val SUSPEND_MODIFIER_REGEX = Regex("""\bsuspend\s+fun\b""")
+        val THROW_STATEMENT_REGEX = Regex("""\bthrow\s+""")
+        val SWIFT_MODIFIER_ONLY_REGEX = Regex("""^(public|internal|override|suspend|inline|open|abstract|expect|actual)\b""")
         val DELEGATE_KIT_PASCAL_NAMES =
             mapOf(
                 "log" to "Log",

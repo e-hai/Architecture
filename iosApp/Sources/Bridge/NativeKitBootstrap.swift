@@ -280,6 +280,7 @@ public final class NativeKitBootstrap: Sendable {
         // [KIT:log:END]
 
         // [KIT:crashreport:START]
+        IosCrashHook.shared.doInstall()
         if !deferCrashReport {
             _ = configureFirebaseIfAvailable()
             CoreCrashReport.shared.doInit()

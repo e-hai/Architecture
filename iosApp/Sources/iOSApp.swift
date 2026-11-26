@@ -52,59 +52,65 @@ public struct iOSApp: App {
         #endif
 
         let info = Bundle.main.infoDictionary
-        let admobAppId = info?["GADApplicationIdentifier"] as? String ?? ""
-        let admobBannerId = info?["ADMOB_BANNER_ID"] as? String ?? ""
-        let admobInterstitialId = info?["ADMOB_INTERSTITIAL_ID"] as? String ?? ""
-        let admobRewardedId = info?["ADMOB_REWARDED_ID"] as? String ?? ""
-        let admobAppOpenId = info?["ADMOB_APP_OPEN_ID"] as? String ?? ""
-        let baseUrl = Self.resolveBaseUrl(from: info)
-        let appsFlyerKey = info?["APPSFLYER_KEY"] as? String ?? ""
-        let appsFlyerAppId = info?["APPSFLYER_APP_ID"] as? String ?? ""
-        let paySubsIds = info?["PAY_SUBS_IDS"] as? String ?? ""
-        let payConsumableIds = info?["PAY_CONSUMABLE_IDS"] as? String ?? ""
-        let payNonConsumableIds = info?["PAY_NON_CONSUMABLE_IDS"] as? String ?? ""
-        let analyticsDebugRaw = info?["ANALYTICS_DEBUG_MODE"] as? String ?? ""
-        let analyticsDebug = analyticsDebugRaw.isEmpty
-            ? isDebug
-            : (analyticsDebugRaw.caseInsensitiveCompare("YES") == .orderedSame || analyticsDebugRaw == "true")
+        // 1. Stage 1: 冷启动全量装配 9 大 Swift Delegate + 仅激活本地轻量必需 Kit
+        NativeKitBootstrap.initEssentialKits(config: Self.makeBootstrapConfig(from: info, isDebug: isDebug))
+
+        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并绑定 Stage 2 延迟初始化器
         let httpLogRaw = info?["ENABLE_HTTP_LOG"] as? String ?? ""
         let enableHttpLog = httpLogRaw.isEmpty
             ? isDebug
             : (httpLogRaw.caseInsensitiveCompare("YES") == .orderedSame || httpLogRaw == "true")
-        let fetchIntervalRaw = info?["REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS"] as? String ?? ""
-        let remoteConfigMinFetchInterval = Double(fetchIntervalRaw)
-
-        // 1. Stage 1: 冷启动全量装配 9 大 Swift Delegate + 仅激活本地轻量必需 Kit
-        let bootstrapConfig = IosKitBootstrapConfig(
-            admobAppId: admobAppId,
-            admobBannerId: admobBannerId,
-            admobInterstitialId: admobInterstitialId,
-            admobRewardedId: admobRewardedId,
-            admobAppOpenId: admobAppOpenId,
-            appsFlyerKey: appsFlyerKey,
-            appsFlyerAppId: appsFlyerAppId,
-            paySubsIds: paySubsIds,
-            payConsumableIds: payConsumableIds,
-            payNonConsumableIds: payNonConsumableIds,
-            analyticsDebug: analyticsDebug,
-            remoteConfigMinFetchIntervalSeconds: remoteConfigMinFetchInterval,
-            debug: isDebug
-        )
-        NativeKitBootstrap.initEssentialKits(config: bootstrapConfig)
-
-        // 2. 初始化已实现跨平台的纯 KMP 库 (Koin: Room / DataStore / Ktor) 并绑定 Stage 2 延迟初始化器
         let config = AppConfig(
             env: appEnv,
             isDebug: isDebug,
             enableHttpLog: enableHttpLog,
-            baseUrl: baseUrl,
+            baseUrl: Self.resolveBaseUrl(from: info),
             versionName: info?["CFBundleShortVersionString"] as? String ?? "1.0.0",
             versionCode: Int32(info?["CFBundleVersion"] as? String ?? "1") ?? 1
         )
-        AppBootstrap.shared.doInitKoin(appConfig: config)
+        do {
+            try AppBootstrap.shared.doInitKoin(appConfig: config)
+        } catch {
+            // [KIT:log:START]
+            CoreLog.shared.e(
+                tag: LogTags.shared.APP,
+                message: "[KMP-iOS] AppBootstrap.doInitKoin failed: \(error.localizedDescription)",
+                throwable: nil
+            )
+            // [KIT:log:END]
+            // [KIT:crashreport:START]
+            CoreCrashReport.shared.log(
+                message: "[KMP-iOS] AppBootstrap.doInitKoin failed: \(error.localizedDescription)"
+            )
+            // [KIT:crashreport:END]
+        }
         AppBootstrap.shared.registerDeferredKitInitializer {
             _ = NativeKitBootstrap.initDeferredKits()
         }
+    }
+
+    private static func makeBootstrapConfig(from info: [String: Any]?, isDebug: Bool) -> IosKitBootstrapConfig {
+        let analyticsDebugRaw = info?["ANALYTICS_DEBUG_MODE"] as? String ?? ""
+        let analyticsDebug = analyticsDebugRaw.isEmpty
+            ? isDebug
+            : (analyticsDebugRaw.caseInsensitiveCompare("YES") == .orderedSame || analyticsDebugRaw == "true")
+        let fetchIntervalRaw = info?["REMOTE_CONFIG_MIN_FETCH_INTERVAL_SECONDS"] as? String ?? ""
+
+        return IosKitBootstrapConfig(
+            admobAppId: info?["GADApplicationIdentifier"] as? String ?? "",
+            admobBannerId: info?["ADMOB_BANNER_ID"] as? String ?? "",
+            admobInterstitialId: info?["ADMOB_INTERSTITIAL_ID"] as? String ?? "",
+            admobRewardedId: info?["ADMOB_REWARDED_ID"] as? String ?? "",
+            admobAppOpenId: info?["ADMOB_APP_OPEN_ID"] as? String ?? "",
+            appsFlyerKey: info?["APPSFLYER_KEY"] as? String ?? "",
+            appsFlyerAppId: info?["APPSFLYER_APP_ID"] as? String ?? "",
+            paySubsIds: info?["PAY_SUBS_IDS"] as? String ?? "",
+            payConsumableIds: info?["PAY_CONSUMABLE_IDS"] as? String ?? "",
+            payNonConsumableIds: info?["PAY_NON_CONSUMABLE_IDS"] as? String ?? "",
+            analyticsDebug: analyticsDebug,
+            remoteConfigMinFetchIntervalSeconds: Double(fetchIntervalRaw),
+            debug: isDebug
+        )
     }
 
     private static func resolveBaseUrl(from info: [String: Any]?) -> String {

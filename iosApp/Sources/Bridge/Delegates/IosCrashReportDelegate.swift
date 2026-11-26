@@ -25,10 +25,17 @@ internal final class IosCrashReportDelegate: NSObject, CrashReportDelegate {
     }
 
     func recordException(throwable: KotlinThrowable) {
+        let exceptionType = IosCrashHook.shared.exceptionTypeName(throwable: throwable)
+        let stackTrace = IosCrashHook.shared.formatStackTrace(throwable: throwable)
+        CrashReport.setCustomKey("kotlin_exception_type", value: exceptionType)
+        CrashReport.log("[KotlinException] \(stackTrace)")
         let error = NSError(
-            domain: "KotlinThrowable",
+            domain: exceptionType,
             code: -1,
-            userInfo: [NSLocalizedDescriptionKey: throwable.message ?? "Kotlin Exception"]
+            userInfo: [
+                NSLocalizedDescriptionKey: throwable.message ?? exceptionType,
+                NSLocalizedFailureReasonErrorKey: stackTrace
+            ]
         )
         CrashReport.recordException(error)
     }

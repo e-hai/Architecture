@@ -33,6 +33,7 @@ object AppBootstrap {
      * @param appConfig 宿主传入的应用运行时环境配置
      * @param platformDeclaration 平台特定注入声明（如 Android 注入 androidContext）
      */
+    @Throws(Throwable::class)
     fun doInitKoin(
         appConfig: AppConfig = AppConfig(),
         platformDeclaration: KoinAppDeclaration = {},
@@ -62,11 +63,13 @@ object AppBootstrap {
     /**
      * 重载方法：使用默认配置启动。
      */
+    @Throws(Throwable::class)
     fun doInitKoin() = doInitKoin(AppConfig()) {}
 
     /**
      * 供 iOS 等宿主传入配置启动。
      */
+    @Throws(Throwable::class)
     fun doInitKoin(appConfig: AppConfig) = doInitKoin(appConfig) {}
 
     /**

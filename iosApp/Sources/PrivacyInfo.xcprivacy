@@ -2,18 +2,73 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   iOS App 隐私清单（Privacy Manifest），满足 App Store Connect ITMS-91053 / Required Reason API 合规要求。
-  注意：上线前请结合业务实际数据采集情况与 Xcode Archive 生成的 Privacy Report 核对：
-  1. 若业务在生产环境开启 IDFA 追踪，请按 Apple 规范评估更新 NSPrivacyTracking 与 NSPrivacyTrackingDomains；
-  2. 若应用本身额外采集设备/账号/行为数据，请在 NSPrivacyCollectedDataTypes 中如实补充。
+  与 iosApp/project.yml 中的 NSUserTrackingUsageDescription（ATT 弹窗）、AdMob（AdsKit）及 AppsFlyer（MmpKit）保持一致：
+  1. 当前默认启用跨应用广告/归因追踪声明（NSPrivacyTracking = true），若后续通过 ./kmp kit remove 移除 ads/mmp 且不再使用 IDFA，可将 NSPrivacyTracking 改回 false；
+  2. 若应用通过独立后端域名进行第一方追踪，请将其补充至 NSPrivacyTrackingDomains；
+  3. 提交审核前仍需结合 Xcode Archive 生成的 Privacy Report 核对业务侧新增采集项。
 -->
 <plist version="1.0">
 <dict>
 	<key>NSPrivacyTracking</key>
-	<false/>
+	<true/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 	<key>NSPrivacyCollectedDataTypes</key>
-	<array/>
+	<array>
+		<!-- Firebase Crashlytics 崩溃堆栈与诊断数据 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCrashData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!-- Firebase Analytics / ABTesting 行为交互分析数据 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<!-- AppsFlyer / AdMob 设备标识（IDFV/IDFA，受 ATT 授权控制） -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeDeviceID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<!-- AdMob 广告展示与投放归因数据 -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeAdvertisingData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<!-- App Preferences / 原生 SDK 读取本应用内 UserDefaults（理由代码 CA92.1） -->
@@ -32,6 +87,24 @@
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
 				<string>C617.1</string>
+			</array>
+		</dict>
+		<!-- Crashlytics / 性能采样及 K/N 运行时读取系统启动耗时（理由代码 35F9.1） -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>35F9.1</string>
+			</array>
+		</dict>
+		<!-- 视频缓存 / SQLite / Crashlytics 检查磁盘可用空间（理由代码 E174.1） -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>E174.1</string>
 			</array>
 		</dict>
 	</array>

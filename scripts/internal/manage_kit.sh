@@ -117,6 +117,10 @@ cmd_remove() {
     strip_kit_block "shared/build.gradle.kts" "$KIT"
     strip_kit_block "shared/src/commonMain/kotlin/${PKG_PATH}/shared/App.kt" "$KIT"
     strip_kit_block "shared/src/commonTest/kotlin/${PKG_PATH}/shared/AppBootstrapTest.kt" "$KIT"
+    strip_kit_block "shared/src/iosMain/kotlin/${PKG_PATH}/shared/crash/IosCrashHook.kt" "$KIT"
+    if [ "$KIT" = "crashreport" ]; then
+        rm -f "shared/src/iosTest/kotlin/${PKG_PATH}/shared/crash/IosCrashHookTest.kt"
+    fi
     strip_kit_block "androidApp/build.gradle.kts" "$KIT"
     strip_kit_block "androidApp/proguard-rules.pro" "$KIT"
     if [ -f "features/debug/impl/build.gradle.kts" ]; then

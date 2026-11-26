@@ -188,6 +188,12 @@ targets:
         script: |
           "${SRCROOT}/../scripts/hooks/copy_ios_firebase_plist.sh"
         basedOnDependencyAnalysis: false
+      # [KIT:crashreport:START]
+      - name: Upload Crashlytics dSYM
+        script: |
+          "${SRCROOT}/../scripts/hooks/upload_ios_dsym.sh"
+        basedOnDependencyAnalysis: false
+      # [KIT:crashreport:END]
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -209,6 +215,7 @@ targets:
           ENABLE_TESTABILITY: YES
         Release:
           CODE_SIGN_IDENTITY: "Apple Distribution"
+          DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
           EXCLUDED_SOURCE_FILE_NAMES: like.pag
 
   iosAppTests:
