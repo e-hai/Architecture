@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Python Script Unit Tests & Config Studio JS Syntax Check
         run: |
-          python3 -B -m unittest -v scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_scaffold_scripts.py
+          python3 -B -m unittest -v scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_compile_kmp_framework.py scripts/tests/test_scaffold_scripts.py
           if command -v node &> /dev/null && [ -f tools/config-studio/index.html ]; then
             python3 -c 'import pathlib, re, subprocess, tempfile; html = pathlib.Path("tools/config-studio/index.html").read_text(encoding="utf-8"); m = re.search(r"<script type=\"module\">(.*)</script>", html, flags=re.S); assert m; tf = tempfile.NamedTemporaryFile(suffix=".mjs", mode="w", encoding="utf-8"); tf.write(m.group(1)); tf.flush(); subprocess.run(["node", "--check", tf.name], check=True); tf.close()'
           fi

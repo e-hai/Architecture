@@ -15,6 +15,7 @@
 | **SOP 0004** | [业务特性模块开发、Kit 热插拔与自定义新 Kit 接入指南](./0004-feature-and-kit-lifecycle.md) | 日常开发与模块演进 | [`kmp`](../../kmp) (`feature` / `kit`)、[`scripts/internal/manage_kit.sh`](../../scripts/internal/manage_kit.sh) |
 | **SOP 0005** | [商业化三方 SDK 配置与隐私合规分阶段激活指南](./0005-third-party-sdks-and-privacy-compliance.md) | 商业化接入与合规 | [`config/dev.xcconfig`](../../config/dev.xcconfig)、[`iosApp/Sources/PrivacyInfo.xcprivacy`](../../iosApp/Sources/PrivacyInfo.xcprivacy)、[`AppBootstrap.kt`](../../shared/src/commonMain/kotlin/xxx/yyy/zzz/shared/di/AppBootstrap.kt) |
 | **SOP 0006** | [双端正式打包、商店提审与 CI/CD 交付标准指南](./0006-release-and-cicd-delivery.md) | 封板打包与商店上架 | [`androidApp/proguard-rules.pro`](../../androidApp/proguard-rules.pro)、[`iosApp/project.yml`](../../iosApp/project.yml)、[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) |
+| **SOP 0007** | [构建加速架构与工具链版本联动升级矩阵](./0007-build-performance-and-version-upgrade-matrix.md) | 构建提速与版本升级 | [`gradle.properties`](../../gradle.properties)、[`gradle/libs.versions.toml`](../../gradle/libs.versions.toml)、[`compile_kmp_framework.sh`](../../scripts/hooks/compile_kmp_framework.sh) |
 
 ---
 
@@ -27,6 +28,7 @@ flowchart LR
     S2 --> S1["4. 双端正式签名\nSOP 0001"]
     S1 --> S5["5. 三方与合规接入\nSOP 0005"]
     S5 --> S6["6. 打包提审与 CI/CD\nSOP 0006"]
+    S6 --> S7["7. 构建优化与版本升级\nSOP 0007"]
 ```
 
 ---

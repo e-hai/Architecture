@@ -46,7 +46,7 @@ run_fast_checks() {
 
     echo -e "${YELLOW}[2/4] L1 + L2 Python 脚本单测与 Config Studio JS 语法校验...${NC}"
     require_cmd python3 "Xcode Command Line Tools / brew install python"
-    python3 -B -m unittest scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_scaffold_scripts.py
+    python3 -B -m unittest scripts/tests/test_config_studio.py scripts/tests/test_copy_ios_firebase_plist.py scripts/tests/test_upload_ios_dsym.py scripts/tests/test_compile_kmp_framework.py scripts/tests/test_scaffold_scripts.py
     if command -v node >/dev/null 2>&1 && [ -f tools/config-studio/index.html ]; then
         python3 - <<'PY'
 import pathlib, re, subprocess, tempfile

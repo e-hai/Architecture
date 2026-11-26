@@ -176,12 +176,9 @@ targets:
         basedOnDependencyAnalysis: false
       - name: Compile KMP Framework
         script: |
-          cd "$SRCROOT/.."
-          ENABLE_DEBUG_FLAG="true"
-          if [ "$CONFIGURATION" = "Release" ]; then
-            ENABLE_DEBUG_FLAG="false"
-          fi
-          ./gradlew :shared:embedAndSignAppleFrameworkForXcode -PenableDebugPanel="$ENABLE_DEBUG_FLAG"
+          "${SRCROOT}/../scripts/hooks/compile_kmp_framework.sh"
+        outputFiles:
+          - "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/Shared.framework/Shared"
         basedOnDependencyAnalysis: false
     postBuildScripts:
       - name: Copy Environment Firebase Plist
@@ -200,7 +197,6 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         ENABLE_USER_SCRIPT_SANDBOXING: "NO"
-        ONLY_ACTIVE_ARCH: YES
         SWIFT_TREAT_WARNINGS_AS_ERRORS: "YES"
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
@@ -212,11 +208,14 @@ targets:
       configs:
         Debug:
           CODE_SIGN_IDENTITY: "Apple Development"
+          DEBUG_INFORMATION_FORMAT: dwarf
           ENABLE_TESTABILITY: YES
+          ONLY_ACTIVE_ARCH: YES
         Release:
           CODE_SIGN_IDENTITY: "Apple Distribution"
           DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
           EXCLUDED_SOURCE_FILE_NAMES: like.pag
+          ONLY_ACTIVE_ARCH: NO
 
   iosAppTests:
     type: bundle.unit-test
